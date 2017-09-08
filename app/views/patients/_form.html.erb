@@ -1,0 +1,54 @@
+<%= form_with(model: patient, local: true) do |form| %>
+  <% if patient.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(patient.errors.count, "error") %> prohibited this patient from being saved:</h2>
+
+      <ul>
+        <% patient.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= label_tag :file %>
+    <%= file_field_tag :file %>
+  </div>
+  <div class="actions">
+    <%= submit_tag 'Submit' %>
+  </div>
+  <div class="field">
+    <%= form.label :last_name %>
+    <%= form.text_field :last_name, id: :patient_last_name %>
+  </div>
+
+  <div class="field">
+    <%= form.label :first_name %>
+    <%= form.text_field :first_name, id: :patient_first_name %>
+  </div>
+
+  <div class="field">
+    <%= form.label :case_id %>
+    <%= form.number_field :case_id, id: :patient_case_id %>
+  </div>
+
+  <div class="field">
+    <%= form.label :age %>
+    <%= form.number_field :age, id: :patient_age %>
+  </div>
+
+  <div class="field">
+    <%= form.label :submitter_id %>
+    <%= form.number_field :submitter_id, id: :patient_submitter_id %>
+  </div>
+
+  <div class="field">
+    <%= form.label :publication_id %>
+    <%= form.number_field :publication_id, id: :patient_publication_id %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>
