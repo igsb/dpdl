@@ -1,6 +1,7 @@
 class Feature < ApplicationRecord
-  has_many :cases_features
-  has_many :patients, :through => :patients_features
+  has_many :patients_features 
+  has_many :patients, through: :patients_features, :dependent => :restrict_with_error
+
 
   def self.parse_json(data)
     hpo_array = Array.new
