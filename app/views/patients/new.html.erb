@@ -1,6 +1,17 @@
 <h1>New Patient</h1>
 
 <%= form_tag({:action => 'create', :patient => @patient}, :multipart => true) do %>
+  <% if @patient.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@patient.errors.count, "error") %> prohibited this patient from being saved:</h2>
+
+      <ul>
+        <% @patient.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
 
   <div class="field">
     <%= label_tag :file %>

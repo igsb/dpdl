@@ -30,13 +30,13 @@ class PatientsController < ApplicationController
     @submitter = Submitter.parse_json(data['submitter'])
     features = Feature.parse_json(data['features'])
     disorders = Disorder.parse_json(data['selected_syndromes'])
-    @patient = Patient.parse_json(data, @submitter)
-    result = @patient.save
-    PatientsFeature.add_relationship(@patient, features)
-    PatientsDisorder.add_relationship(@patient, disorders)
-
+    @patient = Patient.parse_json(data)
+    @patient.submitter = @submitter
+    @patient.features << features
+    @patient.disorders << disorders
+  
     respond_to do |format|
-      if result
+      if @patient.save
         format.html { redirect_to @patient, notice: 'Patient was successfully created.' }
         format.json { render :show, status: :created, location: @patient }
       else

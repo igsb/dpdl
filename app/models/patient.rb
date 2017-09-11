@@ -5,10 +5,12 @@ class Patient < ApplicationRecord
   has_many :patients_disorders
   has_many :disorders, :through => :patients_disorders, :dependent => :destroy
 
+  validates :case_id, :submitter_id, presence: true
+  validates :case_id, uniqueness: true
 
-  def self.parse_json(data, submitter)
+  def self.parse_json(data)
     #if Patient.where(case_id: data['case_id'])
-    new_patient = Patient.find_or_create_by(case_id: data['case_id'], age: data['age'], submitter_id: submitter.id)
+    new_patient = Patient.new(case_id: data['case_id'], age: data['age'])
 
     return new_patient
 
