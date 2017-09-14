@@ -1,13 +1,13 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  patient_id: 1
+  case_id: 1
   age: 1
   submitter_id: 1
   publication_id: 1
 
 two:
-  patient_id: 1
+  case_id: 1
   age: 1
   submitter_id: 1
   publication_id: 1

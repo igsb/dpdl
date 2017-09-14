@@ -1,0 +1,2 @@
+class DisordersScore < ApplicationRecord
+end

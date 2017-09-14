@@ -1,21 +1,64 @@
 <p id="notice"><%= notice %></p>
 
 <p>
-  <strong>Case:</strong>
-  <%= @patient.case_id %>
+<strong>Case:</strong>
+<%= @patient.case_id %>
 </p>
 
 <p>
-  <strong>Age:</strong>
-  <%= @patient.age %>
+<strong>Age:</strong>
+<%= @patient.age %>
 </p>
 
 <p>
-  <strong>Submitter:</strong>
-  <%= @patient.submitter.name %>
+<strong>Submitter:</strong>
+<%= @patient.submitter.name %>
 </p>
 
 <p>
+<strong>Diagnosed disorders:</strong>
+<br>
+<table>
+  <thead>
+    <tr>
+      <th>OMIM</th>
+      <th>Disorder</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
 
+  <tbody>
+    <% @diagnosed_disorders.each do |disorder| %>
+      <tr>
+        <td><%= disorder.disorder.disorder_id %></td>
+        <td><%= disorder.disorder.disorder_name %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+</p>
+
+<p>
+<strong>Features:</strong>
+<% @patient.features.each do |feature| %>
+  <%= feature.hpo_term %>
+<% end %>
+</p>
+<p>
+<strong>Detected disorders:</strong>
+<br>
+<% @detected_disorders.each do |disorder| %>
+  disorder: <%= disorder.disorder.disorder_name %>
+<br>
+omim: <%= disorder.disorder.disorder_id %>
+  <br>
+  <% disorder.disorders_phenotype_scores.each do |score| %>
+    <%= score.score.name %>:
+    <%= score.value %>
+    <br>
+  <% end %>
+  <br>
+<% end %>
+</p>
 <%= link_to 'Edit', edit_patient_path(@patient) %> |
 <%= link_to 'Back', patients_path %>

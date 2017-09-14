@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  disorder_id: 1
+  score_id: 1
+  has_mask: false
+
+two:
+  disorder_id: 1
+  score_id: 1
+  has_mask: false

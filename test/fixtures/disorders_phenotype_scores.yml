@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  patient_id: 1
+  score_id: 1
+  value: 1.5
+  version: MyString
+
+two:
+  patient_id: 1
+  score_id: 1
+  value: 1.5
+  version: MyString

@@ -1,4 +1,5 @@
 class PatientsController < ApplicationController
+  require "#{Rails.root}/lib/parser.rb"
   before_action :set_patient, only: [:show, :edit, :update, :destroy]
 
   # GET /patients
@@ -10,6 +11,8 @@ class PatientsController < ApplicationController
   # GET /patients/1
   # GET /patients/1.json
   def show
+    @diagnosed_disorders = @patient.get_selected_disorders 
+    @detected_disorders = @patient.get_detected_disorders 
   end
 
   # GET /patients/new
@@ -25,16 +28,15 @@ class PatientsController < ApplicationController
   # POST /patients.json
   def create
     file = params[:file].read
-
     data = JSON.parse(file)
-    @submitter = Submitter.parse_json(data['submitter'])
-    features = Feature.parse_json(data['features'])
-    disorders = Disorder.parse_json(data['selected_syndromes'])
-    @patient = Patient.parse_json(data)
-    @patient.submitter = @submitter
-    @patient.features << features
-    @patient.disorders << disorders
-  
+    ActiveRecord::Base.transaction do
+      submitter = Submitter.find_or_create_by(name:data['submitter']['user_name'], email:data['submitter']['user_email'], team:data['submitter']['team'])
+      @patient = Patient.create(case_id: data['case_id'], age: data['age'], submitter: submitter)
+      if @patient.valid?
+        @patient.parse_json(data)
+      end
+    end
+
     respond_to do |format|
       if @patient.save
         format.html { redirect_to @patient, notice: 'Patient was successfully created.' }
@@ -43,7 +45,9 @@ class PatientsController < ApplicationController
         format.html { render :new }
         format.json { render json: @patient.errors, status: :unprocessable_entity }
       end
-    end
+    end          
+
+    #end
   end
 
   # PATCH/PUT /patients/1

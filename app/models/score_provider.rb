@@ -1,0 +1,2 @@
+class ScoreProvider < ApplicationRecord
+end
