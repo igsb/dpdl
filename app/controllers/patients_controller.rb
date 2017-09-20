@@ -1,5 +1,4 @@
 class PatientsController < ApplicationController
-  require "#{Rails.root}/lib/parser.rb"
   before_action :set_patient, only: [:show, :edit, :update, :destroy]
 
   # GET /patients

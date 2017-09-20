@@ -1,0 +1,47 @@
+<h1>Searches</h1>
+
+<%= form_tag(searches_path, :method => "get", id: "search-form") do %>
+  <% if @search_list.nil? %>
+    <div id='search_form'>
+      <%= render partial: "form" , :locals => {:search_item => '', :search_type => 1}%>
+    </div>
+  <% else%>
+    <% @search_list.zip(@search_type_list) do |search_item, search_type|%>
+      <div id='search_form'>
+        <%= render partial: "form", :locals => {:search_item => search_item, :search_type => search_type} %>
+      </div>
+    <% end %>
+  <% end %>
+  <%= submit_tag "Search", :name => nil%>
+<% end %>
+<button id="add-search">+</button>
+
+<h2>Search results<h2>
+    <% if !params[:search].nil? %>
+      <h4>There are <%= @searches.length %> patients containing the term 
+        <% @search_list.zip(@search_type_list) do |search_item, search_type| %>
+          <%= SearchType.find(search_type).type_name %> <%= search_item %>
+        <% end %>
+        .</h4>
+        
+      <% @searches.each do |search| %>
+        <p>
+        Case id:<%= search.case_id%><br>
+        HPO: 
+        <% search.features.each do |feature| %>
+          <%= feature.hpo_term%>
+        <% end %>
+        <br>
+        Disorder:
+        <% search.get_selected_disorders.each do |disorder|%>
+          <tr>
+            <td><%= disorder.disorder.disorder_id %></td>
+            <td><%= disorder.disorder.disorder_name %></td>
+          </tr>
+        <% end %>
+        <br>
+        <%= link_to 'Show case', search %>
+        <br><br>
+        </p>
+      <% end %>
+    <% end %>
