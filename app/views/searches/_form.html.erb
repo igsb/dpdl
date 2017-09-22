@@ -1,5 +1,7 @@
-<div class="SearchForm", id="new_search_form">
-  <%= text_field_tag "search[]", search_item , placeholder: "Search HPO, OMIM or Case" %>
-  <%= select_tag "search_type[field][]", options_for_select(SearchType.all.map { |obj| [obj['type_name'], obj['id']] }.insert(0, "Please select"), :selected => search_type, disabled: 'Please select')%>
-  <br>
+<div class="SearchForm" id="new_search_form">
+  <div style="margin-bottom: 10px;">
+    <%= text_field_tag "search[]", search_item , placeholder: "Search HPO, OMIM or Case" ,:style => "height:25px",:style => "width:250px" %>
+    <%= select_tag "search_type[field][]", options_for_select(SearchType.all.map { |obj| [obj['type_name'], obj['id']] }.insert(0, "Please select"), :selected => search_type, disabled: 'Please select') ,:style => "height:25px"%>
+    <br>
+  </div>
 </div>

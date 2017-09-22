@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  root :to => "home#index"
+  resources :home
   resources :searches
   resources :disorders
   resources :features

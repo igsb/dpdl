@@ -4,13 +4,20 @@ class SearchesController < ApplicationController
   # GET /searches
   # GET /searches.json
   def index
+    puts params
+    has_search = false
     if params[:search]
+      puts 'search assign'
       @search_list = params[:search]
       @search_type_list = params[:search_type][:field]
+      for search_item in params[:search]
+        if !search_item.empty?
+          has_search = true
+        end
+      end
     end
     @searches = Search.all
-
-    if params[:search] and params[:search_type] 
+    if has_search
       @searches = Search.search(params[:search], params[:search_type][:field]).order("created_at DESC")
     else
       @searches = Search.all.order("created_at DESC")

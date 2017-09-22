@@ -2,7 +2,7 @@
 
 <h1>Patients</h1>
 
-<table>
+<table class='table'>
   <thead>
     <tr>
       <th>Case</th>
@@ -18,7 +18,7 @@
         <td><%= patient.submitter.name %></td>
         <td><%= link_to 'Show', patient %></td>
         <td><%= link_to 'Edit', edit_patient_path(patient) %></td>
-        <td><%= link_to 'Destroy', patient, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <td><%= link_to 'Delete', patient, method: :delete, data: { confirm: 'Are you sure?' } %></td>
       </tr>
     <% end %>
   </tbody>
