@@ -13,6 +13,11 @@
 </p>
 
 <p>
+  <strong>Name:</strong>
+  <%= @patient.first_name %>, <%= @patient.last_name %>
+</p>
+
+<p>
   <strong>Age:</strong>
   <%= @patient.age %>
 </p>
@@ -23,7 +28,7 @@
 </p>
 
 <p>
-  <strong>Diagnosed disorders:</strong>
+  <strong>Phenotypic diagnosed disorders:</strong>
   <br>
   <table class='table borderless'>
     <thead>
@@ -52,6 +57,7 @@
     <thead>
       <tr>
         <th>HPO</th>
+        <th>Description</th>
         <th colspan="3"></th>
       </tr>
     </thead>
@@ -60,6 +66,7 @@
     <% @patient.features.each do |feature| %>
       <tr>
         <td><%= feature.hpo_term %></td>
+        <td><%= feature.description %></td>
       </tr>
     <% end %>
     </tbody>
@@ -69,14 +76,20 @@
   <strong>Detected disorders:</strong>
   <br>
   <% @detected_disorders.each do |disorder| %>
-    disorder: <%= disorder.disorder.disorder_name %>
+    disorder: <strong><%= disorder.disorder.disorder_name %></strong>
     <br>
     omim: <%= disorder.disorder.disorder_id %>
     <br>
     <% disorder.disorders_phenotype_scores.each do |score| %>
-      <%= score.score.name %>:
-      <%= score.value %>
-      <br>
+      <% if score.score.name == 'pedia_score'%>
+        <strong><%= score.score.name %>:
+        <%= score.value %></strong>
+        <br>
+      <% elsif score.score.name != 'combined_score' %>
+        <%= score.score.name %>:
+        <%= score.value %>
+        <br>
+      <% end %>
     <% end %>
     <br>
   <% end %>

@@ -2,12 +2,12 @@
 
 <h1>Disorders</h1>
 
-<table>
+<table class='table'>
   <thead>
     <tr>
       <th>Disorder</th>
       <th>Disorder name</th>
-      <th>Discription</th>
+      <th>Description</th>
       <th colspan="3"></th>
     </tr>
   </thead>
@@ -17,7 +17,7 @@
       <tr>
         <td><%= disorder.disorder_id %></td>
         <td><%= disorder.disorder_name %></td>
-        <td><%= disorder.discription %></td>
+        <td><%= disorder.description %></td>
         <td><%= link_to 'Show', disorder %></td>
         <td><%= link_to 'Edit', edit_disorder_path(disorder) %></td>
         <td><%= link_to 'Destroy', disorder, method: :delete, data: { confirm: 'Are you sure?' } %></td>

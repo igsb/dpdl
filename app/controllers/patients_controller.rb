@@ -30,7 +30,7 @@ class PatientsController < ApplicationController
     data = JSON.parse(file)
     ActiveRecord::Base.transaction do
       submitter = Submitter.find_or_create_by(name:data['submitter']['user_name'], email:data['submitter']['user_email'], team:data['submitter']['team'])
-      @patient = Patient.create(case_id: data['case_id'], age: data['age'], submitter: submitter)
+      @patient = Patient.create(case_id: data['case_id'], age: data['age'], submitter: submitter, last_name:data['last_name'], first_name:data['first_name'])
       if @patient.valid?
         @patient.parse_json(data)
       end
