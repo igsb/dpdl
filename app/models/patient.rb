@@ -8,7 +8,12 @@ class Patient < ApplicationRecord
   validates :case_id, :submitter_id, presence: true
   validates :case_id, uniqueness: true
 
+  PHENOTYPE_DIAGNOSED = 2
+  MOLECULAR_DIAGNOSED = 3
+
   def parse_json(data)
+    @@log = Logger.new('log/patient.log')
+    @@log.info "Patient: #{data['case_id']}"
     features = parse_features(data['features'])
     self.features << features
     parse_detected(data['detected_syndromes'])
@@ -18,7 +23,7 @@ class Patient < ApplicationRecord
   def parse_features(data)
     feature_array = Array.new
     for hpo in data do
-      hpo_result = Feature.find_or_initialize_by(hpo_term: hpo)
+      hpo_result = Feature.find_or_create_by(hpo_term: hpo)
       feature_array.push(hpo_result)
     end
     return feature_array
@@ -27,15 +32,34 @@ class Patient < ApplicationRecord
   def parse_detected(data)
     for disorder in data
       if disorder['omim_id'].kind_of?(Array)
-        omims = disorder['omim_id']
-        for omim in omims
-          disorder_result = Disorder.find_or_create_by(disorder_id: omim, disorder_name: disorder['syndrome_name'])
-          self.disorders << disorder_result
-          patient_disorder = PatientsDisorder.where(patient_id: self.id, disorder_id: disorder_result.id).take
+        syndrome_name = disorder['syndrome_name']
+        psn = PhenotypicSeries.where(title:syndrome_name).take
+        if psn.nil?
+          @@log.fatal "PSN not found: #{syndrome_name}"
+          next
+	else  
+          psn_id = psn.id
+          psn_num = psn.phenotypic_series_id
+          psn_disorder_id = Disorder.where(disorder_id:psn_num).take.id
+          omims = disorder['omim_id']
+          for omim in omims
+            disorder_result = Disorder.where(disorder_id: omim).take
+            if disorder_result.nil?
+              disorder_result = Disorder.create(disorder_id: omim)
+              puts "New disorder"
+            else
+              PhenotypicSeriesDisorder.find_or_create_by(disorder_id:disorder_result.id, phenotypic_series_id:psn_id)
+            end
+          end
+          patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id:psn_disorder_id)
           assign_scores(disorder, patient_disorder)
-        end
+	end
       else
-        disorder_result = Disorder.find_or_create_by(disorder_id: disorder['omim_id'], disorder_name: disorder['syndrome_name'])
+        if disorder['omim_id'].nil?
+          @@log.fatal "Syndrome has no omim: #{disorder['syndrome_name']}"
+	  next
+	end
+        disorder_result = Disorder.find_or_create_by(disorder_id: disorder['omim_id'])
         self.disorders << disorder_result
         patient_disorder = PatientsDisorder.where(patient_id: self.id, disorder_id: disorder_result.id).take
         assign_scores(disorder, patient_disorder)
@@ -45,24 +69,39 @@ class Patient < ApplicationRecord
 
   def parse_selected(disorder)
     if disorder['omim_id'].kind_of?(Array)
-      omims = disorder['omim_id']
-      for omim in omims
-        disorder_result = Disorder.where(disorder_id: omim).take
-        if disorder_result.nil?
-          disorder_result = Disorder.create(disorder_id: omim, disorder_name: disorder['syndrome_name'])
+      syndrome_name = disorder['syndrome_name']
+      psn = PhenotypicSeries.where(title:syndrome_name).take
+      if psn.nil?
+        @@log.fatal "PSN not found: #{syndrome_name}"
+      else  
+        psn_id = psn.id
+        psn_num = psn.phenotypic_series_id
+        psn_disorder_id = Disorder.where(disorder_id:psn_num).take.id
+        omims = disorder['omim_id']
+        for omim in omims
+          disorder_result = Disorder.where(disorder_id: omim).take
+          if disorder_result.nil?
+            disorder_result = Disorder.create(disorder_id: omim)
+          else
+            PhenotypicSeriesDisorder.find_or_create_by(disorder_id:disorder_result.id, phenotypic_series_id:psn_id)
+          end
         end
-        patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id: disorder_result.id)
-        patient_disorder.diagnosed = true
+        patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id:psn_disorder_id)
+        patient_disorder.diagnose_type_id = PHENOTYPE_DIAGNOSED
         patient_disorder.save
       end
     else
-      disorder_result = Disorder.where(disorder_id: disorder['omim_id']).take
-      if disorder_result.nil?
-        disorder_result = Disorder.create(disorder_id: disorder['omim_id'], disorder_name: disorder['syndrome_name'])
+      if disorder['omim_id'].nil?
+        @@log.fatal "Syndrome has no omim: #{disorder['syndrome_name']}"
+      else
+        disorder_result = Disorder.where(disorder_id: disorder['omim_id']).take
+        if disorder_result.nil?
+          disorder_result = Disorder.create(disorder_id: disorder['omim_id'])
+        end
+        patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id: disorder_result.id)
+        patient_disorder.diagnose_type_id = PHENOTYPE_DIAGNOSED
+        patient_disorder.save
       end
-      patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id: disorder_result.id)
-      patient_disorder.diagnosed = true
-      patient_disorder.save
     end
   end
 
@@ -85,10 +124,11 @@ class Patient < ApplicationRecord
   end
 
   def get_selected_disorders
-    return self.patients_disorders.where(diagnosed:true)
+    return self.patients_disorders.where(diagnose_type_id:PHENOTYPE_DIAGNOSED)
   end
 
   def get_detected_disorders
     return self.patients_disorders
   end
+
 end
