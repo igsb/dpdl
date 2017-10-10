@@ -1,0 +1,2 @@
+class DisorderType < ApplicationRecord
+end

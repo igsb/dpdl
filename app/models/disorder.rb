@@ -7,6 +7,9 @@ class Disorder < ApplicationRecord
 
   has_many :disorders_scores
   has_many :scores, :through => :disorders_scores, :dependent => :destroy
+
+  has_many :disorders_genes
+  has_many :genes, :through => :disorders_genes
   #validates :disorder_id, uniqueness: true, presence: true
   
   def assign_disorders_scores

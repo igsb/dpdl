@@ -40,10 +40,10 @@ class Patient < ApplicationRecord
 	else  
           psn_id = psn.id
           psn_num = psn.phenotypic_series_id
-          psn_disorder_id = Disorder.where(disorder_id:psn_num).take.id
+          psn_disorder_id = Disorder.where(disorder_id:psn_num, is_phenotypic_series: true).take.id
           omims = disorder['omim_id']
           for omim in omims
-            disorder_result = Disorder.where(disorder_id: omim).take
+            disorder_result = Disorder.where(disorder_id: omim, is_phenotypic_series: false).take
             if disorder_result.nil?
               disorder_result = Disorder.create(disorder_id: omim)
               puts "New disorder"
@@ -69,6 +69,7 @@ class Patient < ApplicationRecord
 
   def parse_selected(disorder)
     if disorder['omim_id'].kind_of?(Array)
+      # This syndrome is PS
       syndrome_name = disorder['syndrome_name']
       psn = PhenotypicSeries.where(title:syndrome_name).take
       if psn.nil?
@@ -76,11 +77,12 @@ class Patient < ApplicationRecord
       else  
         psn_id = psn.id
         psn_num = psn.phenotypic_series_id
-        psn_disorder_id = Disorder.where(disorder_id:psn_num).take.id
+        psn_disorder_id = Disorder.where(disorder_id:psn_num, is_phenotypic_series: true).take.id
         omims = disorder['omim_id']
         for omim in omims
-          disorder_result = Disorder.where(disorder_id: omim).take
+          disorder_result = Disorder.where(disorder_id: omim, is_phenotypic_series: false).take
           if disorder_result.nil?
+            @@log.fatal "Omim not found: #{omim}"
             disorder_result = Disorder.create(disorder_id: omim)
           else
             PhenotypicSeriesDisorder.find_or_create_by(disorder_id:disorder_result.id, phenotypic_series_id:psn_id)
@@ -108,7 +110,6 @@ class Patient < ApplicationRecord
   def assign_scores(scores, patient_disorder)
     for key in get_score_key(scores)
       score = Score.find_or_create_by(name: key)
-      puts scores[key]
       DisordersPhenotypeScore.create(patients_disorder_id: patient_disorder.id, score_id: score.id, value: scores[key])
     end
   end
