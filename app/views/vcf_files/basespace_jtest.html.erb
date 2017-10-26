@@ -1,0 +1,26 @@
+<% @new_jqui = true %>
+
+<script type="text/javascript">
+  $(document).ready(function(){
+    $('#clickme').click(function(event,link){
+        event.preventDefault();
+        $('#output').append(' clicked');
+	$.getJSON('/basespace_link',
+          $.param({
+            "input": "bla",
+	  }),
+	  function(data) {
+            $('#output').append( data.message.link );
+            $('#output').append( data.message.code );
+            $("#somediv").append('<iframe src="https://blog.gene-talk.de" height="100%" width="100%"></iframe>' ).dialog( {modal:true, height: 600, width:800, title:"BaseSpace Permissions" } );
+	  }
+        );
+    });
+  });
+</script>
+
+<div id="output">output</div>
+
+
+<a href="#bla" id="clickme">Click me</a>
+

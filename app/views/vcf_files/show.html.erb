@@ -1,0 +1,422 @@
+<%# VCF-File Show %>
+
+<% @new_jqui = true %>
+
+<% content_for :head do %>
+<script type="text/javascript" src="/public/javascripts/dropit.js" ></script>
+<!-- link rel="stylesheet" href="/public/stylesheets/dropit.css" type="text/css" / -->
+<%# = javascript_include_tag 'dropit.js ' -%>
+<%#= stylesheet_link_tag 'dropit.css' -%>
+
+<script type="text/javascript">
+$(document).ready(function() {
+   $('.dropitmenu').dropit();
+    /*
+     $('.hgvs_detail').hide();
+     $('.hgvs_link').bind('click', function(event) {
+   event.preventDefault();
+   $( '#R' + $(this).attr('id') ).slideToggle( 600, 'swing' );
+     });
+  });
+*/
+    // Dialog:
+    $(".hgvs_detail").dialog({
+        autoOpen: false,
+        // FX: blind, clip, fade
+        // show: "fade",
+        // hide: "fade",
+        width: 900,
+        height: 300,
+        modal: true,
+        buttons: {
+            "Annotate this variant": function() { window.location = $(this).attr("annotatelink"); },
+            "Show Annotations": function() { window.location = $(this).attr("showlink"); },
+            "OK": function() {
+                $(this).dialog('close');
+            }
+        }
+
+    });
+    // DP-Cov Slider:
+/*
+    $( "#s_dpmincov" ).slider({
+         value: 10,
+         orientation: "horizontal",
+         // range: "min",
+         animate: true
+    });
+*/
+    $(".hgvs_link").click(function() {
+        $('#D' + $(this).attr("id")).dialog("open");
+        // $("#debug").append($(this).attr("id"));
+        return false;
+    });
+    $('#variants tr:gt(0)').dblclick(function() {
+       if ($(this).hasClass('marked')) {
+         $(this).removeClass('marked');
+         $("td", this).each( function(){
+             $(this).css("border-top", "none");
+             $(this).css("border-bottom", "1px solid #e3e3e3");
+         });
+         $("td:first-child", this).css("border-left", "none");
+         $("td:last-child", this).css("border-right", "none");
+       } else {
+         $(this).addClass('marked');
+         $("td", this).each( function(){
+             // $(this).prev().css("border-bottom", "3px red solid");
+             $(this).css("border-top", "3px red solid");
+             $(this).css("border-bottom", "3px red solid");
+         });
+         $("td:first-child", this).css("border-left", "5px red solid");
+         $("td:last-child", this).css("border-right", "5px red solid");
+       }
+    });
+    $('#snponly').change(function() {
+       filter_variants();
+    });  
+    function filter_variants( min ) {
+       chksnp = $('#snponly').attr('checked');
+       if ($('#dponly').attr('checked')) {               
+           v = $('#v_dpmincov').val();
+       } else {
+           v = 0;
+       };
+       $('#variants tr:gt(0)').each(function() {
+          valid = true;
+          // SNP?
+          if ( chksnp ) {
+              ref = $(this).children().eq(5).html();
+              gt = $(this).children().eq(6).html();
+              idx = gt.indexOf("/");
+              first = gt.substring(0, idx);
+              second = gt.substring(idx + 1);
+              // $('#debug').append( '> ' + gt + " " + first + "./." + second + "<br />" );
+              if ((first.length > 1) || (second.length > 1) || (ref.length > 1)) {
+                  valid = false;
+              };
+          };
+          // Coverage:
+          if ( v > 0 ) {
+            dp_flags = $(this).data('dpflags');
+            for (var i=0; (i < dp_flags.length); i++) {
+              val = parseInt( dp_flags[i] );
+              valid = valid && ( val > v);
+            };
+          };
+          if ( valid == false ) {
+             $(this).hide();
+          } else {
+             $(this).show();
+          };
+       });
+    };
+    $('#dponly').change(function() {
+       filter_variants();
+    });
+    $('#dponly').attr('checked', false);
+    $('#v_dpmincov').change(function() {
+        $('#dponly').attr('checked', true);
+        val = $('#v_dpmincov').val();
+        filter_dp( val );
+    });
+    $('#filtersettings').hide();
+    $('#showhidefiltersettings').click( function() {
+      $('#filtersettings').toggle( 'fast', 'swing' );
+      $('#showhidefiltersettingsoff').toggle();
+      $('#showhidefiltersettingson').toggle();
+    });
+    $('#pedsettings').hide();
+    $('#showhidepedsettings').click( function() {
+      $('#pedsettings').toggle( 'fast', 'swing' );
+      $('#showhidepedsettingsoff').toggle();
+      $('#showhidepedsettingson').toggle();
+    });
+    $('#hposettings').hide();
+    $('#showhidehposettings').click( function() {
+      $('#hposettings').toggle( 'fast', 'swing' );
+      $('#showhidehposettingsoff').toggle();
+      $('#showhidehposettingson').toggle();
+    });
+});
+</script>    
+<% end %>
+
+<%'View VCF' %>
+
+<div id="debug"></div>
+
+<% @ped = nil #@vcf_file.ped_array -%>
+<% @sample_ids = @vcf_file.sample_links_array -%>
+
+<div class="cols cols1v2">
+  <div class="col1">
+    <h4>File: <%= @vcf_file.name%></h4>
+ <% if @nr_indiv > 0 %>  
+    <h5>Sample name: <%= @name_indiv[@nr_indiv] || '' %></h5>
+ <% else %>
+  <% if ! @ped.blank? -%>
+  <h5>PED information: <small><a href="#" id="showhidepedsettings"><span id="showhidepedsettingson">[Show]</span><span id="showhidepedsettingsoff" style="display: none">[Hide] <%= link_to ' [Edit]', edit_ped_path( @vcf_file.id ) %></span></a></small></h5>
+  <div id="pedsettings">
+  <table>
+    <tr>
+      <th>Line</th>
+      <th>Label</th>
+      <th>Father</th>
+      <th>Mother</th>
+      <th>Gender</th>
+      <th>Aff.Status</th>
+      <th>Origin</th>
+    </tr>
+    <% @ped.each_with_index do |p,i| -%>
+    <tr>
+     <td><%= i+1 %>
+     <td><%= p[ VcfFile::PED_COL_LABEL     ] -%></td>
+     <td><%= @ped[ p[ VcfFile::PED_COL_FATHER ]-1 ][ VcfFile::PED_COL_LABEL ] if p[ VcfFile::PED_COL_FATHER ] > 0 && p[ VcfFile::PED_COL_FATHER ]-1 < @ped.length -%></td>
+     <td><%= @ped[ p[ VcfFile::PED_COL_MOTHER ]-1 ][ VcfFile::PED_COL_LABEL ] if p[ VcfFile::PED_COL_MOTHER ] > 0 && p[ VcfFile::PED_COL_MOTHER ]-1 < @ped.length -%></td>
+     <td><%= ped_gender p[ VcfFile::PED_COL_GENDER    ] -%></td>
+     <td><%= ped_aff_status p[ VcfFile::PED_COL_AFF_STATUS] -%></td>
+     <td><%= ped_origin p[ VcfFile::PED_COL_ORIGIN    ] -%></td>
+    </tr>
+    <% end -%>
+    </table>
+  </div>  
+  <% end -%>
+ <% end -%>
+
+  <div id="hposettings">
+  <table>
+    <tr>
+      <th>Sample</th>
+      <th>Gender</th>
+      <th>Age</th>
+      <th>Aff.</th>
+      <th>HPO Terms</th>
+    </tr>
+  </table>
+</div>
+
+  <% if ! @finfo.empty? -%>
+    <h5>Filter settings: <small><a href="#" id="showhidefiltersettings"><span id="showhidefiltersettingson">[Show]</span><span id="showhidefiltersettingsoff" style="display: none">[Hide]</span></a></small></h5>
+    <div id="filtersettings">
+    <%# &nbsp;&nbsp;Input file: <% = @finfo[1]['Input_file'] ><br />
+    &nbsp;&nbsp;Frequency threshold: <% = @finfo[1]['Frequency_threshold'] ><br />
+    &nbsp;&nbsp;Linkage filter: <% = @finfo[1]['Linkage_filter'] ><br />
+    &nbsp;&nbsp;Geneset filter: <% = @finfo[1]['Geneset_filter'] ><br />
+    &nbsp;&nbsp;Annotation filter: <% = @finfo[1]['Annotation_filter'] ><br />
+    &nbsp;&nbsp;Inheritance filter: <% = @finfo[1]['Inheritance_filter'] ><br />
+    &nbsp;&nbsp;Filtered at: <% = @finfo[1]['Filtered_at'] ><br />
+    &nbsp;&nbsp;Filtered by: <% = @finfo[1]['Filtered_by'] ><br />
+    -%>
+
+     <% @finfo.each_with_index do |pass, i| -%>
+        <% next unless pass -%>
+        <div style="margin-bottom:0px !important;">
+        <b>Pass <%= i -%></b>
+        </div>
+        <div style="padding-left:20px; margin-top:0px !important;">
+        <% pass.keys.sort.each do |k| -%>
+          <% next if k.blank? -%>
+          <i><%= k.sub('_', ' ') -%>:</i> <%= pass[k] -%><br />
+        <% end -%>
+        </div>
+     <% end -%>
+    </div>
+  <% end -%>
+
+
+    <h5>Variants: <%= @vcf_file.lines unless @vcf_file.lines.blank? %></h5>
+    
+  </div>
+  <div class="col2">
+    <div style="height:40px;">
+
+    <div style="float:left; padding-left:0px; height:auto;">
+    <%#= form_tag vcf_select_path( @vcf_id, @multi ? '*' : @nr_indiv + 1 ), :method => :get, :class => 'formBox' do %>
+    <%#= submit_tag ( @vcf_file.filtered > 0 ? 'Filter further'  : 'Filter' ), :class => 'button' %>
+    <%# end %>
+    </div>
+
+    <div style="float:left; padding-left:10px; height:auto;">
+    <%#= form_tag vcf_download_path( @vcf_id ), :method => :get, :class => 'formBox' do %>
+    <%#= submit_tag "Download", :class => 'button' %>
+    <%# end %>
+    </div>
+    
+    <% if @vcf_file.lines > 0 && @vcf_file.lines < 5000 %>
+    <div style="float:left; padding-left:10px;">
+     <%= form_tag "/vcf_file/#{@vcf_id}/mutationreport", :method => :get, :class => 'formBox', :title => 'Get mutation and filter report in Excel format. You can set your preferred language in your profile.' do %>
+     <%= submit_tag "Excel report", :class => 'button' %>
+     <% end -%>
+    </div>          
+    <% else %>
+    <% if @vcf_file.filtered > 0 %>
+    <div style="float:left; padding-left:10px; height:auto;">
+      <%= form_tag "/vcf_file/#{@vcf_id}/filterreport", :method => :get, :class => 'formBox', :title => 'Get filter report in Excel format.  You can set your preferred language in your profile.' do %>
+      <%= submit_tag "Filter report", :class => 'button' %>
+      <% end %>
+    </div>
+    <% end -%>
+    <% end -%>
+    </div>
+
+    <div class="clear"></div><br>
+    <div>Display options:<br/></div>
+    <div class="clear"></div><br/>
+    <div><input type="checkbox" id="snponly">Show Single Nucleotide Variants (SNVs) only</div>
+
+    <div class="clear"></div><br/>
+    <%#
+    <div><input type="checkbox" id="dponly">Show only positions that are covered by more than <input id="v_dpmincov" name="dpmincov" size="5" type="number" value="10" title="Show only positions that are covered by more than the given number of reads on the current page. This option does not affect the current VCF file. Moving to next page restores the default option." /> reads in all samples.<!-- div id="s_dpmincov" style="width: 350px; margin: 15px;"></div --></div>
+   -%>
+  </div><!-- col 2 -->
+</div>
+
+ <div class="clear"></div>
+ <!-- /pagination -->
+
+ <div class="pagination">
+ </div>
+ <!-- /pagination -->
+  <div class="pagination">
+  <ul>
+  <li class="graphic">
+  <%= form_tag vcf_file_path( @vcf_file.id, @multi ? '*' : @nr_indiv + 1 ), :method => 'get' do %>
+  <%#= number_field_tag :page, @page, :in => 1...@maxpage, :size => '5' %>
+  Chrom <%=  0 -%> &nbsp;:&nbsp;
+  Pos <%= number_field_tag :position, 0, :min => 0 -%> or
+  dbSNP ID <%= text_field_tag :rsid -%>
+  <%= submit_tag 'Go to position', :class => "submit", :title => 'Find first variant greater than or equal to the given chrom:position.' -%>
+  <% end %></li>
+  </div>
+
+  <!-- /pagination -->
+ <!-- /pagination --> 
+
+<br/>
+<table class="table" id="variants">
+ <tr class="top nodrop nodrag">
+  <th class="dragHandle">&nbsp;</th>
+  <th width="20px">Chrom</th>
+  <th width="30px">Pos</th>
+  <th width="50px">dbSNP ID</th>
+  <th width="100px">Gene</th>
+  <th width="20px" title="referring to HG19">Ref</th>
+
+  <% @indiv_from.upto( @indiv_to ) do |i| -%>  
+   <th title="diploid genotype, allele1/allele2">Genotype<%="<br />#{@name_indiv[i]}".html_safe unless @name_indiv.length==1 -%><%= "<br />(#{ped_aff_status @ped[i][ VcfFile::PED_COL_AFF_STATUS]})".html_safe unless @ped.blank? %></th>
+   <th width="10px" title="Coverage"><br />Cov</th>
+   <th width="10px" title="Allelic balance"><br />AB</th>
+   <th width="5px"></th>
+  <% end -%>
+  <th>Effect/HGVS</th>
+ <% if @indiv_from == @indiv_to %>
+  <th title="The population frequency tells you how often the reported genotype was observed in data of the 1000 genomes project, the 5000 exomes project, and the Exome Aggregation Consortium.">Population<br/>Frequency</th>
+ <% end %>  
+  <th style="padding:0" width="75px" title="Votings for clinical significance. Click to see annotations.">Annotations<br/>Click to show</th>
+  <th style="padding:0" width="72px"></th>
+  <!-- th style="padding:0" width="72px"></th -->
+ </tr>
+
+<% @outdata.each_with_index do |l, line| %>
+ <% a = "#{l[ VcfFile::SHOW_FLAGS_DP ]}" %>
+ <tr id="row<%= line -%>" data-dpflags="<%= a.to_s %>">
+  <td class="dragHandle">&nbsp;</td>
+  <td><%= l[ VcfFile::SHOW_CHROM ] %></td>
+  <td><%= l[ VcfFile::SHOW_POS ] -%>
+  <%#  if l[ VcfFile::SHOW_BLACKLIST ] -%>
+  <%#  <img src="/public/images/ico/lightning.png" title="Position with Blacklist entry"> -%>
+  <%# end -%>
+  </td>
+
+  <td>
+  <% if !l[ VcfFile::SHOW_IDENT ].blank? %>
+     <% if l[ VcfFile::SHOW_IDENT ] =~ /rs(\d+)/ %>
+       <%= link_to( l[ VcfFile::SHOW_IDENT ], 'http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs='+Regexp.last_match[1], :target => '_blank', :class => 'extern' ) %>
+     <% else %>
+       <%= l[ VcfFile::SHOW_IDENT ] %>
+     <% end %>
+     <%= '<img src="/public/images/ico/diamond.png" title="Classified as Precious(Clinical,Pubmed Cited) in dbSNP"'.html_safe if l[VcfFile::SHOW_PRECIOUS] %>
+  <% end %>
+  </td>
+  <td><% if !l[ VcfFile::SHOW_GENES ].blank? %>
+       <% l[ VcfFile::SHOW_GENES ].each do |tc| %>
+          <%= tc.name %> 
+       <% end %>
+    <% end %>
+  </td>
+  <td title="<%= l[ VcfFile::SHOW_REF ] %>"><%= truncate( l[ VcfFile::SHOW_REF ], :length => 10 ) %></td>
+
+ <% l[ VcfFile::SHOW_GT ].each_with_index do |gt,i| -%>
+   <% if l[ VcfFile::SHOW_FLAGS_COV ][i].present? -%> 
+    <% num = l[ VcfFile::SHOW_FLAGS_COV ][i][0].blank? ? '-' : "#{l[ VcfFile::SHOW_FLAGS_COV ][i][0]}" -%>
+    <% cov = l[ VcfFile::SHOW_FLAGS_COV ][i][1].blank? ? '-' : "#{l[ VcfFile::SHOW_FLAGS_COV ][i][1]}" -%>
+    <% ab  = l[ VcfFile::SHOW_FLAGS_COV ][i][2].blank? ? '-' : "#{l[ VcfFile::SHOW_FLAGS_COV ][i][2]}" -%>
+    <% abshort  = l[ VcfFile::SHOW_FLAGS_COV][i][2].blank? ? '-' : "%4.2f" % l[ VcfFile::SHOW_FLAGS_COV ][i][2] -%>
+   <% else %>
+    <% cov = '-' -%> 
+    <% ab = '-' -%> 
+    <% abshort = '-' -%> 
+   <% end -%>
+  <td title="<%= gt -%><%= "\nPopulation Frequency: #{l[ VcfFile::SHOW_FREQ ][i]}".html_safe -%><%= "#{l[ VcfFile::SHOW_FLAGS ][i]}".html_safe -%> "><%= truncate( gt, :length => 10 ) %></td>
+  <td title="Coverage"><%= cov -%></td>
+  <td title="Allelic balance: <%= num -%>/<%= cov -%> = <%= ab -%>"><%= abshort -%></td>
+
+  <td>
+    <% if l[ VcfFile::SHOW_GT ][i] !~ /\.[\|\/]\./ -%>
+    <ul class="dropitmenu">
+      <li>
+          <a href="#" class="dropit-btn ico ico-nav-r"></a>
+          <ul>
+              <li><a href="http://genome.ucsc.edu/cgi-bin/hgTracks?org=Human&db=hg19&position=chr<%= l[VcfFile::SHOW_CHROM]-%>:<%= l[VcfFile::SHOW_POS].to_i-5 -%>-<%= l[VcfFile::SHOW_POS].to_i+5 -%>" target="_blank">
+                  <INPUT type="image" src="/public/assets/ucsc2.jpg"> Show in UCSC Genome Browser (external)
+                  </a></li>
+              <li><a name="">
+                    <FORM name="form" method="post" id="form" action="http://www.mutationtaster.org/cgi-bin/MutationTaster/MT_ChrPos.cgi" target="_blank" onSubmit="return catch_submit();">
+                      <INPUT type="hidden" name="chromosome" value="<%= l[VcfFile::SHOW_CHROM] %>"></INPUT>
+                      <INPUT type="hidden" name="position" value="<%= l[VcfFile::SHOW_POS] %>"></INPUT>
+                      <INPUT type="hidden" name="ref" value="<%= l[VcfFile::SHOW_REF] %>"></INPUT>
+                      <INPUT type="hidden" name="alt" value="<%= l[VcfFile::SHOW_ALT][i] %>"></INPUT>
+                      <INPUT type="image" src="/public/assets/MutationTaster2.png"></INPUT><INPUT type="submit" value="Analyze with MutationTaster (external)"></INPUT>
+                    </FORM></a>
+                  </li>
+          </ul>
+      </li>
+     </ul>
+     <% end %>
+  </td>
+
+ <% end -%>
+
+  <td title="<%= l[VcfFile::SHOW_HGVS] %>"><%= l[ VcfFile::SHOW_EFF ] %></td>
+ <% if @indiv_from == @indiv_to %>
+  <td title="The population frequency tells you how often the reported genotype was observed in data of the 1000 genomes project and the exome sequencing project"><%= l[  VcfFile::SHOW_FREQ ][0] %></td>
+ <% end %>
+
+  <td style="padding:0">
+
+  </td>
+
+  <td style="padding:0">
+  <% (cg, cdna, cprot ) = VcfTools::split_hgvs( l[VcfFile::SHOW_HGVS] ) -%>
+  </td>
+
+  <!-- td style="padding:0"><a href="#" class="hgvs_link" id="<%= line %>"></a></td -->
+ </tr>
+  
+<% end %>
+</table>
+
+ <div class="clear"></div>
+ <div class="pagination">
+</div>
+ <div class="pagination">
+ </div>
+
+ <!-- /pagination -->
+
+
+ <!-- /pagination --> 
+
+
+</P>
+

@@ -1,0 +1,130 @@
+<% @new_jqui = true %>
+
+<%= content_for :head  do %>
+<script type="text/javascript">
+$(document).ready(function() {
+  $.ui.autocomplete.prototype._renderItem = function (ul, item) {
+    item.label = item.label.replace(new RegExp("(?![^&;]+;)(?!<[^<>]*)(" + $.ui.autocomplete.escapeRegex(this.term) + ")(?![^<>]*>)(?![^&;]+;)", "gi"), "<strong><font color=blue>$1</font></strong>");
+    return $("<li></li>")
+    .data("item.autocomplete", item)
+    .append("<a>" + item.label + "</a>")
+    .appendTo(ul);
+  };
+
+  function split( val ) {
+    return val.split( /,\s*/ );
+  }
+  function extractLast( term ) {
+    return split( term ).pop();
+  }
+
+  $("#username")
+    // don't navigate away from the field on tab when selecting an item
+//    .bind( "keydown", function( event ) {
+//      if ( event.keyCode === $.ui.keyCode.TAB &&
+//          $( this ).data( "ui-autocomplete" ).menu.active ) {
+//        event.preventDefault();
+//      }
+//    })
+    .autocomplete({
+      minLength: 3,
+      source: function( request, response ) {
+        $.getJSON( "/users", {
+          term: extractLast( request.term )
+        }, response );
+      },
+      search: function() {
+        // custom minLength
+        var term = extractLast( this.value );
+        if ( term.length < 3 ) {
+          return false;
+        }
+      },
+      focus: function() {
+        // prevent value inserted on focus
+        return false;
+      },
+      select: function( event, ui ) {
+        var terms = split( this.value );
+        // remove the current input
+        terms.pop();
+        // add the selected item
+        terms.push( ui.item.value );
+        // add placeholder to get the comma-and-space at the end
+        terms.push( "\n" );
+        this.value = terms.join( ", " );
+        $(this).trigger("change");
+        return false;
+      }
+    });
+});
+</script>
+<style>
+  .ui-autocomplete-loading {
+    background: white url('/public/images/ui-anim_basic_16x16.gif') right center no-repeat;
+  }
+</style>
+<% end %>
+
+  <div class="box-content">
+
+<% if session[:basespace].present? -%>
+Uploading files to GeneTalk is currently disabled, because
+you are using GeneTalk from an Illumina BaseSpace session.
+To upload files to GeneTalk, <%= link_to 'close BaseSpace session', basespace_logout_path %>.
+<% else -%>
+
+<%#= form_tag( create_vcf_file_path, :multipart => true, :class => "formBox" ) do %>   <%#, :remote => true %>
+<%= form_tag({:action => 'create'}, :multipart => true, :class => "formBox") do %>
+<div class="form-cols" >
+<!-- div class="clearfix file" -->
+<!-- input type="file" name="" class="upload-file" id="file" / --> 	
+<%# = file_field 'upload', 'datafile', :class => "upload-file" %>
+
+<h4>File</h4>
+<P>Select a VCF file or a ZIP file containing one or more VCF files. The reference should be hg19 or GRCh37.</P>
+<%= file_field 'upload', 'datafile' %>
+
+<!-- /div -->
+&nbsp;<br /> 
+&nbsp;<br /> 
+
+<div class="clear"></div>
+
+<h4>Consent</h4>
+
+<P>
+I hereby certify that I have the following consent for the analysis of electronic data:<br />
+<%= radio_button_tag "consent_given", "1" %>Personal consent (analyze your own variants)<br />
+<%= radio_button_tag "consent_given", "2" %>Patient's consent (analyze your patient's variants) <br />
+<%= radio_button_tag "consent_given", "3" %>Sharing consent (analyze and share variants with selected colleagues)<br />
+</P>
+
+<P>We care about privacy and confidentiality of genetic information!<br />
+ There is a vivid debate in the bioethics community about what consent is needed to analyze and share genetic data. 
+ Please learn more about GeneTalk's position in this important issue and discuss with us in this
+ <a href="http://blog.gene-talk.de/?p=257">Blog article</a>!
+</P>
+<!--
+<%#= check_box_tag "consent_given", "1" %><span><b>I hereby certify that I have the patient's consent to analyze the genetic data using electronic data media,
+	and to share the data with collaborators. I also certify that I will upload the data in pseudonymized form.</b><br/> 
+	GeneTalk requires this consent to allow you to share your data with collaborators. If you do not have the consent
+	to share the data, you are allowed to analyze the data only by yourself.<br/> 
+	If you do not have the consent for storing and analyzing using electronic data
+	media you are not allowed to upload the file to GeneTalk.</span><br />
+	-->
+
+<h4>Pedigree and phenotype information</h4>
+If you upload a file with more than one individual, you can edit pedigree and phenotype information for your file using the icon
+in the list of VCF files.<br />
+Note that providing phenotype information is required for segregation filtering.
+
+<div class = "btn-submit">
+   <%= submit_tag "Upload", :class => 'button' %>
+</div>
+
+</div>
+
+<% end -%><%# if basespace session -%>
+
+<% end %>

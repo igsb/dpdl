@@ -1,0 +1,17 @@
+<%= form_with(model: vcf_file, local: true) do |form| %>
+  <% if vcf_file.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(vcf_file.errors.count, "error") %> prohibited this vcf_file from being saved:</h2>
+
+      <ul>
+      <% vcf_file.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>

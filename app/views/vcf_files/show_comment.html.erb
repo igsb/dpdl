@@ -1,0 +1,29 @@
+<%= heading 'VCF Comments' %>
+
+<div class="auflistung">
+  <b>Name:</b> 
+  <%= @vcf_file.name %>
+</div>
+
+<div class="auflistung">
+  <b>Ownwer:</b> 
+  <%= Login.find( @vcf_file.user_id ).username %>
+</div>
+
+<div class="auflistung">
+  <b>Created at:</b> 
+  <%= @vcf_file.created_at %>
+</div>
+
+<div class="auflistung">
+  <b>Notes:</b><br />
+  <%= @vcf_file.comment %>
+</div>
+
+<br />
+<%= link_to 'Edit', edit_vcf_comment_path( @vcf_file.id ), :class => 'btn-default' %>
+
+<br />
+<%= link_to 'Back', session[:comment_back] %>
+
+<%= endheading %>

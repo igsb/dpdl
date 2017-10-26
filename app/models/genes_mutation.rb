@@ -1,0 +1,2 @@
+class GenesMutation < ApplicationRecord
+end

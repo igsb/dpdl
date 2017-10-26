@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  gene_symbol: MyString
+  pedia_score: 1.5
+  cadd_score: 1.5
+  patient_id: 1
+  pheno_score: 1.5
+  gene_id: MyString
+
+two:
+  gene_symbol: MyString
+  pedia_score: 1.5
+  cadd_score: 1.5
+  patient_id: 1
+  pheno_score: 1.5
+  gene_id: MyString

@@ -1,0 +1,63 @@
+<div class="box">
+  <div class="headlines">
+     <h2><span>Upload Excel File</span></h2>
+     <!-- a href="#help" class="help"></a -->
+  </div>
+  <div class="box-content">
+
+<%= form_tag( excel_create_path, :multipart => true, :class => "formBox", :remote => true ) do %>
+<!-- div class="clearfix file" -->
+<!-- input type="file" name="" class="upload-file" id="file" / --> 	
+<%# = file_field 'upload', 'datafile', :class => "upload-file" %>
+
+<P>Select Microsoft&reg; Excel&trade; file (reference should be hg19 or GRCh37)</P>
+
+<div class="form-cols">	  
+  <div class="col1">
+	  <div class="clearfix file">
+	    <div class="lab"><%= label_tag :upload, 'File' %></div>
+	    <div class="con"><%= file_field 'upload', 'datafile' %></div>
+	  </div>
+	  <div class="clearfix number">
+	    <div class="lab"><%= label_tag :worksheet, 'Worksheet Number' %></div>
+	    <div class="con"><%= number_field_tag :worksheet, 1 %></div>
+	  </div>	  
+      <div class="clearfix number">
+        <div class="lab"><%= label_tag :chr_col, 'Column containing chrom.' %></div>
+        <div class="con"><%= number_field_tag :chr_col, 1 %></div>
+      </div>
+	  <div class="clearfix number">
+	    <div class="lab"><%= label_tag :pos_col, 'Column containing position' %></div>
+	    <div class="con"><%= number_field_tag :pos_col, 2 %></div>
+	  </div>          
+ 	  <div class="clearfix number">
+		<div class="lab"><%= label_tag :gt_col, 'Column containing genotype' %></div>
+		<div class="con"><%= number_field_tag :gt_col, 3 %></div>
+	  </div>
+
+  </div> <!-- col1 -->
+  <div class="col2">
+
+  </div> <!-- col2 -->
+</div> <!-- form-cols -->
+
+
+
+<!-- /div -->
+&nbsp;<br /> 
+&nbsp;<br /> 
+
+<%= check_box_tag "consent_given", "1" %><span><b>I hereby certify that I have the patient's consent to analyze the genetic data using electronic data media,
+	and to share the data with collaborators. I also certify that I will upload the data in pseudonymized form.</b><br/> 
+	GeneTalk requires this consent to allow you to share your data with collaborators. If you do not have the consent
+	to share the data, you are allowed to analyze the data only by yourself.<br/> 
+	If you do not have the consent for storing and analyzing using electronic data
+	media you are not allowed to upload the file to GeneTalk.</span><br />
+&nbsp;<br /> 
+</P>
+<%= submit_tag "Upload", :class => "btn-default" %>
+<% end %>
+
+</div>
+</div>
+

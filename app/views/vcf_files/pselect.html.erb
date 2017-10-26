@@ -1,0 +1,43 @@
+<% @pagetitle = 'Prioritize VCF file' %>
+<% @new_jqui = true %>
+
+<%= content_for :head do %>
+<script type="text/javascript" src="/public/javascripts/hpo-terms.js"></script>
+<% end %>
+
+<%= heading_block 'Prioritize VCF' do %>
+
+
+ <%= form_tag "/vcf_file/#{@vcf_file.id}/prior", :method => "put", :enctype => "multipart/form-data", :class => 'formBox' do %>
+  <div class="form-cols">
+   <div class="col1">
+  <h3>Phenomizer</h3>
+  Add <a href="http://compbio.charite.de/phenomizer/" class="extern">Phenomizer</a> scores to VCF file. See
+<ul>
+<li>K&ouml;hler et al. Clinical diagnostics in human genetics with semantic similarity searches in ontologies.<br/>
+Am J Hum Genet (2009) vol. 85 (4) pp. 457-64
+<li>K&ouml;hler et al. The Human Phenotype Ontology project: linking molecular biology and disease through phenotype data.<br/>
+Nucleic Acids Research (2013) doi: 10.1093/nar/gkt1026<br/>
+</ul>
+
+  <h4>Select sample</h4>
+  <% @vcf_file.samples.each_with_index do |s,i| %>
+   <%= radio_button_tag :sample, i %> <%= s.name %><br>
+   <div style="margin:5px 20px 10px 20px;">
+    <%= hpo_term_list s.hpo_terms %>
+   </div>
+  <% end %>
+
+  <h4>Additional HPO Terms</h4>
+  <%= hpo_term_box( :hpo_terms ) %>
+
+  <div class = "btn-submit">
+   <%= submit_tag "Prioritize", :class => 'button' %>
+  </div>
+
+   </div>
+  </div>
+ <% end %>
+
+
+<% end %>

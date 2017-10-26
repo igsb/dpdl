@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  namespace :vcf_files do
+      get 'pshow'
+  end
+  resources :vcf_files
   root :to => "home#index"
   resources :home
   resources :searches

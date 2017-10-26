@@ -1,0 +1,58 @@
+<% @new_jqui = 1 %>
+
+<style>
+  .ui-progressbar .ui-progressbar-value { background-image: url(/public/stylesheets/images/pbar-ani.gif); }
+</style>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    var updateFilterBar = function (){
+      $.get( '/filter_progress_bar/<%= @process.id -%>', function ( result ) {
+        if (result == -1 ) {
+          $(window.location).attr('href', '/vcf_file/<%= @vcf_filtered.id %>/*');
+        } else if (result == -2 ) {
+          $(window.location).attr('href', <%= messages_path %> );
+        } else {
+          $('#progressbar').progressbar( "value" , result );
+          // $('#div_to_update').html( result );
+          filterTimer = window.setTimeout( function(){ updateFilterBar(); }, 2000);
+        }
+      });
+    };
+    
+    var filterTimer = window.setTimeout( function(){ updateFilterBar(); }, 2000);
+    $(function() {
+      $( "#progressbar" ).progressbar({
+        value: 1
+      });
+    });
+  });
+</script>
+
+<!-- <div id="div_to_update"></div> -->
+
+<h2>Processing <%= @vcf_file.name %></h2>
+
+<% if !@vcf_file.is_premium?( current_login ) -%>
+<h3>Please wait, it may take a few minutes before your job starts</h3>
+<p>Upgrade to GeneTalk premium for prioritized job processing.</p>
+<% end -%>
+
+<h3>Progress:</h3>
+<div id="progressbar"></div>
+
+<P>&nbsp;</P>
+<h3>Current Workload</h3>
+<div class="large">
+<% bjobs = Delayed::Job.where( :queue => 'basic' ).count -%>
+<% pjobs = Delayed::Job.where( :queue => 'prio' ).count -%>
+Queue for basic account: <%= bjobs + pjobs + 3 %> <%= '(Your job is in this queue)' unless @vcf_file.is_premium?( current_login ) %> <br />
+Queue for Professional account: <%= pjobs %> <%= '(Your job is in this queue)' if @vcf_file.is_premium?( current_login ) %> <br />
+</div>
+</P>         
+<P>
+<h2>Processing too slow? <%= link_to 'Upgrade your account!', static_contact_path -%> </h2>
+</P>
+
+<P>&nbsp;</P>
+You can close this window. You will be notified when your file is filtered.

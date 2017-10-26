@@ -5,6 +5,7 @@ class Patient < ApplicationRecord
   has_many :patients_disorders
   has_many :disorders, :through => :patients_disorders, :dependent => :destroy
 
+  has_many :pedia, :dependent => :destroy
   validates :case_id, :submitter_id, presence: true
   validates :case_id, uniqueness: true
 
@@ -18,6 +19,7 @@ class Patient < ApplicationRecord
     self.features << features
     parse_detected(data['detected_syndromes'])
     parse_selected(data['selected_syndromes'])
+    parse_pedia(data['geneList'])
   end
 
   def parse_features(data)
@@ -68,41 +70,58 @@ class Patient < ApplicationRecord
   end
 
   def parse_selected(disorder)
-    if disorder['omim_id'].kind_of?(Array)
-      # This syndrome is PS
-      syndrome_name = disorder['syndrome_name']
-      psn = PhenotypicSeries.where(title:syndrome_name).take
-      if psn.nil?
-        @@log.fatal "PSN not found: #{syndrome_name}"
-      else  
-        psn_id = psn.id
-        psn_num = psn.phenotypic_series_id
-        psn_disorder_id = Disorder.where(disorder_id:psn_num, is_phenotypic_series: true).take.id
-        omims = disorder['omim_id']
-        for omim in omims
-          disorder_result = Disorder.where(disorder_id: omim, is_phenotypic_series: false).take
-          if disorder_result.nil?
-            @@log.fatal "Omim not found: #{omim}"
-            disorder_result = Disorder.create(disorder_id: omim)
-          else
-            PhenotypicSeriesDisorder.find_or_create_by(disorder_id:disorder_result.id, phenotypic_series_id:psn_id)
+    if !disorder.empty?
+      if disorder['omim_id'].kind_of?(Array)
+        # This syndrome is PS
+        syndrome_name = disorder['syndrome_name']
+        psn = PhenotypicSeries.where(title:syndrome_name).take
+        if psn.nil?
+          @@log.fatal "PSN not found: #{syndrome_name}"
+        else  
+          psn_id = psn.id
+          psn_num = psn.phenotypic_series_id
+          psn_disorder_id = Disorder.where(disorder_id:psn_num, is_phenotypic_series: true).take.id
+          omims = disorder['omim_id']
+          for omim in omims
+            disorder_result = Disorder.where(disorder_id: omim, is_phenotypic_series: false).take
+            if disorder_result.nil?
+              @@log.fatal "Omim not found: #{omim}"
+              disorder_result = Disorder.create(disorder_id: omim)
+            else
+              PhenotypicSeriesDisorder.find_or_create_by(disorder_id:disorder_result.id, phenotypic_series_id:psn_id)
+            end
           end
+          patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id:psn_disorder_id)
+          patient_disorder.diagnose_type_id = PHENOTYPE_DIAGNOSED
+          patient_disorder.save
         end
-        patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id:psn_disorder_id)
-        patient_disorder.diagnose_type_id = PHENOTYPE_DIAGNOSED
-        patient_disorder.save
-      end
-    else
-      if disorder['omim_id'].nil?
-        @@log.fatal "Syndrome has no omim: #{disorder['syndrome_name']}"
       else
-        disorder_result = Disorder.where(disorder_id: disorder['omim_id']).take
-        if disorder_result.nil?
-          disorder_result = Disorder.create(disorder_id: disorder['omim_id'])
+        if disorder['omim_id'].nil?
+          @@log.fatal "Syndrome has no omim: #{disorder['syndrome_name']}"
+        else
+          disorder_result = Disorder.where(disorder_id: disorder['omim_id']).take
+          if disorder_result.nil?
+            disorder_result = Disorder.create(disorder_id: disorder['omim_id'])
+          end
+          patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id: disorder_result.id)
+          patient_disorder.diagnose_type_id = PHENOTYPE_DIAGNOSED
+          patient_disorder.save
         end
-        patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id: disorder_result.id)
-        patient_disorder.diagnose_type_id = PHENOTYPE_DIAGNOSED
-        patient_disorder.save
+      end
+    end
+  end
+
+  def parse_pedia(gene_list)
+    for gene in gene_list
+      if gene.key?("pedia_score")
+        gene_name = gene['gene_symbol']
+        gene_id = gene['gene_id']
+        pedia = gene['pedia_score']
+        cadd = gene['cadd_phred_score']
+        pheno = gene['pheno_score']
+        gestalt = gene['gestalt_score']
+        p = Pedium.find_or_create_by(patient_id: self.id, gene_symbol: gene_name, gene_id: gene_id, pedia_score: pedia, cadd_score: cadd, pheno_score: pheno, gestalt_score: gestalt)
+        p.save
       end
     end
   end

@@ -1,0 +1,44 @@
+ <% if @vcf_file.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@vcf_file.errors.count, "error") %> prohibited this Comment from being saved:</h2>
+
+      <ul>
+      <% @vcf_file.errors.full_messages.each do |msg| %>
+	<li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+
+<%= heading 'VCF Comments' %>
+
+<div class="auflistung">
+  <b>Name:</b> 
+  <%= @vcf_file.name %>
+</div>
+
+<div class="auflistung">
+  <b>Ownwer:</b> 
+  <%= Login.find( @vcf_file.user_id ).username %>
+</div>
+
+<div class="auflistung">
+  <b>Created at:</b> 
+  <%= @vcf_file.created_at %>
+</div>
+
+<%= form_for( @vcf_file, :url => { :action => "update_comment" }, :html => { :class => "formBox" } ) do |f| %>
+
+  <div class="clearfix">
+    <div class="lab"><%= f.label 'Notes' %></div>
+    <div class="con"><%= f.text_area :comment, :class => 'textarea' %></div>
+  </div>
+
+  <div class="btn-submit">
+    <%= f.submit :class => 'button' %> or <%= link_to 'Cancel', session[:comment_back] %>
+  </div>
+
+<% end %>
+
+<%= endheading %>

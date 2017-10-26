@@ -1,0 +1,102 @@
+<%# Defines:
+  # shareable
+  # selectable
+  # more 
+  # groups
+%>
+<% if File.exists? vcf_file.fullname %>
+    <% @number_of_samples = vcf_file.number_of_samples %>
+    <tr class="<%= vcf_file.filtered > 0 ? 'vcf_filtered' : 'vcf_upload' %>">
+       <!-- td class="checkbox"><input type="checkbox" name="" value="" /></td -->
+       <% if defined? selectable %>
+         <% multi_ped = (vcf_file.ped.present? and vcf_file.ped.split("\t").length > 1) %>
+         <td><%= check_box_tag 'vcf[]', vcf_file.id.to_s + (multi_ped ? '#*' : '' ), false, { :ped => (multi_ped ? '1' : '0' )} if ( @number_of_samples == 1 || (multi_ped && groups && current_login.user.licensed? )) %></td>
+       <% end %>
+       <td title="<%= "#{vcf_file.name}\nLines:\nGender prediction: " %>"><span onclick="document.location.href = '<%= vcf_file_path( vcf_file.id, '*') %>'"><%= truncate vcf_file.name %></span>
+  <% if ( @number_of_samples > 1 ) && ( ! groups ) %>
+        <a href="#" class="show-subrow r_ico ico-more" id="ON<%= vcf_file.id.to_s %>">
+        <a href="#" class="show-subrow r_ico ico-less" id="OF<%= vcf_file.id.to_s %>" style="display: none">
+        <td></td>
+  <% else %>
+   <td>
+   <% if !vcf_file.gender.blank? && vcf_file.gender != '-' && @number_of_samples == 1 -%>
+        <% vcf_file.gender =~ /.\((\d+),(\d+)\)/ -%>
+        <% hom = Regexp.last_match(1) -%>
+        <% het = Regexp.last_match(2) -%>
+        <% ratio = ( hom.blank? || het.blank?) ? '' : "In ths sample the ratio of homozygous to heterozygous calls was #{hom}/#{het}." -%>
+        <img src="/public/images/ico/gender<%= '-female' if vcf_file.gender =~ /^F/ -%>.png" title="The gender was estimated based on genotype calls at common X-chromosomal polymorphisms. <%= ratio -%> If you have any doubts about the classification in a particular sample please contact research@gene-talk.de." style="display: block; float: right">
+   <% end -%></td>
+<% end %>   
+       </td>        
+       <% user = vcf_file.user_id.blank? ? nil : Login.find_by_id( vcf_file.user_id ) %>
+       <% if user != nil %>
+           <%#= author_link_tab( user.id, 'Your VCF file ' + vcf_file.name ) %>
+       <% else %>
+           <td>&nbsp;</td><td></td>
+       <% end %>
+       <td><%#= link_to (vcf_file.comment == nil ? '' : truncate( vcf_file.comment, :length => 20 )), vcf_comment_path( vcf_file.id ), :title => vcf_file.comment %></td>
+       <td><%= vcf_file.created_at.to_s(:long) unless vcf_file.created_at.blank? %></td>
+       <!-- td><%# = vcf_file.updated_at.to_s(:long) unless vcf_file.updated_at.blank? %></td -->
+       <% if defined? more %>
+          <td style="padding:0">
+            <%# = link_to image_tag( 'quality.png', :alt => 'Quality information' ), vcf_more_path( vcf_file.id ) if (vcf_file.preprocessors & VcfFile::VCF_PREPROC_SIMILARITY > 0) && File.exist?( Rails.root.to_s + '/' + vcf_file.fullname + 'QualityReport.pdf' ) -%>
+          </td>
+       <% end %>
+       <%# link_to 'Destroy',  , :confirm => 'Are you sure?', :method => :delete %>
+       <td class="action5">
+        <%= link_to 'Show', vcf_file_path( vcf_file.id, '*' ), :class => 'ico ico-view', :title => 'Show VCF file, all samples' %> 
+        <% if defined? shareable %>
+        <% end %>
+        <a href="<%= '/vcf_file_destroy/' + vcf_file.id.to_s %>" data-confirm="Remove VCF File, are you sure?" data-method="delete" rel="nofollow" title="Remove file" class="ico ico-delete">Delete</a>
+       </td>
+    </tr>
+
+<% if ( @number_of_samples > 1 ) && ( ! groups )  %>
+  <% i=1 -%>
+  <% genders = vcf_file.gender.blank? ? [] : vcf_file.gender.split("\t") -%><%# scan(/(\w\([^\)]+\)|-)/).flatten -%>
+  <% bloods = vcf_file.blood_types.blank? ? [] : vcf_file.blood_types.split("\t") -%>
+  <% vcf_file.each_sample_name_with_index do |indiv, idx| %>
+    <% gender_string = '' -%>
+    <% if !vcf_file.gender.blank? && !genders.blank? && genders[idx] != '-' -%>
+         <% genders[idx] =~ /.\((\d+),(\d+)\)/ -%>
+         <% hom = Regexp.last_match(1) -%>
+         <% het = Regexp.last_match(2) -%>
+         <% ratio = ( hom.blank? || het.blank?) ? '' : "In ths sample the ratio of homozygous to heterozygous calls was #{hom}/#{het}." -%>
+         <% ratioshort = ( hom.blank? || het.blank?) ? '' : "Ratio: #{hom}/#{het}." -%>
+         <% gender_string = "Gender prediction: #{genders[idx][0,1]} #{ratioshort}" unless genders[idx].blank? -%>
+    <% end -%>
+    <% blood_str = '' -%>
+    <% if !bloods.blank? || bloods[idx].blank? -%>
+     <% bloods[idx] =~ /(\S+),(\S+)/ -%>
+     <% blood_type = Regexp.last_match(1) -%>
+     <% blood_gt = Regexp.last_match(2) -%>
+     <% blood_str = "\nBlood type prediction: #{blood_type}, genotype #{blood_gt}" -%>
+    <% end -%>
+    <tr class="sub-row VCF<%= vcf_file.id %>">
+       <% if defined? selectable %>
+         <td><%= check_box_tag 'vcf[]', vcf_file.id.to_s + '#' + i.to_s , false, { :ped => 0 } %></td>
+       <% end %>
+       <td onclick="document.location.href = '<%= vcf_file_path( vcf_file.id, i) -%>'" title="<%= "#{gender_string}#{blood_str}" -%>"><div class="sub-row-item">(<%= i %>) <%= indiv %></div></td>
+       <td>
+        <% if !vcf_file.gender.blank? && !genders.blank? && genders[idx] != '-' -%>         
+         <img src="/public/images/ico/gender<%= '-female' if genders[idx] =~ /^F/ -%>.png" title="The gender was estimated based on genotype calls at common X-chromosomal polymorphisms. <%= ratio -%> If you have any doubts about the classification in a particular sample please contact research@gene-talk.de." style="display: block; float: right">     
+        <% end -%>
+       </td>       
+       <td></td> 
+       <td></td>
+       <td></td>
+       <td></td>
+       <td></td>
+    <% if defined? more %>
+       <td></td>
+    <% end %>
+       <td></td>
+       <td>
+         <div class="<%# = (defined? shareable) ? 'ico-third' : 'ico-second' %>"><%= link_to 'Show', vcf_file_path( vcf_file.id, i ) , :class => 'ico ico-view', :title => 'Show VCF file' %></div>
+       </td>
+    </tr>
+    <% i+= 1 %>
+  <% end %>
+<% end %>   
+
+<% end %>

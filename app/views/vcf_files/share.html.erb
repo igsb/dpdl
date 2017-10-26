@@ -1,0 +1,10 @@
+<%= heading 'Share VCF file' %>
+
+<%# = form_tag '/vcf_files/'+@id.to_s+'/share', :method => :put do %>
+<%= form_tag :action => :share, :id => @id do %>
+<b>Share <%= @filename %> with users:</b><br />
+<%= text_area_tag :names, nil, :size => '60x4' %>
+ <%= submit_tag 'Share', :class => 'btn-default' %>
+<% end %>
+
+<%= endheading %>

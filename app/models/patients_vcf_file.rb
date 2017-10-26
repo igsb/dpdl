@@ -1,0 +1,2 @@
+class PatientsVcfFile < ApplicationRecord
+end

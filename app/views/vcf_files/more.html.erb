@@ -1,0 +1,60 @@
+<%= heading_block "Statistics" do %>
+
+<h2><%= @vcf_file.name -%></h2>
+
+<!-- <div style="position: relative; z-index:5000">
+    <a href="<%# = '/' + @sim_dir_rel + '/' + @vcf_file.name + '_cluster.pdf' -%>"><img src="<%# = '/' + @sim_dir_rel + '/' + @vcf_file.name + '_cluster.png' -%>" alt="" /></a>
+</div> -->
+
+<!-- div style="position: relative; top:-425px; left:80px; z-index:100; height:0px" -->
+
+<!-- <div style="position: relative; top:-400px; left:110px; z-index:100; height:0px">
+  <%#= link_to image_tag( 'world.jpg', :size => "350x350" )%>
+  <%#= link_to image_tag( 'world2.jpg', :size => "350x350" )%>
+</div>  -->
+
+<!-- Click image to view/download as PDF.  -->
+
+<P><img src="<%= "/data/#{@vcf_file.id}?name=#{@vcf_file.name}_similarity.png" if File.exist? Rails.root.to_s + '/' + @vcf_file.fullname + '_similarity.png' -%>"></P>
+
+<% if File.exist? Rails.root.to_s + '/' + @vcf_file.fullname + '_similarity-0.png' -%>
+<P><img src="<%= "/data/#{@vcf_file.id}?name=#{@vcf_file.name}_similarity-0.png" if File.exist? Rails.root.to_s + '/' + @vcf_file.fullname + '_similarity-0.png' -%>"></P>
+<P>Distance of your exome sample to a high-quality reference set of the
+1000 genomes project: GeneTalk's genotype-weighted similarity metric
+compares the sequence variants of your vcf file to reference samples
+of the same population background of the 1000 genomes project. In this
+metric the detection of an disproportionally high number of rare
+variants indicates a high false positive error rate and too few
+common variants point to a high false negative error rate. A short
+distance to the high-quality reference set stands for a good
+genotyping accuracy of your exome sample. The distances are visualized
+with multidimensional scaling, MDS.</P>
+<% end %>
+<P>&nbsp;</P>
+
+<% if File.exist? Rails.root.to_s + '/' + @vcf_file.fullname + '_similarity-1.png' -%>
+<P><img src="<%= "/data/#{@vcf_file.id}?name=#{@vcf_file.name}_similarity-1.png" if File.exist? Rails.root.to_s + '/' + @vcf_file.fullname + '_similarity-1.png' -%>"></P>
+<P>Estimation of genotyping accuracy from the standardized distance to
+the reference set: Based on the original 1000 genomes data, we
+simulated different accuracy groups to derive a standardized distance
+for different genotyping accuracies. The intersection of the distance
+of your vcf file with the reference curve indicates the accuracy
+group. A genotyping accuracy above 0.9999 is regarded as good quality.
+For an exome target region of 30MB this translates to less than 3000
+genotyping errors. For a usual individual we expect around 30,000 true
+variants per exome: Thus an accuracy of above 0.9999 means a positive
+predictive value above 90%. When the estimated accuracy of your data
+set is below 0.9999, make sure first, that the enrichment technique
+that you used, really targets at least the consensus exome of the 1000
+genomes project (e.g. SureSelect Human All Exon Kit, NimbleGen SeqCep
+EZ, Illumina TruSeq Exome Enrichment Kit) or that you uploaded a whole
+genome vcf file. If so and your accuracy is still poor you might
+discuss with GeneTalk's technical support, how to improve the quality
+of your NGS data.</P>
+<% end %>
+<!--
+<P><img src="<%# = "/data/#{@vcf_file.id}?name=#{@vcf_file.name}_similarity-2.png" if File.exist? Rails.root.to_s + '/' + @vcf_file.fullname + '_similarity-2.png' -%>"></P>
+-->
+
+<a href="<%= "/data/#{@vcf_file.id}?name=#{@vcf_file.name}_similarity.pdf" -%>">Download PDF</a>
+<% end %>

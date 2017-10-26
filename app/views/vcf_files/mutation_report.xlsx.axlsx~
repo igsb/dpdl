@@ -1,0 +1,88 @@
+wb = xlsx_package.workbook
+# style_bold = wb.styles.add_style :sz => 16, :b => true, :alignment => { :horizontal => :center }
+style_bold = wb.styles.add_style :b => true
+
+wb.add_worksheet( :name => "GeneTalk Mutation Report") do |sheet|
+  case @lang
+#     when 1 then sheet.add_row ['Chr', 'Pos', 'Ref', 'Alt', 'Gene', 'Transkript', 'cDNA', 'Protein', 'Annotationen', 'Med.Rel', 'Sci.Ev.', 'Klassifikation', 'Validierung']
+#     else sheet.add_row ['Chr', 'Pos', 'Ref', 'Alt', 'Genes', 'Transcript', 'cDNA', 'Protein', 'Annotations', 'Med.Rel', 'Sci.Ev.', 'Classification', 'Validation']
+     when 1 then sheet.add_row ['Chr', 'Pos', 'dbSNP', 'Ref', 'Alt', 'Gene', 'Effekt', 'HGVS Code', 'Qual.', 'Coverage', 'Med.Rel', 'Sci. Ev.']
+     else sheet.add_row ['Chr', 'Pos', 'dbSNP', 'Ref','Alt', 'Genes', 'Effect', 'HGVS Code', 'Quality', 'Coverage', 'Med.Rel.', 'Sci. Ev.']
+# 'Transkript', 'cDNA', 'Protein', 
+# 'Transcript', 'cDNA', 'Protein', 
+  end
+
+  # sheet.add_row ['Untie!']
+  # sheet.merge_cells("B1:B6")
+  
+  @outdata.each do |row|
+     sheet.add_row row unless row.empty?
+  end
+
+  sheet["A1"].style = style_bold
+  sheet["B1"].style = style_bold
+  sheet["C1"].style = style_bold
+  sheet["D1"].style = style_bold
+  sheet["E1"].style = style_bold
+  sheet["F1"].style = style_bold
+  sheet["G1"].style = style_bold
+  sheet["H1"].style = style_bold
+  sheet["I1"].style = style_bold
+  sheet["J1"].style = style_bold
+  sheet["K1"].style = style_bold
+  sheet["L1"].style = style_bold
+
+end
+
+
+
+wb.add_worksheet( :name => "GeneTalk Filter Report") do |sheet|
+  sheet.add_row ['Input_file:', @vcf_file.name]
+  sheet.add_row ['Individual:', @name_indiv]
+  sheet.add_row ['Variants input:', @finfo[0].blank? ? (@finfo[1].blank? ? @vcf_file.lines : @finfo[1]['Variants_inputfile']) : @finfo[0]['Variants_inputfile'] ]
+  sheet.add_row []
+
+  sheet.add_row [ 'Pass',
+                  'Functional Filter',
+                  'Linkage Filter',
+                  'Gene Set Filters',
+                  'Frequency Threshold',
+                  'Skip dbSNP',
+                  'Inheritance Filter',
+                  'Annotation Filter',
+                  'Variants Out'
+                ]
+
+  # case @lang
+  #   when 1 then sheet.add_row ['Gene', 'Transkript', 'cDNA', 'Protein', 'Klassifikation', 'Validierung']
+  #   else sheet.add_row ['Genes', 'Transcript', 'cDNA', 'Protein', 'Classifikation', 'Validation']
+  # end
+  
+  @finfo.each_with_index do |cell, i|
+     next if @finfo[i].blank?
+     sheet.add_row [ i,
+                     @finfo[i]['Functional_filter'].to_s,
+                     @finfo[i]['Linkage_filter'].to_s,
+                     @finfo[i]['Gene_panels'].to_s,
+                     @finfo[i]['Frequency_threshold'].to_s,
+                     @finfo[i]['Skip_dbSNP'].to_s,
+                     @finfo[i]['Inheritance_filter'].to_s,
+                     @finfo[i]['Annotation_filter'].to_s,
+                     @finfo[i+1].blank? ? @vcf_file.lines : @finfo[i+1]['Lines_inputfile'].to_s
+                   ]
+  end
+  sheet["A1"].style = style_bold
+  sheet["A2"].style = style_bold
+  sheet["A3"].style = style_bold
+
+  sheet["A5"].style = style_bold
+  sheet["B5"].style = style_bold
+  sheet["C5"].style = style_bold
+  sheet["D5"].style = style_bold
+  sheet["E5"].style = style_bold
+  sheet["F5"].style = style_bold
+  sheet["F5"].style = style_bold
+  sheet["G5"].style = style_bold
+  sheet["H5"].style = style_bold
+  sheet["I5"].style = style_bold
+end

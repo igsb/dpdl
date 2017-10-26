@@ -1,0 +1,2 @@
+class TargetCollection < ApplicationRecord
+end

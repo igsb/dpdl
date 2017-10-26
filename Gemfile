@@ -9,6 +9,7 @@ gem 'bootstrap-sass'
 group :assets do
   gem 'twitter-bootstrap-rails'
   end
+gem 'delayed_job'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.1.3'
 # Use mysql as the database for Active Record

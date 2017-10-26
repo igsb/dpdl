@@ -12,6 +12,7 @@ class PatientsController < ApplicationController
   def show
     @diagnosed_disorders = @patient.get_selected_disorders 
     @detected_disorders = @patient.get_detected_disorders 
+    @gene = @patient.pedia.order("pedia_score DESC") 
   end
 
   # GET /patients/new

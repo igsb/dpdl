@@ -1,0 +1,438 @@
+<%# VCF-File Show %>
+
+<% @new_jqui = true %>
+
+<% content_for :head do %>
+<!-- script type="text/javascript" src="/public/ng/angular.min.js" ></script -->
+
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-touch.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-animate.js"></script>
+<script src="http://ui-grid.info/docs/grunt-scripts/csv.js"></script>
+<script src="http://ui-grid.info/docs/grunt-scripts/pdfmake.js"></script>
+<script src="http://ui-grid.info/docs/grunt-scripts/vfs_fonts.js"></script>
+
+<script src="/public/ng/ui-grid.min.js"></script>
+<script type="text/javascript" src="/public/javascripts/dropit.js" ></script>
+<link rel="stylesheet" href="/public/ng/ui-grid.min.css" type="text/css" />
+<%= stylesheet_link_tag 'dropit.css' -%>
+
+<script type="text/javascript">
+function chtoi(x){
+  switch(x){
+    case 'x':case 'X': return 24;
+    case 'y':case 'Y': return 25;
+    case 'm':case 'M': return 26;
+    default: return parseInt(x, 10);
+  }
+}
+function bla(x){
+  return x+x;
+}
+// var app = angular.module('app', ['ngTouch', 'ui.grid', 'ui.grid.cellNav', 'ui.grid.edit', 'ui.grid.resizeColumns', 'ui.grid.pinning', 'ui.grid.selection', 'ui.grid.moveColumns']);
+var app = angular.module('app', ['ngTouch', 'ui.grid', 'ui.grid.cellNav', 'ui.grid.resizeColumns', 'ui.grid.selection', 'ui.grid.moveColumns']);
+
+app.filter('unsafe', function($sce) { return function(input) { return $sce.trustAsHtml(input); };});
+app.filter('rs_filter', function ($sce) {
+  return function (input) {
+    rs=input.match(/^rs(\d+)/);
+    if ( rs ){
+      return $sce.trustAsHtml('<a href="http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs='+rs[0]+'" target="_blank" class="extern">'+input+'</a>');
+    } else {
+      return $sce.trustAsHtml(input+' ');
+    }
+  };
+}); 
+app.filter('gene_filter', function ($sce) {
+  return function (input) {
+    if ( input[1]==0 ){
+      return $sce.trustAsHtml(input[0]+' ');
+    } else {
+      return $sce.trustAsHtml('<a href="/target_collections/'+input[1]+'">'+input[0]+'</a> ')
+    }
+  };
+}); 
+app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGridConstants', '$sce',
+ function ($scope, $http, $timeout, $interval, uiGridConstants, $sce) {
+ 
+  $scope.gridOptions = {
+    onRegisterApi: function( gridApi ) {
+      $scope.gridApi = gridApi;
+    }
+  };
+  //$scope.gridOptions.data = 'myData';
+  $scope.gridOptions.data = <%= @outdata.to_json.html_safe %>;
+  $scope.gridOptions.enableColumnResizing = true;
+  $scope.gridOptions.enableFiltering = true;
+  $scope.gridOptions.enableGridMenu = true;
+  //$scope.gridOptions.showGridFooter = true;
+  $scope.gridOptions.showGridFooter = false;
+  //$scope.gridOptions.showColumnFooter = true;
+  $scope.gridOptions.showColumnFooter = false;
+  $scope.gridOptions.headerRowHeight = 200;
+  $scope.gridOptions.rowIdentity = function(row) { return row.id; };
+  $scope.gridOptions.getRowIdentity = function(row) { return row.id; };
+ 
+  $scope.gridOptions.columnDefs = [
+    { displayName: 'Chrom. Pos', name:'x', width:100,
+      sortingAlgorithm: function(a, b) {
+          var nulls = $scope.gridApi.core.sortHandleNulls(a, b);
+          if( nulls !== null ) {
+            return nulls;
+          } else {
+            aa=a.split(':');
+            ba=b.split(':');
+            ac=chtoi(aa[0]);
+            bc=chtoi(ba[0]);
+            if( ac < bc ) { return -1; }
+            if( ac > bc ) { return 1;  }
+            ap=parseInt(aa[1],10);
+            bp=parseInt(ba[1],10);
+            if( ap < bp ) { return -1; }
+            if( ap > bp ) { return 1;  }
+            return 0;
+          }
+      }
+    },
+    { displayName: 'ID',  name:'i', width:100,
+      cellTemplate: '<div class="ui-grid-cell-contents"><span ng-bind-html=\"COL_FIELD | rs_filter\"></span></div>'
+/*,
+      sortingAlgorithm: function(a, b) {
+          var nulls = $scope.gridApi.core.sortHandleNulls(a, b);
+          if( nulls !== null ) {
+            return nulls;
+          } else {
+            am=a.match(/\d+/);
+            bm=b.match(/\d+/);
+            if (!am){return -1};
+            if (!bm){return 1};
+            ai=parseInt(am[0]);
+            bi=parseInt(bm[0]);
+            if( ai < bi ) { return -1; }
+            if( ai > bi ) { return 1;  }
+            return 0;            
+          }
+      }
+*/
+    },
+    { displayName: 'Gene', name:'ge', width:100,
+      cellTemplate: '<div class="ui-grid-cell-contents"><span ng-repeat="g in COL_FIELD"><span ng-bind-html=\"g | gene_filter\"></span></span></div>' 
+    },
+    { displayName: 'Ref', name:'r', width:50, displaySubTitle: 'Foo' },
+  <% @indiv_from.upto( @indiv_to ) do |i| -%>
+    { displayName: '<%= @name_indiv[i] %>', name: 's[<%= i %>].g', width:150,
+      cellTemplate: '<div class="ui-grid-cell-contents" title="{{row.entity.s[<%= i %>].f}}"><span>{{COL_FIELD}}</span></div>',
+      headerCellTemplate:"<div ng-class=\"{ 'sortable': sortable }\"><div class=\"ui-grid-cell-contents\" col-index=\"renderIndex\"><span><%= @name_indiv[i] %><br/>Genotype</span> <span ui-grid-visible=\"col.sort.direction\" ng-class=\"{ 'ui-grid-icon-up-dir': col.sort.direction == asc, 'ui-grid-icon-down-dir': col.sort.direction == desc, 'ui-grid-icon-blank': !col.sort.direction }\">&nbsp;</span></div><div class=\"ui-grid-column-menu-button\" ng-if=\"grid.options.enableColumnMenus && !col.isRowHeader  && col.colDef.enableColumnMenu !== false\" ng-click=\"toggleMenu($event)\" ng-class=\"{'ui-grid-column-menu-button-last-col': isLastCol}\"><i class=\"ui-grid-icon-angle-down\">&nbsp;</i></div><div ng-if=\"filterable\" class=\"ui-grid-filter-container\" ng-repeat=\"colFilter in col.filters\"><input type=\"text\" class=\"ui-grid-filter-input\" ng-model=\"colFilter.term\" ng-attr-placeholder=\"{{colFilter.placeholder || ''}}\"><div class=\"ui-grid-filter-button\" ng-click=\"colFilter.term = null\"><i class=\"ui-grid-icon-cancel\" ng-show=\"!!colFilter.term\">&nbsp;</i></div></div></div>"
+    },
+/*
+    { displayName: '', name: 'h', width:20, enableColumnMenu:false, enableFiltering:false,enableSorting:false,enableHiding:false,
+      cellTemplate: '<div style="overflow:visible!important;"><ul class="dropitmenu" style="position:relative">\
+                     <li>\
+          <ul> 
+              <li><%# (cg, cdna, cprot ) = VcfTools::split_hgvs( l[VcfFile::SHOW_HGVS] ) -%>
+                  <%# =link_to "#{image_tag( 'tag--pencil2.png' )} Annotate this variant".html_safe, 
+                              url_for( :controller => :annotations, 
+                                       :action => :new, 
+                                       :annotation => { :chrom => l[ VcfFile::SHOW_CHROM ], 
+                                                        :pos => l[ VcfFile::SHOW_POS ], 
+                                                        :genotype => gt, 
+                                                        :code_dna => cdna, 
+                                                        :code_protein => cprot, 
+                                                        :gene_symbol_id => l[ VcfFile::SHOW_GENES ][0] 
+                                                      } 
+                                     ) %>
+              </li>
+              <li><%# =link_to "#{image_tag( 'tag2.png')} Show annotations".html_safe, 
+                              url_for( :controller => :annotations, 
+                                       :action => :index, 
+                                       :chrom => l[ VcfFile::SHOW_CHROM ], 
+                                       :pos => l[ VcfFile::SHOW_POS ], 
+                                       :sgt => l[ VcfFile::SHOW_GT ]
+                                     ) %>
+              </li>
+              <li><%# =link_to "#{image_tag( 'vus_add.png')} Query variant of unknown significance".html_safe,
+                              url_for( :controller => :research_variants,
+                                       :action => :new,
+                                       :research_variant => { :chrom => l[  VcfFile::SHOW_CHROM ], 
+                                                              :pos => l[ VcfFile::SHOW_POS ], 
+                                                              :genotype => l[ VcfFile::SHOW_GT ][i],
+                                                              :first_sample_id => @sample_ids[i] 
+                                                            }
+                                     ) %>
+              </li>
+
+                  <a href="/annotations/new?annotation%5Bchrom%5D=1&amp;annotation%5Bcode_dna%5D=NM_001005484%3Aexon1%3Ac.421A%3EG%3A&amp;annotation%5Bcode_protein%5D=p.T141A&amp;annotation%5Bgene_symbol_id%5D=26589&amp;annotation%5Bgenotype%5D=G%2FG&amp;annotation%5Bpos%5D=69511"><img alt="Tag--pencil2" src="/public/assets/tag--pencil2-e39cf6f91d276078fff2ba340ad3f2b9.png" /> Annotate this variant</a>
+              </li>
+              <li><a href="/annotations?chrom=1&amp;pos=69511&amp;sgt%5B%5D=G%2FG&amp;sgt%5B%5D=G%2FG&amp;sgt%5B%5D=.%2F.&amp;sgt%5B%5D=G%2FG"><img alt="Tag2" src="/public/assets/tag2-4cc6f75ec7702f75d4a630130c0f3269.png" /> Show annotations</a>
+              </li>
+              <li><a href="/research_variants/new?research_variant%5Bchrom%5D=1&amp;research_variant%5Bfirst_sample_id%5D=1473&amp;research_variant%5Bgenotype%5D=G%2FG&amp;research_variant%5Bpos%5D=69511"><img alt="Vus_add" src="/public/assets/vus_add-11a8f14d7b9ffccedf65bb5675068c38.png" /> Query variant of unknown significance</a>
+              </li>
+
+
+              <li><a href="http://genome.ucsc.edu/cgi-bin/hgTracks?org=Human&db=hg19&position=chr<%# =l[VcfFile::SHOW_CHROM]-%>:<%# =l[VcfFile::SHOW_POS].to_i-5 -%>-<%# =l[VcfFile::SHOW_POS].to_i+5 -%>" target="_blank">
+                  <INPUT type="image" src="/public/assets/ucsc2.jpg"> Show in UCSC Genome Browser (external)
+                  </a></li>
+              <li><a name="">
+                    <FORM name="form" method="post" id="form" action="http://www.mutationtaster.org/cgi-bin/MutationTaster/MT_ChrPos.cgi" target="_blank" onSubmit="return catch_submit();">
+                      <INPUT type="hidden" name="chromosome" value="<%# =l[VcfFile::SHOW_CHROM] %>"></INPUT>
+                      <INPUT type="hidden" name="position" value="<%# =l[VcfFile::SHOW_POS] %>"></INPUT>
+                      <INPUT type="hidden" name="ref" value="<%# =l[VcfFile::SHOW_REF] %>"></INPUT>
+                      <INPUT type="hidden" name="alt" value="<%# =l[VcfFile::SHOW_ALT][i] %>"></INPUT>
+                      <INPUT type="image" src="/public/assets/MutationTaster2.png"></INPUT><INPUT type="submit" value="Analyze with MutationTaster (external)"></INPUT>
+                    </FORM></a>
+                  </li>
+              <li><a href="http://localhost:60151/goto?locus=<%# =l[VcfFile::SHOW_CHROM]-%>:<%# =l[VcfFile::SHOW_POS].to_i -%>">
+                  <INPUT type="image" src="/public/assets/IGV2.png"> Show in IGV (locally)</A></li>
+          </ul>
+
+
+          <ul>
+              <li>
+              <li><a href="http://genome.ucsc.edu/cgi-bin/hgTracks?org=Human&db=hg19&position=chr1:69506-69516" target="_blank">
+                  <INPUT type="image" src="/public/assets/ucsc2.jpg"> Show in UCSC Genome Browser (external)
+                  </a></li>
+              <li><a name="">
+                    <FORM name="form" method="post" id="form" action="http://www.mutationtaster.org/cgi-bin/MutationTaster/MT_ChrPos.cgi" target="_blank" onSubmit="return catch_submit();">
+                      <INPUT type="hidden" name="chromosome" value="1"></INPUT>
+                      <INPUT type="hidden" name="position" value="69511"></INPUT>
+                      <INPUT type="hidden" name="ref" value="A"></INPUT>
+                      <INPUT type="hidden" name="alt" value="G"></INPUT>
+                      <INPUT type="image" src="/public/assets/MutationTaster2.png"></INPUT><INPUT type="submit" value="Analyze with MutationTaster (external)"></INPUT>
+                    </FORM></a>
+                  </li>
+              <li><a href="http://localhost:60151/goto?locus=1:69511">
+                  <INPUT type="image" src="/public/assets/IGV2.png"> Show in IGV (locally)</A></li>
+          </ul>
+    },
+*/
+    { displayName: 'Reads', name: 's[<%= i %>].r', width:100,
+      headerCellTemplate:"<div ng-class=\"{ 'sortable': sortable }\"><div class=\"ui-grid-cell-contents\" col-index=\"renderIndex\"><span title=\"Reads supporting reference allele/alternate allele\"><%= @name_indiv[i] %><br/>Reads</span> <span ui-grid-visible=\"col.sort.direction\" ng-class=\"{ 'ui-grid-icon-up-dir': col.sort.direction == asc, 'ui-grid-icon-down-dir': col.sort.direction == desc, 'ui-grid-icon-blank': !col.sort.direction }\">&nbsp;</span></div><div class=\"ui-grid-column-menu-button\" ng-if=\"grid.options.enableColumnMenus && !col.isRowHeader  && col.colDef.enableColumnMenu !== false\" ng-click=\"toggleMenu($event)\" ng-class=\"{'ui-grid-column-menu-button-last-col': isLastCol}\"><i class=\"ui-grid-icon-angle-down\">&nbsp;</i></div><div ng-if=\"filterable\" class=\"ui-grid-filter-container\" ng-repeat=\"colFilter in col.filters\"><input type=\"text\" class=\"ui-grid-filter-input\" ng-model=\"colFilter.term\" ng-attr-placeholder=\"{{colFilter.placeholder || ''}}\"><div class=\"ui-grid-filter-button\" ng-click=\"colFilter.term = null\"><i class=\"ui-grid-icon-cancel\" ng-show=\"!!colFilter.term\">&nbsp;</i></div></div></div>"
+    },
+    { displayName: 'P-Value', name: 's[<%= i %>].pp', width:100,
+      headerCellTemplate:"<div ng-class=\"{ 'sortable': sortable }\"><div class=\"ui-grid-cell-contents\" col-index=\"renderIndex\"><span title=\"Phenomizer p-value\"><%= @name_indiv[i] %><br/>P-Value</span> <span ui-grid-visible=\"col.sort.direction\" ng-class=\"{ 'ui-grid-icon-up-dir': col.sort.direction == asc, 'ui-grid-icon-down-dir': col.sort.direction == desc, 'ui-grid-icon-blank': !col.sort.direction }\">&nbsp;</span></div><div class=\"ui-grid-column-menu-button\" ng-if=\"grid.options.enableColumnMenus && !col.isRowHeader  && col.colDef.enableColumnMenu !== false\" ng-click=\"toggleMenu($event)\" ng-class=\"{'ui-grid-column-menu-button-last-col': isLastCol}\"><i class=\"ui-grid-icon-angle-down\">&nbsp;</i></div><div ng-if=\"filterable\" class=\"ui-grid-filter-container\" ng-repeat=\"colFilter in col.filters\"><input type=\"text\" class=\"ui-grid-filter-input\" ng-model=\"colFilter.term\" ng-attr-placeholder=\"{{colFilter.placeholder || ''}}\"><div class=\"ui-grid-filter-button\" ng-click=\"colFilter.term = null\"><i class=\"ui-grid-icon-cancel\" ng-show=\"!!colFilter.term\">&nbsp;</i></div></div></div>"
+    },
+    { displayName: 'Score'  , name: 's[<%= i %>].ps', width:100,
+      headerCellTemplate:"<div ng-class=\"{ 'sortable': sortable }\"><div class=\"ui-grid-cell-contents\" col-index=\"renderIndex\"><span title=\"Phenomizer Score\"><%= @name_indiv[i] %><br/>Score</span> <span ui-grid-visible=\"col.sort.direction\" ng-class=\"{ 'ui-grid-icon-up-dir': col.sort.direction == asc, 'ui-grid-icon-down-dir': col.sort.direction == desc, 'ui-grid-icon-blank': !col.sort.direction }\">&nbsp;</span></div><div class=\"ui-grid-column-menu-button\" ng-if=\"grid.options.enableColumnMenus && !col.isRowHeader  && col.colDef.enableColumnMenu !== false\" ng-click=\"toggleMenu($event)\" ng-class=\"{'ui-grid-column-menu-button-last-col': isLastCol}\"><i class=\"ui-grid-icon-angle-down\">&nbsp;</i></div><div ng-if=\"filterable\" class=\"ui-grid-filter-container\" ng-repeat=\"colFilter in col.filters\"><input type=\"text\" class=\"ui-grid-filter-input\" ng-model=\"colFilter.term\" ng-attr-placeholder=\"{{colFilter.placeholder || ''}}\"><div class=\"ui-grid-filter-button\" ng-click=\"colFilter.term = null\"><i class=\"ui-grid-icon-cancel\" ng-show=\"!!colFilter.term\">&nbsp;</i></div></div></div>"
+    },
+  <% end -%>
+    { displayName: 'Effect/HGVS', 
+      name: 'e', 
+      width:150,
+      cellTemplate: '<div class="ui-grid-cell-contents" title="{{row.entity.h}}"><span>{{COL_FIELD}}</span></div>' 
+    }
+  ];
+//    { displayName: 'Med.Rel.', name: 'm' }
+//    { displayName: 'Sci.Ev.', name: 's' }
+<%#
+/* ,
+    { name:'age', width:100, enableCellEdit: true, aggregationType:uiGridConstants.aggregationTypes.avg,
+     cellTemplate: '<div class="ui-grid-cell-contents"><span>Age:{{COL_FIELD}}</span></div>'   },
+    { name:'address.street', width:150, enableCellEdit: true, cellTemplate: '<div class="ui-grid-cell-contents"><span>Street:{{COL_FIELD}}</span></div>'   },
+    { name:'email', width:100, enableCellEdit: true, cellTemplate: '<div class="ui-grid-cell-contents"><span>Email:{{COL_FIELD}}</span></div>'  },
+    { name:'friends[0].name', displayName:'1st friend', width:150, enableCellEdit: true, cellTemplate: '<div class="ui-grid-cell-contents"><span>Friend0:{{COL_FIELD}}</span></div>'  },
+    { name:'agetemplate',field:'age', width:150, cellTemplate: '<div class="ui-grid-cell-contents"><span>Age 2:{{COL_FIELD}}</span></div>' }
+*/
+/*
+      $scope.moused = function(){console.log("moused over");}
+    $scope.gridOptions = { 
+        data: 'myData',
+        columnDefs: [{field: 'name', displayName: 'Name'},
+                     {field:'age', displayName:'Age', cellTemplate: '<div ng-class="{green: row.getProperty(col.field) > 30}" ng-mouseover="moused()"><div class="ngCellText">{{row.getProperty(col.field)}}</div></div>'}]
+        };
+
+
+ <div style="height: 100%" 
+      ng-class="{ green: row.getProperty(age)>30, 
+                  red: row.getProperty(age) < 20,
+                  orange: 20 <= row.getProperty(age) <= 30}" >
+</div>
+*/
+/* 
+  $scope.callsPending = 0;
+ 
+  var i = 0;
+  $scope.refreshData = function(){
+    $scope.myData = [];
+ 
+    var start = new Date();
+    var sec = $interval(function () {
+      $scope.callsPending++;
+      
+      $http.get('/data/500_complex.json')
+        .success(function(data) {
+          $scope.callsPending--;
+ 
+          data.forEach(function(row){
+            row.name = row.name + ' iter ' + i;
+            row.id = i;
+            i++;
+            $scope.myData.push(row);
+          });
+        })
+        .error(function() {
+          $scope.callsPending--
+        });
+    }, 200);
+ 
+ 
+    $timeout(function() {
+       $interval.cancel(sec);
+       $scope.left = '';
+    }, 2000);
+ 
+  };
+*/
+%> 
+}]);
+
+$(document).ready(function() {
+  $('.dropitmenu').dropit();
+  $('#filtersettings').hide();
+  $('#showhidefiltersettings').click( function() {
+    $('#filtersettings').toggle( 'fast', 'swing' );
+    $('#showhidefiltersettingsoff').toggle();
+    $('#showhidefiltersettingson').toggle();
+  });
+  $('#pedsettings').hide();
+  $('#showhidepedsettings').click( function() {
+    $('#pedsettings').toggle( 'fast', 'swing' );
+    $('#showhidepedsettingsoff').toggle();
+    $('#showhidepedsettingson').toggle();
+  });
+  $('#hposettings').hide();
+  $('#showhidehposettings').click( function() {
+    $('#hposettings').toggle( 'fast', 'swing' );
+    $('#showhidehposettingsoff').toggle();
+    $('#showhidehposettingson').toggle();
+  });
+});
+</script>    
+
+<style type="text/css">
+.grid {
+  width: 1200px;
+  height: 600px;
+}
+</style>
+<% end %>
+
+<%= heading_block 'View VCF' do %>
+
+<% @ped = @vcf_file.ped_array -%>
+<% @sample_ids = @vcf_file.sample_links_array -%>
+
+<div class="cols cols1v2">
+  <div class="col1">
+    <h4>File: <%= @vcf_file.name%></h4>
+ <% if @nr_indiv > 0 %> 
+    <h5>Sample name: <%= @name_indiv[@nr_indiv] || '' %></h5>
+ <% else %>
+  <% if ! @ped.blank? -%>
+  <h5>PED information: <small><a href="#" id="showhidepedsettings"><span id="showhidepedsettingson">[Show]</span><span id="showhidepedsettingsoff" style="display: none">[Hide] <%= link_to ' [Edit]', edit_ped_path( @vcf_file.id ) %></span></a></small></h5>
+  <div id="pedsettings">
+  <table>
+    <tr>
+      <th>Line</th>
+      <th>Label</th>
+      <th>Father</th>
+      <th>Mother</th>
+      <th>Gender</th>
+      <th>Aff.Status</th>
+      <th>Origin</th>
+    </tr>
+    <% @ped.each_with_index do |p,i| -%>
+    <tr>
+     <td><%= i+1 %>
+     <td><%= p[ VcfFile::PED_COL_LABEL	   ] -%></td>
+     <td><%= @ped[ p[ VcfFile::PED_COL_FATHER ]-1 ][ VcfFile::PED_COL_LABEL ] if p[ VcfFile::PED_COL_FATHER ] > 0 && p[ VcfFile::PED_COL_FATHER ] < @ped.length -%></td>
+     <td><%= @ped[ p[ VcfFile::PED_COL_MOTHER ]-1 ][ VcfFile::PED_COL_LABEL ] if p[ VcfFile::PED_COL_MOTHER ] > 0 && p[ VcfFile::PED_COL_MOTHER ] < @ped.length -%></td>
+     <td><%= ped_gender p[ VcfFile::PED_COL_GENDER    ] -%></td>
+     <td><%= ped_aff_status p[ VcfFile::PED_COL_AFF_STATUS] -%></td>
+     <td><%= ped_origin p[ VcfFile::PED_COL_ORIGIN    ] -%></td>
+    </tr>
+    <% end -%>
+  </table>
+  </div>
+  <% end -%><%# else ped.blank %>
+ <% end -%><%# else if nr_indiv %>
+
+  <h5>Sample information: <small><a href="#" id="showhidehposettings"><span id="showhidehposettingson">[Show]</span>
+<span id="showhidehposettingsoff" style="display: none">[Hide]</span></a> <%= link_to ' [Edit]', edit_ped_path( @vcf_file.id ) %></small></h5>
+  <div id="hposettings">
+  <table>
+    <tr>
+      <th>Sample</th>
+      <th>Gender</th>
+      <th>Age</th>
+      <th>Aff.</th>
+      <th>HPO Terms</th>
+    </tr>
+  <% @vcf_file.each_sample do |p| -%>
+    <tr style="vertical-align:top">
+	<th><%= p.name %></th>
+	<td><%= VcfFile::PED_GENDER_SHORT[ p.gender ] if p.gender.present? %></td>
+	<td><%= p.age %></td>
+	<td><%= VcfFile::PED_AFF_SHORT[ p.affected ] if p.affected.present? %></td>
+	<td><%= hpo_term_list( p.hpo_terms )%></td>
+    </tr>
+  <% end -%>
+  </table>
+</div>
+
+  <% if ! @finfo.empty? -%>
+    <h5>Filter settings: <small><a href="#" id="showhidefiltersettings"><span id="showhidefiltersettingson">[Show]</span><span id="showhidefiltersettingsoff" style="display: none">[Hide]</span></a></small></h5>
+    <div id="filtersettings">
+    <%# &nbsp;&nbsp;Input file: <% = @finfo[1]['Input_file'] ><br />
+    &nbsp;&nbsp;Frequency threshold: <% = @finfo[1]['Frequency_threshold'] ><br />
+    &nbsp;&nbsp;Linkage filter: <% = @finfo[1]['Linkage_filter'] ><br />
+    &nbsp;&nbsp;Geneset filter: <% = @finfo[1]['Geneset_filter'] ><br />
+    &nbsp;&nbsp;Annotation filter: <% = @finfo[1]['Annotation_filter'] ><br />
+    &nbsp;&nbsp;Inheritance filter: <% = @finfo[1]['Inheritance_filter'] ><br />
+    &nbsp;&nbsp;Filtered at: <% = @finfo[1]['Filtered_at'] ><br />
+    &nbsp;&nbsp;Filtered by: <% = @finfo[1]['Filtered_by'] ><br />
+    -%>
+
+     <% @finfo.each_with_index do |pass, i| -%>
+        <% next unless pass -%>
+	<div style="margin-bottom:0px !important;">
+	<b>Pass <%= i -%></b>
+	</div>
+	<div style="padding-left:20px; margin-top:0px !important;">
+	<% pass.keys.sort.each do |k| -%>
+	  <% next if k.blank? -%>
+	  <i><%= k.sub('_', ' ') -%>:</i> <%= pass[k] -%><br />
+	<% end -%>
+	</div>
+     <% end -%>
+    </div>
+  <% end -%>
+
+
+    <h5>Variants: <%= @vcf_file.lines unless @vcf_file.lines.blank? %></h5>
+
+  </div>
+  <div class="col2">
+    <% if @vcf_file.lines > 0 && @vcf_file.lines < 5000 %>
+    <div style="float:left; padding-left:10px;">
+     <%= form_tag "/vcf_file/#{@vcf_id}/mutationreport", :method => :get, :class => 'formBox', :title => 'Get mutation and filter report in Excel format. You can set your preferred langua!
+     <%= submit_tag "Excel report", :class => 'button' %>
+       <% if !@user.blank? -%>
+       Language: <%= User::LANGUAGES[@user.pref_language][0] unless @user.blank? -%> <%= link_to '[Edit]', edit_user_path( @user.id ) -%>
+       <% end -%>  
+     <% end -%>
+    </div>          
+    <% end %>    
+  </div><!-- col 2 -->
+</div>
+
+<div class="clear"></div>
+
+
+
+<div ng-app="app">
+    <div ng-controller="MainCtrl">
+      <div id="grid1" ui-grid="gridOptions" ui-grid-cellNav ui-grid-edit ui-grid-resize-columns ui-grid-pinning ui-grid-selection ui-grid-move-columns class="grid"></div>
+    </div>
+</div>
+
+<% end %>

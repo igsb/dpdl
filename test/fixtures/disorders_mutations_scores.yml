@@ -1,0 +1,19 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  vcf_id: 1
+  score_id: 1
+  disorder_id: 1
+  gene_id: 1
+  mutation_id: 1
+  value: 1.5
+  genotype: 1
+
+two:
+  vcf_id: 1
+  score_id: 1
+  disorder_id: 1
+  gene_id: 1
+  mutation_id: 1
+  value: 1.5
+  genotype: 1

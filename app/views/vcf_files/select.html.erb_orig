@@ -1,0 +1,823 @@
+<%# does not work :(  @new_jqui = true %>
+<script type="text/javascript" src="/public/javascripts/jquery.rating.pack.js"></script>
+<script type="text/javascript" src="/public/javascripts/jquery.MetaData.js"></script>
+<script type="text/javascript" src="/public/javascripts/jquery.ui.slider.js"></script>
+<link rel="stylesheet" type="text/css" href="/public/stylesheets/jquery.rating.css" />
+<link rel="stylesheet" type="text/css" href="public/stylesheets/jquery.slider.css" />
+
+<style type="text/css">
+.tab-zero  { position: absolute; float:left; margin-left:0px; }
+.tab-one   { position: absolute; float:left; margin-left:160px; }
+.tab-two   { position: absolute; float:left; margin-left:300px; }
+.tab-three { position: absolute; float:left; margin-left:420px; }
+.tab-four  { position: absolute; float:left; margin-left:560px; }
+.tab-five  { position: absolute; float:left; margin-left:710px; }
+.float-left        { float:left; margin-right:10px; }
+.float-left-margin { float:left; margin-right:10px; margin-left:30px; }
+.star { margin:0px !important; padding:0px !important; }
+.SLclear { clear: both; }
+.SLcont1, .SLcont2 { float: left; } 
+</style>
+
+<script type="text/javascript">
+//
+  function update_slider(slider,val) {
+      var $freqheter=val;
+      var $freq1=0;
+      var $freq2=0;
+      if(slider==1){
+          $freq1=Math.exp($freqheter);
+          $freq2=($freq1*$freq1);
+          if($freq2<0.0001){$freq2=0;}
+          $("#homoslider").slider({value: Math.log($freq2)});
+      }
+      if(slider==2){
+          $freq2=Math.exp($freqheter);
+          $freq1=(Math.sqrt($freq2));
+          $("#slider").slider({value: Math.log($freq1)});
+      }
+      $( "#freqheter" ).val(($freq1).toFixed(6));
+      $( "#heterpercent" ).val(($freq1*100).toFixed(4));
+      $( "#freqhomo" ).val($freq2.toFixed(6));
+      $( "#homopercent" ).val(($freq2*100).toFixed(4));
+  }
+  function maskInput(event) {
+      if (event) {
+        var charCode = (event.which) ? event.which : event.keyCode;
+        if (charCode != 190 && charCode > 31 && 
+          (charCode < 48 || charCode > 57) && 
+          (charCode < 96 || charCode > 105) && 
+          (charCode < 37 || charCode > 40) && 
+            charCode != 110 && charCode != 8 && charCode != 46 )
+          return false;
+      }
+      return true;
+  }
+  function inputChangeFun(val,type){
+        var $freq=0; 
+        var $freq2=0;  
+        if(type==1){
+            $freq=val;
+            if($freq>1){$freq=1;}
+            $freq2=($freq*$freq);
+          
+        }else if(type==3){
+          $freq2=val;
+          if($freq2>1){$freq2=1;}
+          $freq=(Math.sqrt($freq2));
+        }else if(type==2){
+            $freq=val;
+            if($freq>100){$freq=100;}
+            $freq=$freq/100;
+            $freq2=($freq*$freq);
+        }else if(type==4){
+          $freq2=val;
+            if($freq2>100){$freq2=100;}
+            $freq2=$freq2/100;
+            $freq=(Math.sqrt($freq2));
+          }
+        $( "#freqheter" ).val($freq.toFixed(6));
+        $( "#heterpercent" ).val(($freq*100).toFixed(4));
+        $( "#freqhomo" ).val($freq2.toFixed(6));
+        $( "#homopercent" ).val(($freq2*100).toFixed(4));
+        $("#slider").slider({value:Math.log($freq)});
+        $("#homoslider").slider({value: Math.log($freq2)});
+  }
+//
+  function update_inherit(){
+    $("#summary_inherit").empty().append( '<b>Inheritance filter: </b>' + $('#inherit input:checked').next()
+      .map( function() { 
+         return $(this).html();
+      }).get().join(', ') );    
+  };
+  function update_ped( ped ){
+     if ( ped == "1") {
+       $("#inherit-single").hide();
+       $("#inherit-multi").show();
+       $("#inherit-multi input").show();
+       // $("#freq-single").hide();
+       $("#freq-multi").show();
+       $("#inherit-single input").attr('checked', false);
+       $("#inherit-multi input").attr('checked', true);
+     } else {
+       $("#inherit-single").show();
+       $("#inherit-multi").hide();
+       // $("#freq-single").show();
+       $("#freq-multi").hide();
+       $("#inherit-single input").attr('checked', true);
+       $("#inherit-multi input").attr('checked', false);
+     }
+     update_inherit();    
+  };        
+  function update_anno(){
+//    if ( this.checked){
+//     $('#keep').html("Keep");
+//    } else {
+//      $('#keep').html("Remove");
+//    }
+    $('#summary_anno').empty().append( '<b>Annotation filter: </b> ' + ($('#keep').attr('checked') ? 'Keep' : 'Remove') + ' unannotated, ' 
+                                       + ($('#disease_causing').html() || 'No relevance filtering') + ', '
+                                       + ($('#trust').html() || 'No evidence filtering') + ', '
+                                       + ($('#exp_level').html() || 'No expert filtering') );
+  };
+  //function open_url(url){
+    //testwindow = window.open(url, "BaseSpace Permissions", "location=1,status=1,scrollbars=1,width=800,height=600");
+    //testwindow.moveTo(100, 100);
+  //};
+  function update_qual(){
+    var s = '';
+    if ( $('#q_qual').attr('checked') ) {
+       s += 'Quality above ';
+       s += $('#q_qual_thres').val();
+    }
+    if ( $('#q_qual').attr('checked') && $('#q_cov').attr('checked') ) {
+       s += ' AND '; 
+    }
+    if ( $('#q_cov').attr('checked') ) {
+       s += 'Coverage above ';
+       s += $('#q_cov_thres').val();
+       s += $('#q_cov_all_1').is(':checked') ? ' in all samples ' : ' in at least one sample ';
+    }
+    if ( !s ) {
+       s = 'None';
+    }
+    $('#summary_qual').empty().append( '<b>Quality filter: </b>' + s );
+  };
+  $(document).ready(function(){
+    $('.bs_link').attr('checked', false);
+    $('.bs_link').click(function(event,link){
+        if ( $(this).attr('checked') ) {
+          $.getJSON('/basespace_link',
+            $.param({
+              "id": $(this).attr('pid')
+            }),
+            function(data) {
+              //$("#dummy").append('<iframe src="' + data.message.link + ' 'height="100%" width="100%"></iframe>' ).dialog( {modal:true, height: 600, width:800, title:"BaseSpace Permissions" } );
+              if ( data.message.link != null ) {
+                //open_url( data.message.link );              
+                //$('#debug').append( data.message.link + ' ' + data.message.code );
+              };
+            });
+        };
+    });   
+    $('.hover-star').rating({
+        focus: function(value, link){       
+            var tip = $('#' + this.name); //.substring(this.name.indexOf('[') + 1, this.name.indexOf(']')));
+            tip.data = tip.html();
+            tip.html(link.title || 'value: ' + value);
+        },
+        blur: function(value, link){
+            var tip1 = $('#trust');
+            var tip2 = $('#disease_causing');
+            var tip3 = $('#exp_level');
+            tip1.html(tip1.attr('data') || '&nbsp;');
+            tip2.html(tip2.attr('data') || '&nbsp;');
+            tip3.html(tip3.attr('data') || '&nbsp;');
+        },
+        callback: function(value, link){
+            if ((this.name=='trust')||(this.name=='disease_causing')||(this.name=='exp_level')){
+              $('#' + this.name).html(link.title);
+              $('#' + this.name).attr('data', link.title);
+              update_anno();
+            }
+        }
+    });
+    $('.rating-cancel').click(function(value,link){
+      var target=$(this).parent().parent().attr('id');
+      if ( target == "dc_stars"){
+        $('#disease_causing').html('&nbsp;');
+        $('#disease_causing').attr('data', '');
+      } else if (target == "trust_stars"){
+        $('#trust').html('&nbsp;');
+        $('#trust').attr('data', '');
+      } else {
+        $('#exp_level').html('&nbsp;');
+        $('#exp_level').attr('data', '');
+      }
+      update_anno();
+    });
+    $('#keep').click(function(){
+      update_anno();
+    });        
+    update_anno();
+
+    <% if @vcf_select.blank? -%>
+     val = $('input[id^="vcf"]:checked').parent().next().children().first().html();
+     update_ped( $('input[id^="vcf"]:checked').attr('ped') );
+    <% else %>
+     val = '<%= @vcf_file.name -%>';
+     update_ped( <%= @indiv == '*' && (@vcf_file.ped.present? and @vcf_file.ped.split("\t").length > 1) ? '1' : '0' -%>)
+    <% end %> 
+//     val_out = val ? val.replace(/(\.vcf)?$/, '_filtered.vcf') : '';
+     $("#summary_file").empty().append( '<b>VCF-File(s): </b>' + val );
+//     $("#output_name").attr('value', val_out );
+     $("#summary_func").empty().append( '<b>Functional filter: </b>' + $('input[id^="funcfilter"]:checked').next().html());
+     $("#summary_freq").empty().append( '<b>Genotype frequency: </b>' + $('#frequency').val());
+     $("#summary_linkage").empty().append( '<b>Linkage filter: </b>' + $('input[id^="linkage"]:checked').parent().next().html());
+     $('#summary_genesets').empty().append( '<b>Gene panels: </b>' + $('#gene_set_table input:checked').parent().next()
+         .map( function() { 
+            return $(this).html();
+         }).get().join(', ') );
+     //$("#summary_anno").empty().append( '<b>Annotation filter: </b>' + $('#anno input:checked').next().html() );
+     //$("#summary_anno").append( $('#anno input:checked').next().next().val() );
+     // $("#summary_inherit").empty().append( '<b>Inheritance filter: </b>' + $('#inherit input:checked').next().html() );
+     
+     $('input[id^="vcf"]').click( function() {
+//       val = $(this).parent().next().children().first().html();
+       ped = $(this).attr('ped');
+       other_ped = 1 - ped;
+       val = $('input[id^="vcf"]:checked').parent().next().children().map( function() { 
+          return $(this).html();
+       }).get().join(', ');
+       $("#summary_file").empty().append( '<b>VCF-File(s): </b>' + val );
+//       val_out = val.replace(/(\.vcf)?$/, '_filtered.vcf');
+//       $("#output_name").attr('value', val_out);
+       $('input[ped=' + other_ped + ']').hide();  
+       if ( $('input[id^="vcf"]:checked').length == 0 ) {
+         $('input[ped=' + other_ped + ']').show();
+       }
+       update_ped( ped );
+     });
+     $('#frequency').change( function() {
+       $("#summary_freq").empty().append( '<b>Genotype frequency: </b>' + $('#frequency').val())
+     });
+     $('input[id^="funcfilter_"], #nonsyn').click( function() {
+       $("#summary_func").empty().append( '<b>Functional filter: </b>' + $('#funcfilter_table input:checked').next()
+         .map( function() { 
+            return $(this).html();
+         }).get().join(', ') );
+     });
+     $('input[id^="inherit_"]').click( function() {
+       $("#summary_inherit").empty().append( '<b>Inheritance filter: </b>' + $('#inherit input:checked').next()
+         .map( function() { 
+            return $(this).html();
+         }).get().join(', ') );
+     });
+     $('input[id^="linkage"]').click( function() {
+       $("#summary_linkage").empty().append( '<b>Linkage filter: </b>' + $(this).parent().next().html())
+     });
+     $('#gene_set_table input').click( function() {
+       $('#summary_genesets').empty().append( '<b>Gene panels: </b>' + $('#gene_set_table input:checked').parent().next()
+         .map( function() { 
+            return $(this).html();
+         }).get().join(', ') );
+     });
+     $('#q_qual_thres').change( function() {
+        $('#q_qual').attr('checked', true);
+        update_qual();
+     });
+     $('#q_cov_thres').change( function() {
+        $('#q_cov').attr('checked', true);
+        update_qual();
+     });
+     $('#qual input').change( function() {
+        update_qual();
+     });
+          
+     // $('#anno input').click( function() {
+     //   $("#summary_anno").empty().append( '<b>Annotation filter: </b>' + $('#anno input:checked').next().html() );
+     //   $("#summary_anno").append( $('#anno input:checked').next().next().val() );
+     // });
+     // $('#anno_user').change( function() {
+     //   $("#summary_anno").empty().append( '<b>Annotation filter: </b>' + $('#anno input:checked').next().html() );
+     //   $("#summary_anno").append( ' ' + $('#anno input:checked').next().next().val() );
+     // });
+  $('#nonsyn').change( function() {
+    if ($('#nonsyn').attr('checked')) {
+        $('#nonsyns input').each( function(){
+        $(this).attr('checked', true);
+      });
+    };
+  });
+  $('#nonsyns input').change( function(){
+    if (!$(this).attr('checked')) {
+        $('#nonsyn').attr('checked', false);
+    };
+  });
+    $('.sub-row').hide();
+    $('.show-subrow').click( function(){
+       id = $(this).attr('id').substr(2);
+       $('.VCF'+id ).toggle( 'slow', 'swing' );
+       $('#ON'+id ).toggle();
+       $('#OF'+id ).toggle();
+       $('.VCF'+id).scrollIntoView();
+    }); 
+/*
+     $('#inherit input').click( function() {
+       $("#summary_inherit").empty().append( '<b>Inheritance filter: </b>' + $('#inherit input:checked').next().html() );
+     });
+*/
+    update_qual();    
+//
+     $("#slider").slider({
+         range: "min",
+         animate: true,
+         value: Math.log(0.0001),
+         min: Math.log(0.0001),
+         max: 0,
+         step: 0.1,
+         slide: function(event, ui) {
+           update_slider(1,ui.value); //changed
+         }
+     });
+     $("#homoslider").slider({
+          range: "min",
+          animate: true,
+          value: Math.log(0.0001),
+          min:  Math.log(0.0001),
+          max:0,
+          step: 0.1,
+          slide: function(event, ui) {
+            update_slider(2,ui.value); //changed
+          }
+      });
+      $("#freqheter").change(function(){
+            var $freq=$("#freqheter").val();
+            inputChangeFun($freq,1);
+            
+      });
+      $("#freqhomo").change(function(){
+            var $freq=$("#freqhomo").val();
+            inputChangeFun($freq,3);
+            
+      });
+      $("#heterpercent").change(function(){
+            var $freq=$("#heterpercent").val();
+            inputChangeFun($freq,2);
+            
+      });
+      $("#homopercent").change(function(){
+            var $freq=$("#homopercent").val();
+            inputChangeFun($freq,4);
+            
+      });
+      $("#freqheter").val(0);
+      $("#heterpercent").val(0);
+      $("#freqhomo").val(0);
+      $("#homopercent").val(0);
+      update_slider();
+//
+  });
+</script>
+
+<!--  =========================================== <%= @database %> -->  
+
+    <div class="SLcont1" style="display:inline-block;">Heterozygeous&nbsp; &nbsp;</div>
+    <div class="SLcont2"  id="slider" style="width:300px" style="display: inline-block" > </div>
+    <div class="SLcont2"  style="display:inline-block">&nbsp;&nbsp;&nbsp;&nbsp;
+         <!-- <label for="freqheter">&nbsp;&nbsp; frequency&nbsp; </label> -->
+         <input  id="freqheter" class="form-control" style="width:80px" onkeydown="return maskInput(event)">
+          &nbsp;&nbsp;
+         <input  id="heterpercent" onkeydown="return maskInput(event)" style="width:80px">%   
+    </div>
+     <div class="SLclear"></div>
+     
+
+<% if @basespace_files.present? -%>
+<h2>For Research Use Only</h2>
+<% end -%>
+
+<div id="debug"></div>
+
+<%= form_tag( vcf_filter_path, :multipart => true) do %>
+
+<div id="tabs" class="box">
+   <ul class="bookmarks">
+    <% if @vcf_file.blank? -%>
+     <li><a href="#file">File</a></li>
+    <% end %> 
+     <li><a href="#genesets">Gene Panel</a></li>
+     <li><a href="#func">Functional</a></li>
+     <li><a href="#linkage">Linkage</a></li>
+     <li><a href="#qual">Quality</a></li>
+     <li><a href="#freq">Frequency</a></li>
+     <li><a href="#inherit">Inheritance</a></li>
+     <li><a href="#anno">Annotation</a></li>
+   </ul>
+   <div class="clear"></div>
+  <!-- <div class="box-content">     -->
+
+ <% if @vcf_file.blank? -%>          
+  <div id="file">
+<div>
+  <!-- table -->
+  <table class="tab">
+    <tr class="top nodrop nodrag">
+       <th width="10px">Select</th>
+       <th>Name</th>
+       <th width="10px"></th>
+       <th>Owner</th>
+       <th class="action1"></th>
+       <th>Comment</th>
+       <th class="action1"></th>
+       <th>Upload date <%# = link_to 'Sort by name', vcf_files_path + '?sort=upload', :class => 'r_ico ico-sort-up', :title => 'Sort by date'%></th>
+       <th class="action">Actions</th>
+    </tr>
+
+  <%# begin basespace files -%>
+  <% if session[:basespace].present? -%>
+    <tr>
+       <th colspan="10" style="text-align:center !important; background-color:silver !important;">Files from Illumina<sup>&reg;</sup> Basespace<sup>&reg;</sup></th>
+    </tr>
+   <% if @basespace_files.present? -%>
+
+    <% @basespace_files.each do |file| -%>    
+    <tr>
+     <td><%= check_box_tag 'vcf[]', "BS_#{file.id}", false, { :ped => '0', :pid => file.project_bid, :class=>'bs_link' } %></td>
+     <td><%= file.file_name %></td>
+     <td></td>
+     <td></td>
+     <td></td>
+     <td>Project <%= file.project_name %></td>
+     <td></td>
+     <td><%= file.date_created %></td>
+     <td></td>
+    </tr>  
+    <% end -%>
+   <% else %>
+    <tr><th colspan="10" style="text-align:center !important; background-color:#696969 !important;">
+        <div align="center" class="grey-box-content" style="text-align:center">&nbsp;<br/>No VCF files found in your selected Basespace project.<br /> Please select a project that contains at least one VCF file.<br />&nbsp;</div></div>
+    </th></tr>
+   <% end -%>
+  <% end -%>
+  <%# end basespace files -%>
+
+<% if !@ped_files.blank? %>        
+    <tr>
+       <th colspan="10" style="text-align:center !important; background-color:silver !important;">Collections</th>
+    </tr>
+
+  <% if ! current_login.user.licensed? -%>
+    <tr><th colspan="10" style="text-align:center !important; background-color:#696969 !important;">
+              <div align="center" class="grey-box-content" style="text-align:center"><a href="/products"><%= image_tag '../images/ico/lock-32.png' %><br/> Filtering collections requires a GeneTalk premium license</a></div></div>
+    </th></tr>
+   <% else -%>
+
+    <%= render :partial => @ped_files, :locals => { :selectable => true, :groups => true } %>
+
+   <% end -%>
+
+<% end %>
+
+    <tr class="top nodrop nodrag">
+      <th colspan="10" style="text-align:center !important; background-color:silver !important;">Individuals</th>
+    </tr>
+
+    <%= render :partial => @vcf_files, :locals => { :selectable => true, :groups => false } %>
+
+ </table>
+</div>
+  </div>
+ <% else %>
+   <%= hidden_field_tag 'vcf[]', "#{@vcf_file.id}\##{@indiv}" -%>
+ <% end %>
+  <!-- file -->
+
+  <%#########################################################################%>
+  <div id="genesets">
+
+    <div class="box-content">
+    <div class="Large"><%= link_to 'Subscribe to a public gene panel', gene_sets_path + '#public' %></div>
+    <br/>
+    <P><%= link_to 'Learn more about gene panels', '/public/GeneTalk_Whitepaper_GenePanels.pdf', :target => '_blank' -%>
+    <br /></p>
+    <div class="cols2v1 formBox">
+     <div class="col1">
+         <div class="clearfix">
+           <div class="lab"><%= label_tag 'collections', 'Additional genes' %>  <br />
+       <span style="font-weight:normal; color:#000">Enter a collection of genes that you want to include in addition to the selected gene panels (if any). You can enter a collection of Entrez-IDs, Gene Symbols, CCDS-IDs (CCDSxxxx), or regions separated by comma, newline, tab, or blank.
+       Specify regions by (<i>Chrom.Nr</i>,<i>Start</i>,<i>End</i>), e.g. (9, 100000, 200000).</span> <br />
+       </div>
+           <div class="con"><%= text_area_tag 'collections', nil, :size => '12', :class => 'textarea' %></div>
+         </div>
+     </div>
+    </div>
+    
+    <br />
+    </div>
+  <table class="tab" id="gene_set_table">
+    <tr class="tab tab-drag">
+      <th width="10px">Select</th>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Number of genes</th>
+      <th>Author</th>
+      <th></th>
+      <th class="action1"></th>
+      <th class="action">Actions</th>
+    </tr>
+
+  <%= render :partial => @gene_sets, :locals => { :selectable => true } %>
+
+  <%# = render :partial => "gene_set", :collection => @gene_sets, :locals => { :option => "check_box_tag  'select_gene[]', gene_set_filter.id, gene_set_filter.selected"} %>
+
+  </table>  
+  <%# = hidden_field_tag :gsfs, @gsfselected.join(',') %>
+  </div>
+
+  <%#########################################################################%>
+  <div id="func" class="box-content">
+  Filter for effect on protein level:
+  
+    <div style="line-height: 30px"  id="funcfilter_table">
+      <%= check_box_tag "funcfilter[]", "missense,stopgain,stoploss", nil, { :id => 'nonsyn'} %><span> Nonsynonymous</span><br />
+      <div id="nonsyns" style="margin-left: 30px">
+          <%= check_box_tag "funcfilter[]", "missense" %><span> Missense</span><br />
+          <%= check_box_tag "funcfilter[]", "stopgain" %><span> Nonsense</span><br />
+          <%= check_box_tag "funcfilter[]", "stoploss" %><span> Stop loss</span><br />
+      </div>
+      <%= check_box_tag "funcfilter[]", "synonymous" %><span> Synonymous</span><br />
+      <%= check_box_tag "funcfilter[]", "frameshift" %><span> Frameshift</span> (insertion/deletion)<br />
+      <%= check_box_tag "funcfilter[]", "nonframeshift" %><span> Nonframeshift</span> (insertion/deletion)<br />
+      <%= check_box_tag "funcfilter[]", "splicing" %><span> Splice site affecting</span><br />
+      <%= check_box_tag "funcfilter[]", "intronic,upstream,downstream,UTR3,UTR5" %><span> Intronic, upstream, downstream</span><br />
+    </div>
+  </div>
+
+  <%#########################################################################%>
+  <div id="linkage">
+  <table class="tab tab-drag">
+  <tr class="top nodrop nodrag">
+    <th class="dragHandle">&nbsp;</th>
+    <!-- th class="checkbox"><input type="checkbox" name="" value="" class="check-all" /></th -->
+    <th width="10px"></th>
+    <th>Name</th>
+    <th>Chrom</th>
+    <th>Start</th>
+    <th>End</th>
+    <th class="action3">Action</th>
+  </tr>
+
+  <tr>
+    <td class="dragHandle">&nbsp;</td>
+    <td width="10px"><%= radio_button_tag 'linkage', 0, true %></td>
+    <td>None</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+
+  <tr>
+    <td class="dragHandle">&nbsp;</td>
+    <!-- td class="checkbox"><input type="checkbox" name="" value="" /></td -->
+    <td><input id="linkage_X" name="linkage" type="radio" value="X" /></td>
+    <td>X-linked</td>
+    <td>X</td>
+    <td></td>
+    <td></td>
+    <td class="action3">
+    </td>
+
+  </tr>
+
+<%= render :partial =>  @linkages, :locals => {:option => "radio_button_tag  'linkage', linkage.id"} %>
+
+</table>
+
+<br />
+
+<div class="box-content">
+<%= link_to 'New Linkage', new_linkage_path %> <%# , :class => 'btn-default' %>
+<br />
+</div>
+</div>
+      
+
+  <%#########################################################################%>
+
+  <div id="inherit" class="box-content">
+    <div style="line-height:30pt" id="inherit-single">
+      Select variants by genotype (x/y) with x,y:
+      <%= hidden_field_tag "inherit[]", 'da' %>
+      <P>
+      <%= check_box_tag "inherit[]", 'homp', :checked => "checked" %><span>Homozygous positions</span> (i.e., x=y, no matter whether x is reference allele or not)<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;  <%= check_box_tag "inherit[]", 'homv', :checked => "checked" %><span>Homozygous variants</span> (i.e., x=y and x&ne;reference allele)
+      </P>
+      <P>
+      <%= check_box_tag "inherit[]", 'het', :checked => "checked" %><span>Heterozygous positions</span> (i.e., x&ne;y)<br />
+    &nbsp;&nbsp;&nbsp;&nbsp;   <%= check_box_tag "inherit[]", 'comp', :checked => "checked" %><span>Two or more heterozygous hits</span> per gene (also fulfilling the other filtering criteria)
+      </P>
+
+<!--
+This filter may be used to screen for candidates fulfilling a compound heterozygous mode of inheritance. Note, this filter does not yet take any parental genotypes into account. It merely filteres for two or more heterozygous variants in the same gene, after applying the functional filter, linkage filter, gene set filter, and frequency filter, but not the annotation filter.
+      <%#= radio_button_tag 'inherit', '0', true %><span> No inheritance filter</span><br />
+      <%#= radio_button_tag 'inherit', '1' %> <span>Dominant</span> <br />
+      <%#= radio_button_tag 'inherit', '2' %> <span>Recessive, homozygous only</span><br />
+      <%#= radio_button_tag 'inherit', '3' %> <span>Recessive, compound heterozygous only</span><br /> 
+      <%#= radio_button_tag 'inherit', '4' %> <span>Recessive, both</span><br />
+-->
+    </div>
+    <div style="line-height:30pt" id="inherit-multi">
+      <%= check_box_tag "inherit[]", 'all', true %><span>All variants</span><br />
+      <%= check_box_tag "inherit[]", 'dom', false %><span>Dominant</span><br />
+      <%= check_box_tag "inherit[]", 'rechom', false %><span>Recessive homozygous</span><br />
+      <%= check_box_tag "inherit[]", 'rechet' %><span>Recessive compound heterozygous</span><br />
+      <P>&nbsp;</P>
+      <P><%= link_to 'Learn more about filtering recessive compound heterozygous', '/public/GeneTalk_Whitepaper_CompHet.pdf', :target => '_blank' %></P>
+    </div> 
+     
+  </div>
+
+  <%#########################################################################%>
+  <div id="freq" class="box-content">  
+  <%# div class="form-cols" %>
+    <%# div class="col1">      <div class="clearfix">
+        <div class="lab"><%= label_tag :frequency, 'Show' %>
+   <div id="__freq-single">
+   Show only variants with a genotype frequency lower than<span id="freq-multi"> (for affected indiviuals)</span>:
+   <div class="field"><%= text_field_tag :frequency, nil, :class => "input" %>%</div>
+
+   <div style="width:60%;margin-left:20px">
+
+     
+     <div class="SLcont1" style="display:inline-block;">&nbsp;Homozygeous&nbsp; &nbsp;</div>
+     <div class="SLcont1"  id="homoslider" style="width:300px" style="display: inline-block" > </div>
+     <div  class="SLcont1"  style="display: inline-block">&nbsp;&nbsp;&nbsp;&nbsp;
+          <!-- <label for="freqhomo">&nbsp;&nbsp; frequency&nbsp;</label> -->
+          <input  id="freqhomo" class="form-control" onkeydown="return maskInput(event)" style="width:80px">
+           &nbsp;&nbsp;
+          <input  id="homopercent"  onkeydown="return maskInput(event)" style="width:80px">%
+     </div>
+     <div class="clear"></div>
+
+<P>Genotype frequencies have been aggregated for from more than 70,000
+unrelated individuals that are not affected by rare monogenic
+disorders 
+(<a href="http://www.1000genomes.org/", class="extern", target="_blank">1KGP</a>, 
+<a href="http://evs.gs.washington.edu/EVS/", class="extern", target="_blank">EVS</a>,
+<a href="http://exac.broadinstitute.org/", class="extern", target="_blank">ExAC</a>).
+</P>
+
+<P>The frequency filter works on the genotypes in the affected
+individuals. You can define the cutoffs for homozygous and
+heterozygous genotypes seperately. If you set e.g. het 0.01, all
+sequence variants that pass the filter will not have been observed in
+a heterozygous state in more than 100 out of 10,000 healthy
+individuals. If you set the homozygous cutoff at 0.0001, variants will
+only pass the filter if the allele has not been observed in a
+homozygous state in more than 1 out of 10,000 healthy individuals.</P>
+   </div>
+   </div>
+   &nbsp;<br />
+   (Looking for the ''Filter-dbSNP'' checkbox? This checkbox has been moved to the ''Annotation'' tab.)
+   <!-- freq -->
+  </div>
+ 
+  <%#########################################################################%>
+  <div id="anno" class="box-content">     
+
+<div class="formBox">  
+<div class="form-cols cols2v1">
+  <div class="col1">
+
+    <div class="clearfix checkbox">
+      <div class="lab">Filter for annotations</div>
+    </div>
+
+    <div class="clearfix checkbox">
+      <div class="lab subcol"<%= label :disease_causing, 'Medical relevance at least' %></div>
+      <div class="con subcol" id="dc_stars">
+          <%= radio_button_tag :disease_causing, '1', nil, :class => 'hover-star', :title => Annotation::DC_LEVEL[0] %>
+          <%= radio_button_tag :disease_causing, '2', nil, :class => 'hover-star', :title => Annotation::DC_LEVEL[1] %>
+          <%= radio_button_tag :disease_causing, '3', nil, :class => 'hover-star', :title => Annotation::DC_LEVEL[2] %>
+          <%= radio_button_tag :disease_causing, '4', nil, :class => 'hover-star', :title => Annotation::DC_LEVEL[3] %>
+          <%= radio_button_tag :disease_causing, '5', nil, :class => 'hover-star', :title => Annotation::DC_LEVEL[4] %>
+          <div class="clear"></div>
+          &nbsp;&nbsp;&nbsp;<div id="disease_causing">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="clearfix checkbox">
+      <div class="lab subcol"><%= label :disease_causing, 'Scientific evidence at least' %></div>
+      <div class="con subcol" id="trust_stars">
+          <%= radio_button_tag :trust, '1', nil, :class => 'hover-star', :title => Annotation::TRUST_LEVEL[0] %>
+          <%= radio_button_tag :trust, '2', nil, :class => 'hover-star', :title => Annotation::TRUST_LEVEL[1] %>
+          <%= radio_button_tag :trust, '3', nil, :class => 'hover-star', :title => Annotation::TRUST_LEVEL[2] %>
+          <%= radio_button_tag :trust, '4', nil, :class => 'hover-star', :title => Annotation::TRUST_LEVEL[3] %>
+          <%= radio_button_tag :trust, '5', nil, :class => 'hover-star', :title => Annotation::TRUST_LEVEL[4] %>
+          <div class="clear"></div>
+          &nbsp;&nbsp;&nbsp;<div id="trust">&nbsp;</div>
+      </div>
+    </div>
+
+    <div class="clearfix checkbox">
+      <div class="lab subcol"><%= label :disease_causing, 'Keep variants without annotation' %></div>
+      <div class="con subcol" id="keep_stars">
+          <%#= radio_button_tag :keep, '0', false, :class => 'keep-hover-star', :title => 'Remove' %>
+          <%#= radio_button_tag :keep, '1', true, :class => 'keep-hover-star', :title => 'Keep' %>
+          <%= hidden_field_tag :keep, '0', :id => 'keep_hidden' %>
+          <%= check_box_tag :keep, '1', :checked => "checked" %>
+      </div>
+    </div>
+<!--
+    <div class="clearfix checkbox">
+      <div class="lab">Filter for experts</div>
+    </div>
+
+    <div class="clearfix checkbox">
+      <div class="lab subcol"<%= label :exp_level, 'Expert of level at least' %></div>
+      <div class="con subcol" id="exp_stars">
+          <%= radio_button_tag :exp_level, '1', nil, :class => 'hover-star', :title => Annotation::EXP_LEVEL[1][0] %>
+          <%= radio_button_tag :exp_level, '2', nil, :class => 'hover-star', :title => Annotation::EXP_LEVEL[2][0] %>
+          <%= radio_button_tag :exp_level, '3', nil, :class => 'hover-star', :title => Annotation::EXP_LEVEL[3][0] %>
+          <%= radio_button_tag :exp_level, '4', nil, :class => 'hover-star', :title => Annotation::EXP_LEVEL[4][0] %>
+          <%= radio_button_tag :exp_level, '5', nil, :class => 'hover-star', :title => Annotation::EXP_LEVEL[5][0] %> 
+          <div class="clear"></div>
+          &nbsp;&nbsp;&nbsp;<div id="exp_level">&nbsp;</div>
+      </div>
+    </div>
+-->
+    <div class="clearfix checkbox">
+      <div class="lab">dbSNP</div>
+    </div>
+
+    <div class="clearfix checkbox">
+      <div class="lab subcol"><%= label :nodbsnp, 'Filter out all variants in dbSNP' %></div>
+      <div class="con subcol">
+         <%= check_box_tag :nodbsnp %>
+      </div>
+    </div>
+
+    <%= link_to 'More information on Annotation Filtering', '/public/GeneTalk_Whitepaper_Annotations.pdf', :target => '_blank' %>
+  </div> <!-- col1 -->
+  <div class="col2">
+  </div> <!-- col2 -->
+</div> <!-- form-cols -->
+</div> <!-- formBox -->
+
+
+<!-- >
+    <div style="line-height: 30px">
+      <%# = radio_button_tag 'anno', '0', true %><span> No Annotation filter</span><br />
+      <%# = radio_button_tag 'anno', '1' %> <span>Annotated variants only</span> <br />
+      <%# = radio_button_tag 'anno', '2' %> <span>Variants that are classified as medically relevant only</span><br />
+      <%# = radio_button_tag 'anno', '3' %> <span>Variants with my annotations only</span><br />
+      <%# = radio_button_tag 'anno', '4' %> <span>Variants annotated by user:</span> <%= text_field_tag :anno_user %> <br />
+    </div>
+    &nbsp;<br />
+    <div style="line-height: 30px">
+      <%= check_box_tag :noblacklist %> Filter out blacklisted variants (the blacklist contains variants that were
+      classified as technical artefacts by the 1000 genomes project)
+    </div>
+-->            
+  </div>
+
+  <%#########################################################################%>
+  <div id="qual" class="box-content">     
+
+<div style="line-height: 30px;">
+Keep variant, if <br />
+
+    <%= hidden_field_tag 'q_qual', '0', :id => 'q_qual_hidden' %>
+    <%= check_box_tag 'q_qual', '1'  %><span>Quality above</span> <%= number_field_tag( 'q_qual_thres', 0) %> (i.e., filter by value of the QUAL column)<br />
+    and <br/>
+
+    <%= hidden_field_tag 'q_cov', '0', :id => 'q_cov_hidden' %>
+    <%= check_box_tag 'q_cov', '1'  %><span>Coverage above</span> <%= number_field_tag( 'q_cov_thres', 0) %> (filter by DP, EC, AD, or DP4 flags in the sample columns/info column)<br />
+    <div style="line-height: 30px; margin-left: 30px">
+       <%= radio_button_tag 'q_cov_all', '0', true %><span></span> in at least one sample<br />
+       <%= radio_button_tag 'q_cov_all', '1'       %><span></span> in all samples<br />
+   </div>
+</div>
+
+  </div>
+  <%#########################################################################%>
+
+  <!-- </div> -->
+  <!-- /box-content -->  
+
+</div>   
+<!-- /box -->
+<div class="clear"></div>
+
+<div style="float:left; padding-left:0px; height:auto;">
+<div class="formBox">
+ <div class = "btn-submit">
+   <%= submit_tag "Filter", :class => 'button' %>
+ </div>
+<%# div title = "Check this box if you get a 'proxy error' while processing your request" %><%# = check_box_tag :background %><%# Process in background</div %>
+</div>
+</div>
+
+<div style="float:left; padding-left:20px; height:auto;" class="summary">
+<b>Filter settings:</b><br/>
+<div id="summary_file"></div>
+<div id="summary_genesets"></div>
+<div id="summary_func"></div>
+<div id="summary_linkage"></div>
+<div id="summary_qual"></div>
+<div id="summary_freq"></div>
+<div id="summary_inherit"></div>
+<div id="summary_anno"></div>
+<div><b>Output Filename: </b><%= text_field_tag :output_name, '*_%_filtered.vcf', :class => "input", :size => 80 %> (* = name of input file; % = name of individual, # = consecutive number)</div>
+</div>
+
+<div class="clear"></div>
+
+<P>
+</p>
+<BR />
+
+<div id="dummy"></div>
+<% end %>

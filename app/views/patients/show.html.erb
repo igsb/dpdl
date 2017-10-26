@@ -26,7 +26,7 @@
   <strong>Submitter:</strong>
   <%= @patient.submitter.name %>
 </p>
-
+<% if false %>
 <p>
   <strong>Phenotypic diagnosed disorders:</strong>
   <br>
@@ -49,6 +49,7 @@
     </tbody>
   </table>
 </p>
+<% end %>
 
 <p>
   <strong>Features:</strong>
@@ -71,6 +72,16 @@
     <% end %>
     </tbody>
   </table>
+</p>
+<p>
+  <strong>Predicted gene:</strong>
+  <br>
+  <% @gene.each_with_index do |g, index| %>
+    <%= index + 1 %>. Gene: <strong><%= g.gene_symbol %></strong><br>
+      Gene ID: <%= g.gene_id %><br>
+      PEDIA score: <%= g.pedia_score %><br>
+    <br>
+  <% end %>
 </p>
 <p>
   <strong>Detected disorders:</strong>

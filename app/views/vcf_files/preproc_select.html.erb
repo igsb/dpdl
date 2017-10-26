@@ -1,0 +1,55 @@
+<%= form_tag( vcf_preproc_path, :multipart => true) do %>
+
+<div id="tabs" class="box">
+  <ul class="bookmarks">
+     <li><a href="#file">Select VCF File</a></li>
+     <li><a href="#processor">Select Preprocessor</a></li>
+  </ul>
+  <div class="box-content">    
+
+          
+  <%#########################################################################%>
+  <div id="file">
+  <!-- table -->
+  <table class="tab tab-drag">
+    <tr class="top nodrop nodrag">
+       <th class="dragHandle">&nbsp;</th>
+       <th width="10px">Select</th>
+       <th>Name</th>
+       <th>Owner</th>
+       <th>Comment</th>
+       <th class="action1"></th>
+       <th>Date</th>
+       <th class="action">Actions</th>
+    </tr>
+
+    <%= render :partial => @vcf_files, :locals => { :selectable => true } %>
+
+ </table>
+
+  </div>
+  <!-- file -->
+
+  <%#########################################################################%>
+  <div id="processor">
+    <div style="line-height: 30px">
+      <%= radio_button_tag 'processor', '1', true %><span>Preprocess for functional filtering</span><br />
+      <%= radio_button_tag 'processor', '2' %><span>Add dbSNP IDs</span><br />
+    </div>
+  </div>
+
+  <%#########################################################################%>
+
+  </div>
+  <!-- /box-content -->  
+
+</div>
+<!-- /box -->
+
+<BR />
+<div align="center">
+<%= submit_tag "Preprocess", :class => "btn-default" %>  </div>
+
+</div>
+
+<% end %>

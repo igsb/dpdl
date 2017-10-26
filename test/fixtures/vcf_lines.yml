@@ -1,0 +1,23 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  chrom: 1
+  pos: MyString
+  ident: MyString
+  ref: MyString
+  alt: MyString
+  qual: MyString
+  filter: MyString
+  ingo: MyString
+  format: MyString
+
+two:
+  chrom: 1
+  pos: MyString
+  ident: MyString
+  ref: MyString
+  alt: MyString
+  qual: MyString
+  filter: MyString
+  ingo: MyString
+  format: MyString

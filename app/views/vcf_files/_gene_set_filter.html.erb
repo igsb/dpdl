@@ -1,0 +1,11 @@
+  <tr>
+    <td><%= eval option %></td>
+    <% if gene_set_filter.selected then @gsfselected << gene_set_filter.id end %>
+    <td><%= gene_set_filter.filterable.chrom %></td>
+    <td><%= gene_set_filter.filterable.start %></td>
+    <td><%= gene_set_filter.filterable.end %></td>
+    <!-- td>< % = link_to 'Show', gene_set_filter %></td -->
+    <td><% if admin? %><%= link_to 'Edit', edit_gene_set_filter_path(gene_set_filter) %><% end %></td>
+    <td><% if admin? %><%= link_to 'Destroy', gene_set_filter, :confirm => 'Are you sure?', :method => :delete %><% end %></td>
+  </tr>
+

@@ -1,0 +1,98 @@
+<%= content_for :head do %>
+<script type="text/javascript">
+$(document).ready( function() {
+  $('#phenixform').submit( function(e) {
+    e.preventDefault();
+    var terms = '';
+    var arr = $('#phenixform input:checked').serializeArray();
+    $.each( arr, function( i, item ) {
+      terms += item.value + ','
+    });
+    $('#hpot').val(terms);
+    //alert( $('#hpot').attr('value') );
+    phenixform.submit();
+  });
+});
+</script>
+
+<% end %>
+
+<%= heading_block 'PheniX' do %>
+
+<P>
+<img src="/public/assets/pheniX.png" width="300" %>
+</P>
+
+<P>
+<h3>Prioritize your variants using <a href="http://compbio.charite.de/PhenIX/">Phenix</a>.</h3>
+</P>
+
+<P>
+PhenIX, <b>Phenotypic Interpretation of eXomes</b>, is a pipeline for ranking
+(prioritizing) candidate genes in exomes or  NGS panels with 
+comprehensive coverage of human Mendelian disease genes. It ranks genes based on
+predicted variant pathogenicity as well as phenotypic similarity of
+diseases associated with the genes harboring these variants to the
+phenotypic profile of the individual being investigated, based on analysis powered by the
+<a href="http://www.human-phenotype-ontology.org">Human	Phenotype Ontology (HPO)</a>.
+</P>
+
+<%# = form_tag "http://compbio.charite.de/PhenIX/PhenIX", :method => "post", :enctype => "multipart/form-data", :class => 'formBox', :id => 'phenixform' do %>
+<%= form_tag "/vcf_file/#{@vcf_file.id}/phenix", :method => "post", :enctype => "multipart/form-data", :class => 'formBox', :id => 'phenixform' do %>
+<div class="form-cols">
+ <div class="col1">
+   <div class="clearfix">
+    <div class="lab">VcfFile</div>
+    <div class="txt"><%= @vcf_file.name %></div>
+   </div>
+
+<% label = 'HPO Terms' %>   
+<% @vcf_file.patients.first.hpo_terms.each do |term| %>
+   <div class="clearfix checkbox">
+    <div class="lab"><%= label %><% label = '' %></div>
+    <div class="con"><%= check_box_tag 'term[]', term.id_to_s, :checked => 'checked' %><%= term.id_to_s %> (<%= term.name %>)</div>
+   </div>
+<% end %>
+
+   <div class="clearfix checkbox">
+    <div class="lab"><%= label_tag :inheritance, 'Mode of inheritance' %></div>
+    <div class="con"><select name="inheritance">
+		      <option value="unknown">Unknown</option>
+		      <option value="AD">Autosomal dominant</option>
+		      <option value="AR">Autosomal recessive</option>
+		      <option value="X">X chromosomal</option>
+		     </select>
+    </div>
+   </div>
+
+   <div class="clearfix checkbox">
+    <div class="lab"><%= label_tag :frequency, 'Frequency cutoff' %></div>
+
+    <div class="con"><select name="frequency">
+                      <option value="n/a">Do not filter on frequency</option>
+	  	      <option value="0.01">0.01%</option>
+                      <option value="0.05">0.05%</option>
+                      <option value="0.1">0.1%</option>
+                      <option value="1">1%</option>
+                     </select>
+    </div>
+   </div>
+
+   <%= hidden_field_tag :hpot, '' %>
+   <%= hidden_field_tag :ufile, @vcf_file.fullname, :type => 'file' %>
+   <%# = hidden_field_tag :frequency, 'n/a' %>
+   <%= hidden_field_tag :nshow, 'all' %>
+   <div class = "btn-submit">
+   <%= submit_tag "Prioritize", :class => 'button' %>
+   </div>
+ </div>
+</div>
+<% end %>
+
+
+	PheniX: &copy; 2014,  Exomiser team: Charit&eacute; Universit&auml;tsmedizin Berlin, 
+	Institute for Medical Genetics and Human Genetics,
+	 <a href="http://compbio.charite.de/">Computational Biology and Bioinformatics Group</a>
+	 and Sanger Mouse Informatics Group at the <a href="http://www.sanger.org">Sanger Institute</a>.
+
+<% end %>
