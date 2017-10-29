@@ -42,11 +42,7 @@ app.filter('rs_filter', function ($sce) {
 }); 
 app.filter('gene_filter', function ($sce) {
   return function (input) {
-    if ( input[1]==0 ){
-      return $sce.trustAsHtml(input[0]+' ');
-    } else {
-      return $sce.trustAsHtml('<a href="/target_collections/'+input[1]+'">'+input[0]+'</a> ')
-    }
+    return $sce.trustAsHtml('<a href="http://www.genecards.org/cgi-bin/carddisp.pl?gene='+input+'" target="_blank" class="extern">'+input+'</a>')
   };
 }); 
 app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGridConstants', '$sce',
@@ -89,27 +85,9 @@ app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGrid
     },
     { displayName: 'ID',  name:'i', width:150,
       cellTemplate: '<div class="ui-grid-cell-contents"><span ng-bind-html=\"COL_FIELD | rs_filter\"></span></div>'
-/*,
-      sortingAlgorithm: function(a, b) {
-          var nulls = $scope.gridApi.core.sortHandleNulls(a, b);
-          if( nulls !== null ) {
-            return nulls;
-          } else {
-            am=a.match(/\d+/);
-            bm=b.match(/\d+/);
-            if (!am){return -1};
-            if (!bm){return 1};
-            ai=parseInt(am[0]);
-            bi=parseInt(bm[0]);
-            if( ai < bi ) { return -1; }
-            if( ai > bi ) { return 1;  }
-            return 0;            
-          }
-      }
-*/
     },
     { displayName: 'Gene', name:'ge', width:100,
-      cellTemplate: '<div class="ui-grid-cell-contents"><span ng-repeat="g in COL_FIELD"><span ng-bind-html=\"g | gene_filter\"></span></span></div>' 
+      cellTemplate: '<div class="ui-grid-cell-contents"><span ng-bind-html=\"COL_FIELD | gene_filter\"></span></div>' 
     },
     { displayName: 'Ref', name:'r', width:50, displaySubTitle: 'Foo' },
   <% @indiv_from.upto( @indiv_to ) do |i| -%>
