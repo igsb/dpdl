@@ -11,6 +11,7 @@ config/database.yml
 config/secrets.yml
 
 /db/schema.rb
+/db/*.sqlite3
 
 # Ignore all logfiles and tempfiles.
 /log/*
