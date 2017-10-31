@@ -42,12 +42,9 @@
             <%# = link_to image_tag( 'quality.png', :alt => 'Quality information' ), vcf_more_path( vcf_file.id ) if (vcf_file.preprocessors & VcfFile::VCF_PREPROC_SIMILARITY > 0) && File.exist?( Rails.root.to_s + '/' + vcf_file.fullname + 'QualityReport.pdf' ) -%>
           </td>
        <% end %>
-       <%# link_to 'Destroy',  , :confirm => 'Are you sure?', :method => :delete %>
-       <td class="action5">
+       <td>
         <%= link_to 'Show', vcf_file_path( vcf_file.id, '*' ), :class => 'ico ico-view', :title => 'Show VCF file, all samples' %> 
-        <% if defined? shareable %>
-        <% end %>
-        <a href="<%= '/vcf_file_destroy/' + vcf_file.id.to_s %>" data-confirm="Remove VCF File, are you sure?" data-method="delete" rel="nofollow" title="Remove file" class="ico ico-delete">Delete</a>
+        <%= link_to 'Destroy', vcf_file, method: :delete, data: { confirm: 'Are you sure?' } %>
        </td>
     </tr>
 

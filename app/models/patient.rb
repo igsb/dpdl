@@ -4,6 +4,9 @@ class Patient < ApplicationRecord
   has_many :features, :through => :patients_features, :dependent => :destroy
   has_many :patients_disorders
   has_many :disorders, :through => :patients_disorders, :dependent => :destroy
+  has_many :patients_vcf_files
+  has_many :vcf_files, :through => :patients_vcf_files, :dependent => :destroy
+  #has_many :disorders_mutataion_scores, :through => :patients_vcf_files, :dependent => :destroy
 
   has_many :pedia, :dependent => :destroy
   validates :case_id, :submitter_id, presence: true
@@ -17,8 +20,8 @@ class Patient < ApplicationRecord
     @@log.info "Patient: #{data['case_id']}"
     features = parse_features(data['features'])
     self.features << features
-    parse_detected(data['detected_syndromes'])
-    parse_selected(data['selected_syndromes'])
+    #parse_detected(data['detected_syndromes'])
+    #parse_selected(data['selected_syndromes'])
     parse_pedia(data['geneList'])
   end
 
@@ -116,10 +119,28 @@ class Patient < ApplicationRecord
       if gene.key?("pedia_score")
         gene_name = gene['gene_symbol']
         gene_id = gene['gene_id']
+
+        score = Score.find_or_create_by(name: 'pedia_score')
         pedia = gene['pedia_score']
-        cadd = gene['cadd_phred_score']
-        pheno = gene['pheno_score']
-        gestalt = gene['gestalt_score']
+
+        cadd = 0
+        if gene.key?("cadd_phred_score")
+          score = Score.find_or_create_by(name: 'cadd_phred_score')
+          cadd = gene['cadd_phred_score']
+        end
+
+        pheno = 0
+        if gene.key?("pheno_score")
+          score = Score.find_or_create_by(name: 'pheno_score')
+          pheno = gene['pheno_score']
+        end
+
+        gestalt = 0
+        if gene.key?("gestalt_score")
+          score = Score.find_or_create_by(name: 'gestalt_score')
+          gestalt = gene['gestalt_score']
+        end
+
         p = Pedium.find_or_create_by(patient_id: self.id, gene_symbol: gene_name, gene_id: gene_id, pedia_score: pedia, cadd_score: cadd, pheno_score: pheno, gestalt_score: gestalt)
         p.save
       end

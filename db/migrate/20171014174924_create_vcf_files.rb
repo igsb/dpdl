@@ -4,7 +4,6 @@ class CreateVcfFiles < ActiveRecord::Migration[5.1]
       
       t.string :name, :limit => 100
       t.integer :user_id
-      t.integer :patients_vcf_file_id
       t.integer :preprocessors
       t.integer :filtered
       t.text :comment

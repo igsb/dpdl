@@ -6,10 +6,15 @@ class VcfFile < ActiveRecord::Base
 
   #belongs_to :parent, :class_name => 'VcfFile'
 
-  has_and_belongs_to_many :users
+  #has_and_belongs_to_many :users
 
-  has_and_belongs_to_many :cases
+  #has_and_belongs_to_many :cases
   #has_many :sample_connections, :class_name => 'SamplesVcfFiles'
+
+  has_many :patients_vcf_files, :dependent => :destroy
+  has_many :patients, :through => :patients_vcf_files
+  #has_many :disorders_mutation_scores, :through => :patients_vcf_files, :dependent => :destroy
+
 
   VCF_PATH = 'Data/vcf/'
   VCF_TEMP = 'Data/tmp/'
@@ -395,9 +400,8 @@ class VcfFile < ActiveRecord::Base
   def create_samples
     links = []
     sample_names_array.each_with_index do |name, i|
-      #sample = Sample.create( :user_id       => self.user_id,
-      #                        :name          => name )
-      PatientsVcfFile.create( :patient_id    => 1,
+      patient = Patient.where(case_id: name.to_i).first
+      PatientsVcfFile.create( :patient_id    => patient.id,
                               :vcf_file_id   => self.id,
                               :name => name )
       links << 1
