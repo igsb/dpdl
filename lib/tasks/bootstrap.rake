@@ -113,8 +113,8 @@ namespace :bootstrap do
 
   desc "Add default User and Login"
   task :default_user => :environment do
-    User.create!(username:'tzung')
-    Login.create!(username:'tzung', user_id:1)
+    User.create!(username:'admin')
+    Login.create!(username:'admin', user_id:1)
   end
 
   desc "Run all bootstrapping tasks"
