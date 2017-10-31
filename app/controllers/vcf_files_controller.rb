@@ -289,6 +289,7 @@ class VcfFilesController < ApplicationController
 
     @vcf_file.create_samples
     @vcf_file.save
+    redirect_to :action => :index
   end
 
   #######################################################################
@@ -1238,10 +1239,6 @@ EOT
   # DELETE /vcf_files/1
   def destroy
     vcf_file = VcfFile.find_by_id(params[:id])
-     if @vcf_file.id < 10
-        flash[:alert] = "You are not allowed to delete the demo VCF file"
-        redirect_to vcf_files_path and return
-     end
     
     if vcf_file != nil
       path = vcf_file.fullname
