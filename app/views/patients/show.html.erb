@@ -74,6 +74,9 @@
   </table>
 </p>
 <p>
+<%= link_to '<button type="button" class="btn btn-dark">VCF Viewer</button>'.html_safe, @patient.vcf_files.first %>
+</p>
+<p>
   <strong>Predicted gene:</strong>
   <br>
   <% @gene.each_with_index do |g, index| %>
