@@ -1,0 +1,72 @@
+<p id="notice"><%= notice %></p>
+<head>
+  <style>
+    .borderless tr, .borderless td, .borderless th {
+      border: none !important;
+    }
+  </style>
+</head>
+<h1>Mutation Review</h1>
+
+<p>
+<strong>
+  Position:
+</strong>
+chr<%= @pos %>
+</p>
+
+<p>
+<strong>
+  dbSNP id:
+</strong>
+<%= @snp_id %>
+</p>
+
+<p>
+<strong>
+  Ref:
+</strong>
+<%= @ref %>
+</p>
+
+<p>
+<strong>
+  Genotype:
+</strong>
+<%= @genotype %>
+</p>
+<h2>Mutation Taster</h2>
+<p>
+<table class='table'>
+  <thead>
+    <tr>
+      <th>Gene</th>
+      <th>Prediction</th>
+      <th>Probability</th>
+      <th>Model</th>
+      <th>Problem</th>
+      <th>Splicing</th>
+      <th>ClinVar</th>
+      <th>amino acid changes</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @mt_tables.each do |mt_table| %>
+      <tr>
+        <% mt_table.css('td').take(8).each do |value| %>
+          <td><%= value.text %></td>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+Summary: 
+<br>
+<ol>
+<% @summary.each do |sum| %>
+  <li><%= sum.to_s.html_safe %></li>
+<% end %>
+</ol>
+</p>
