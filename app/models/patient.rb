@@ -42,7 +42,7 @@ class Patient < ApplicationRecord
         if psn.nil?
           @@log.fatal "PSN not found: #{syndrome_name}"
           next
-	else  
+        else  
           psn_id = psn.id
           psn_num = psn.phenotypic_series_id
           psn_disorder_id = Disorder.where(disorder_id:psn_num, is_phenotypic_series: true).take.id
@@ -58,12 +58,12 @@ class Patient < ApplicationRecord
           end
           patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id:psn_disorder_id)
           assign_scores(disorder, patient_disorder)
-	end
+        end
       else
         if disorder['omim_id'].nil?
           @@log.fatal "Syndrome has no omim: #{disorder['syndrome_name']}"
-	  next
-	end
+          next
+        end
         disorder_result = Disorder.find_or_create_by(disorder_id: disorder['omim_id'])
         self.disorders << disorder_result
         patient_disorder = PatientsDisorder.where(patient_id: self.id, disorder_id: disorder_result.id).take
@@ -117,8 +117,8 @@ class Patient < ApplicationRecord
   def parse_pedia(gene_list)
     for gene in gene_list
       if gene.key?("pedia_score")
-        gene_name = gene['gene_symbol']
         gene_id = gene['gene_id']
+        entrez_gene = Gene.where(entrez_id: gene_id).take
 
         score = Score.find_or_create_by(name: 'pedia_score')
         pedia = gene['pedia_score']
@@ -140,8 +140,12 @@ class Patient < ApplicationRecord
           score = Score.find_or_create_by(name: 'gestalt_score')
           gestalt = gene['gestalt_score']
         end
-
-        p = Pedium.find_or_create_by(patient_id: self.id, gene_symbol: gene_name, gene_id: gene_id, pedia_score: pedia, cadd_score: cadd, pheno_score: pheno, gestalt_score: gestalt)
+        if entrez_gene.nil?
+          puts gene_id
+          puts gene['gene_name']
+          next
+        end
+        p = Pedium.find_or_create_by(patient_id: self.id, gene_id: entrez_gene.id, pedia_score: pedia, cadd_score: cadd, pheno_score: pheno, gestalt_score: gestalt)
         p.save
       end
     end

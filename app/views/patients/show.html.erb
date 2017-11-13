@@ -80,8 +80,8 @@
   <strong>Predicted gene:</strong>
   <br>
   <% @gene.each_with_index do |g, index| %>
-    <%= index + 1 %>. Gene: <strong><%= g.gene_symbol %></strong><br>
-      Gene ID: <%= g.gene_id %><br>
+    <%= index + 1 %>. Gene: <strong><%= g.gene.name %></strong><br>
+      Gene ID: <%= g.gene.entrez_id %><br>
       PEDIA score: <%= g.pedia_score %><br>
     <br>
   <% end %>

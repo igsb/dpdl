@@ -26,7 +26,6 @@ function chtoi(x){
 function bla(x){
   return x+x;
 }
-// var app = angular.module('app', ['ngTouch', 'ui.grid', 'ui.grid.cellNav', 'ui.grid.edit', 'ui.grid.resizeColumns', 'ui.grid.pinning', 'ui.grid.selection', 'ui.grid.moveColumns']);
 var app = angular.module('app', ['ngTouch', 'ui.grid', 'ui.grid.cellNav', 'ui.grid.resizeColumns', 'ui.grid.selection', 'ui.grid.moveColumns']);
 
 app.filter('unsafe', function($sce) { return function(input) { return $sce.trustAsHtml(input); };});
@@ -53,7 +52,7 @@ app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGrid
     }
   };
   $scope.clicked = function(row){
-    window.location = '/review?chr=' + row.x + "&snp=" + row.i + "&hgvs=" + row.h + "&genotype=" + row.s[0].g + "&ref=" + row.r;
+    window.location = '/review?chr=' + row.x + "&snp=" + row.i + "&hgvs=" + row.h + "&genotype=" + row.g + "&ref=" + row.r;
   }
   $scope.igv_clicked = function(pos){
     window.location = 'http://localhost:60151/goto?locus=chr' + pos;
@@ -69,7 +68,7 @@ app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGrid
   $scope.gridOptions.getRowIdentity = function(row) { return row.id; };
  
   $scope.gridOptions.columnDefs = [
-    { displayName: 'Chrom. Pos', name:'x', width:100,
+    { displayName: 'Chrom. Pos', name:'x', width:150,
       sortingAlgorithm: function(a, b) {
           var nulls = $scope.gridApi.core.sortHandleNulls(a, b);
           if( nulls !== null ) {
@@ -95,33 +94,22 @@ app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGrid
     { displayName: 'Gene', name:'ge', width:100,
       cellTemplate: '<div class="ui-grid-cell-contents"><span ng-bind-html=\"COL_FIELD | gene_filter\"></span></div>' 
     },
-    { displayName: 'Ref', name:'r', width:50, displaySubTitle: 'Foo' },
-  <% @indiv_from.upto( @indiv_to ) do |i| -%>
-    { displayName: '<%= @name_indiv[i] %>', name: 's[<%= i %>].g', width:150,
-      cellTemplate: '<div class="ui-grid-cell-contents" title="{{row.entity.s[<%= i %>].f}}"><span>{{COL_FIELD}}</span></div>',
-      headerCellTemplate:"<div ng-class=\"{ 'sortable': sortable }\"><div class=\"ui-grid-cell-contents\" col-index=\"renderIndex\"><span><%#= @name_indiv[i] %>Genotype</span> <span ui-grid-visible=\"col.sort.direction\" ng-class=\"{ 'ui-grid-icon-up-dir': col.sort.direction == asc, 'ui-grid-icon-down-dir': col.sort.direction == desc, 'ui-grid-icon-blank': !col.sort.direction }\">&nbsp;</span></div><div class=\"ui-grid-column-menu-button\" ng-if=\"grid.options.enableColumnMenus && !col.isRowHeader  && col.colDef.enableColumnMenu !== false\" ng-click=\"toggleMenu($event)\" ng-class=\"{'ui-grid-column-menu-button-last-col': isLastCol}\"><i class=\"ui-grid-icon-angle-down\">&nbsp;</i></div><div ng-if=\"filterable\" class=\"ui-grid-filter-container\" ng-repeat=\"colFilter in col.filters\"><input type=\"text\" class=\"ui-grid-filter-input\" ng-model=\"colFilter.term\" ng-attr-placeholder=\"{{colFilter.placeholder || ''}}\"><div class=\"ui-grid-filter-button\" ng-click=\"colFilter.term = null\"><i class=\"ui-grid-icon-cancel\" ng-show=\"!!colFilter.term\">&nbsp;</i></div></div></div>"
-    },
-    { displayName: 'Reads', name: 's[<%= i %>].r', width:100,
-      headerCellTemplate:"<div ng-class=\"{ 'sortable': sortable }\"><div class=\"ui-grid-cell-contents\" col-index=\"renderIndex\"><span title=\"Reads supporting reference allele/alternate allele\"><%#= @name_indiv[i] %>Reads</span> <span ui-grid-visible=\"col.sort.direction\" ng-class=\"{ 'ui-grid-icon-up-dir': col.sort.direction == asc, 'ui-grid-icon-down-dir': col.sort.direction == desc, 'ui-grid-icon-blank': !col.sort.direction }\">&nbsp;</span></div><div class=\"ui-grid-column-menu-button\" ng-if=\"grid.options.enableColumnMenus && !col.isRowHeader  && col.colDef.enableColumnMenu !== false\" ng-click=\"toggleMenu($event)\" ng-class=\"{'ui-grid-column-menu-button-last-col': isLastCol}\"><i class=\"ui-grid-icon-angle-down\">&nbsp;</i></div><div ng-if=\"filterable\" class=\"ui-grid-filter-container\" ng-repeat=\"colFilter in col.filters\"><input type=\"text\" class=\"ui-grid-filter-input\" ng-model=\"colFilter.term\" ng-attr-placeholder=\"{{colFilter.placeholder || ''}}\"><div class=\"ui-grid-filter-button\" ng-click=\"colFilter.term = null\"><i class=\"ui-grid-icon-cancel\" ng-show=\"!!colFilter.term\">&nbsp;</i></div></div></div>"
-    },
-    { displayName: 'Score'  , name: 's[<%= i %>].ps', width:100,
-      headerCellTemplate:"<div ng-class=\"{ 'sortable': sortable }\"><div class=\"ui-grid-cell-contents\" col-index=\"renderIndex\"><span title=\"Phenomizer Score\"><%#= @name_indiv[i] %>Score</span> <span ui-grid-visible=\"col.sort.direction\" ng-class=\"{ 'ui-grid-icon-up-dir': col.sort.direction == asc, 'ui-grid-icon-down-dir': col.sort.direction == desc, 'ui-grid-icon-blank': !col.sort.direction }\">&nbsp;</span></div><div class=\"ui-grid-column-menu-button\" ng-if=\"grid.options.enableColumnMenus && !col.isRowHeader  && col.colDef.enableColumnMenu !== false\" ng-click=\"toggleMenu($event)\" ng-class=\"{'ui-grid-column-menu-button-last-col': isLastCol}\"><i class=\"ui-grid-icon-angle-down\">&nbsp;</i></div><div ng-if=\"filterable\" class=\"ui-grid-filter-container\" ng-repeat=\"colFilter in col.filters\"><input type=\"text\" class=\"ui-grid-filter-input\" ng-model=\"colFilter.term\" ng-attr-placeholder=\"{{colFilter.placeholder || ''}}\"><div class=\"ui-grid-filter-button\" ng-click=\"colFilter.term = null\"><i class=\"ui-grid-icon-cancel\" ng-show=\"!!colFilter.term\">&nbsp;</i></div></div></div>"
-    },
-  <% end -%>
+    { displayName: 'Ref', name:'r', width:100, displaySubTitle: 'Foo' },
+    { displayName: 'Genotype', name: 'g', width:150},
+    { displayName: 'PEDIA', name: 'p', width:100},
+    { displayName: 'CADD', name: 's', width:100},
     { displayName: 'Effect/HGVS', 
       name: 'e', 
       width:150,
       cellTemplate: '<div class="ui-grid-cell-contents" title="{{row.entity.h}}"><span>{{COL_FIELD}}</span></div>' 
     },
-    { displayName: 'Review',  name:'review', width:150,
+    { displayName: 'Review',  name:'review', width:100,
 cellTemplate: '<div class="ui-grid-cell-contents"><button ng-click="grid.appScope.clicked(row.entity)">Review</button></div>'
     },
-    { displayName: 'IGV',  name:'igv', width:150,
+    { displayName: 'IGV',  name:'igv', width:100,
 cellTemplate: '<div class="ui-grid-cell-contents"><button ng-click="grid.appScope.igv_clicked(row.entity.x)">IGV</button></div>'
     }
   ];
-//    { displayName: 'Med.Rel.', name: 'm' }
-//    { displayName: 'Sci.Ev.', name: 's' }
 }]);
 
 $(document).ready(function() {
@@ -162,18 +150,13 @@ $(document).ready(function() {
 <div class="cols cols1v2">
   <div class="col1">
     <h4>File: <%= @vcf_file.name%></h4>
- <% if @nr_indiv > 0 %> 
-    <h5>Sample name: <%= @name_indiv[@nr_indiv] || '' %></h5>
- <% end -%><%# else if nr_indiv %>
 </div>
 
 
-    <h5>Variants: <%= @vcf_file.lines unless @vcf_file.lines.blank? %></h5>
+    <h5>Variants: <%= @var_count %></h5>
 
   </div>
 </div>
-
-
 
 
 <div ng-app="app">

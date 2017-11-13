@@ -32,8 +32,8 @@ namespace :bootstrap do
       if count > 4
         title = row[0]
         number = row[1].split("PS")[1]
-	PhenotypicSeries.create!(phenotypic_series_id:number, title:title)
-	Disorder.create!(disorder_id:number, disorder_name:title, is_phenotypic_series: true)
+        PhenotypicSeries.create!(phenotypic_series_id:number, title:title)
+        Disorder.create!(disorder_id:number, disorder_name:title, is_phenotypic_series: true)
       end
       count += 1
     end
@@ -49,15 +49,15 @@ namespace :bootstrap do
         if !row[12].nil?
           entrez_id = row[9]
           name = row[6].split(",")[0]
-          gene = Gene.find_or_create_by(gene_id: entrez_id, name: name)
+          gene = Gene.find_or_create_by(entrez_id: entrez_id, name: name)
           omim_str = row[12].split(",")
           omim_array = Array.new
           key_array = Array.new
           omim_str.each do |omim|
             if omim.include? "(" and omim.include? ")"
               omim_tmp = omim.split(" ")   
-	      if omim_tmp.length > 1
-		for i in 0...omim_tmp.length
+              if omim_tmp.length > 1
+                for i in 0...omim_tmp.length
                   if omim_tmp[i].include? "(" and omim_tmp[i].include? ")"
                     mapping_key_str = omim_tmp[i].split("(")[1].split(")")[0]
                     if mapping_key_str.scan(/\D/).empty? and mapping_key_str.to_i < 6 and mapping_key_str.to_i > 0
@@ -74,15 +74,15 @@ namespace :bootstrap do
                   end
                 end
               end
-	    end
+            end
           end
           omim_array.zip(key_array).each do |omim, key|
             disorder = Disorder.where(disorder_id: omim, is_phenotypic_series: false).take
             if disorder.nil?
               @@log.debug "omim not found: #{omim.to_s} #{row[12]}"
-	    else
+            else
               DisordersGene.find_or_create_by(disorder_id: disorder.id, gene_id: gene.id, mapping_key_id: key)
-	    end
+            end
           end
         end 
       end
@@ -96,16 +96,16 @@ namespace :bootstrap do
     File.open('public/hp.obo.txt', 'r') do |fh|
       while(line = fh.gets) != nil
         if line.include? '[Term]'
-	  while (hpo_line = fh.gets).include? 'id: '
-	    hpo_term = hpo_line.split('id: ')[1].strip
-	    break
-	  end
-	  while (hpo_line = fh.gets).include? 'name: '
+          while (hpo_line = fh.gets).include? 'id: '
+            hpo_term = hpo_line.split('id: ')[1].strip
+            break
+          end
+          while (hpo_line = fh.gets).include? 'name: '
             hpo_name = hpo_line.split('name: ')[1].strip
-	    break
-	  end
-	  Feature.create!(hpo_term:hpo_term, description:hpo_name)
-	end
+            break
+          end
+          Feature.create!(hpo_term:hpo_term, description:hpo_name)
+        end
       end
     end
     @@log.info "Add HPO complete"
@@ -119,13 +119,13 @@ namespace :bootstrap do
 
   desc "Run all bootstrapping tasks"
   task :all => [:default_type, :default_diagnosed_type, :default_omim, :default_hpo, :default_phenotypic_series, :default_disorder_gene, :default_user]
-  
+
   desc "Run hpo tasks"
   task :hpo => [:default_hpo]
 
   desc "Run omim phenotypic series tasks"
   task :phenotypic => [:default_phenotypic_series]
-  
+
   desc "Run disorder gene relationship"
   task :disorder_gene => [:default_disorder_gene]
 
