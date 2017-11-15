@@ -50,7 +50,11 @@
 
   <div class="field">
     <strong>USI ID</strong>
-    <%= form.number_field :usi_id, id: :patient_usi_id %>
+    <%= form.text_field :usi_id, id: :patient_usi_id, :size=>"30"  %>
+  </div>
+  <div class="field">
+    <strong>Materialnr</strong>
+    <%= form.text_field :material_id, id: :patient_material_id %>
   </div>
   <div class="actions">
     <%= form.submit %>
