@@ -8,18 +8,40 @@ class ReviewController < ApplicationController
     @annotation = params[:hgvs]
     # dbSNP
     dbsnp_prefix = "https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs="
+    @hgvs = []
     if @snp_id != ""
       @dbsnp_url = dbsnp_prefix + @snp_id.split("rs")[1]
+      require "open-uri"
       @data = URI.parse(@dbsnp_url).read
       doc = Nokogiri::HTML(@data)
-      @hgvs = doc.at_css('[id="HGVS Names"]')
+      @hgvs = doc.at_css('[id="HGVS Names"]').css("li")
     end
     
     # ExAC
     exac_prefix = "http://exac.hms.harvard.edu/rest/dbsnp/"
+    link_prefix = "http://exac.broadinstitute.org/dbsnp/"
     @result_array = []
+    pos = @pos.split(':')
+    ge = []
+    if @genotype.include? "|"
+      ge = @genotype.split("|")
+    end
+    if @genotype.include? "/"
+      ge = @genotype.split("/")
+    end
+    alt = ''
+    ge.each do |g|
+      if g != @ref
+        alt = g
+      end
+    end
+    #@exac_url = exac_prefix + pos[0] + '-' + pos[1] + '-' + @ref + '-' + alt
+    pos_prefix = "http://exac.broadinstitute.org/variant/"
+    @exac_pos_link_url = pos_prefix + pos[0] + '-' + pos[1] + '-' + @ref + '-' + alt
+    @exac_link_url = link_prefix
     if @snp_id != ""
       @exac_url = exac_prefix + @snp_id
+      @exac_link_url = link_prefix + @snp_id
       url = URI.parse(@exac_url)
       req = Net::HTTP::Get.new(url.to_s)
       res = Net::HTTP.start(url.host, url.port) {|http|
