@@ -27,5 +27,5 @@ config/secrets.yml
 # Ignore encrypted secrets key file.
 config/secrets.yml.key
 
-
+config/initializers/app_env_vars.rb
 public/cases/*

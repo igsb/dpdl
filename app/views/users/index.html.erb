@@ -18,7 +18,7 @@
   <tbody>
   <% @users.each do |user| %>
     <tr>
-      <td><%= user.title + '. ' + user.first_name + ' ' + user.last_name %></td>
+      <td><%= user.title + ' ' + user.first_name + ' ' + user.last_name %></td>
       <td><%= user.email %></td>
       <td><%= user.institute %></td>
       <td><%= user.approved %></td>
