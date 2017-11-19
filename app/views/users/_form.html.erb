@@ -1,0 +1,48 @@
+<%= form_with(model: user, local: true) do |form| %>
+  <% if user.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(user.errors.count, "error") %> prohibited this patient from being saved:</h2>
+
+      <ul>
+        <% user.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :title %><br />
+    <%= form.select :title, [['Prof.','Prof.'], ['Dr.','Dr.'], ['Mr.','Mr.'], ['Ms.', 'Ms.']] %>
+  </div>
+
+  <div class="field">
+    <%= form.label :last_name %>
+    <%= form.text_field :last_name, id: :user_last_name %>
+  </div>
+
+  <div class="field">
+    <%= form.label :first_name %>
+    <%= form.text_field :first_name, id: :user_first_name %>
+  </div>
+
+  <div class="field">
+    <%= form.label :email %>
+    <%= form.text_field :email, id: :user_email %>
+  </div>
+
+  <div class="field">
+    <%= form.label :institute %>
+    <%= form.text_field :institute, id: :user_institute %>
+  </div>
+
+  <div class="field">
+    <%= form.label :approved %><br />
+    <%= form.select :approved, [['true', true], ['false',false]] %>
+  </div>
+   
+  <br>
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>
