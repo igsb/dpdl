@@ -1,45 +1,59 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Dpdl</title>
-  <%= csrf_meta_tags %>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
-  <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
-  <%= yield :head %>
-</head>
+  <head>
+    <title>Dpdl</title>
+    <%= csrf_meta_tags %>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
+    <%= yield :head %>
+  </head>
 
-<body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-static-top">
-  <div class="container">
-    <a class="navbar-brand" href="/">DPDL</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarResponsive">
-      <ul class="navbar-nav ml-auto">
-        <li class="nav-item active">
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-static-top">
+    <div class="container">
+      <a class="navbar-brand" href="/">DPDL</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarResponsive">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
           <a class="nav-link" href="/">Home
             <span class="sr-only">(current)</span>
           </a>
-        </li>
-        <li class="nav-item">
+          </li>
+          <li class="nav-item">
           <a class="nav-link" href="/searches">Search</a>
-        </li>
-        <li class="nav-item">
+          </li>
+          <li class="nav-item">
           <a class="nav-link" href="/patients">Patients</a>
-        </li>
-        <li class="nav-item">
+          </li>
+          <li class="nav-item">
           <a class="nav-link" href="#">About</a>
-        </li>
-        <li class="nav-item">
+          </li>
+          <li class="nav-item">
           <a class="nav-link" href="#">Contact</a>
-        </li>
-      </ul>
+          </li>
+        </ul>
+
+        <p class="navbar-text">
+        <% if user_signed_in? %>
+          Logged in as <strong><%= current_user.email %></strong>.
+          <%= link_to 'Edit profile', edit_user_registration_path, :class => 'navbar-link' %> |
+          <%= link_to "Logout", destroy_user_session_path, method: :delete, :class => 'navbar-link'  %>
+        <% else %>
+          <%= link_to "Sign up", new_user_registration_path, :class => 'navbar-link'  %> |
+          <%= link_to "Login", new_user_session_path, :class => 'navbar-link'  %>
+        <% end %>
+        </p>
+      </div>
     </div>
-  </div>
-</nav>
-<div class="container">
-<%= yield %>
-</div>
-</body>
+    </nav>
+    <div class="container">
+      <p class="notice"><%= notice %></p>
+      <p class="alert"><%= alert %></p>
+
+      <%= yield %>
+    </div>
+  </body>
 </html>
