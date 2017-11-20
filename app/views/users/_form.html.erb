@@ -12,6 +12,11 @@
   <% end %>
 
   <div class="field">
+    <%= form.label :username %>
+    <%= form.text_field :username, id: :username %>
+  </div>
+
+  <div class="field">
     <%= form.label :title %><br />
     <%= form.select :title, [['Prof.','Prof.'], ['Dr.','Dr.'], ['Mr.','Mr.'], ['Ms.', 'Ms.']] %>
   </div>

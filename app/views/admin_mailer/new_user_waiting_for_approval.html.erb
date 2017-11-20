@@ -4,9 +4,10 @@
 		<meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
 	</head>
 	<body>
-		<h1>Welcome to dpdl.org, <%= @user.email %></h1>
+		<h1>Welcome to dpdl.org, <%= @user.title + ' ' + @user.first_name + ' ' + @user.last_name %></h1>
 		<p>
-		You have successfully signed up to dpdl.org. Please wait for administrator to activate your account.
+		You have successfully signed up to dpdl.org. Your username is <%= @user.username %> and email is <%= @user.email %>. 
+		Please wait for administrator to activate your account.
 		</p>
 		<p>
 		To login to the site, just follow this link: <%= @url %>.
