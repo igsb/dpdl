@@ -9,7 +9,7 @@ class AdminMailer < ApplicationMailer
 
   def new_user_waiting_for_approval(user)
     @user = user
-    @url  = 'http://dpdl.com/users/sing_in'
+    @url  = 'http://dpdl.org/users/sing_in'
     mail(to: @user.email, 
          subject: "DPDL Registration Request  <#{user.email}>")
   end
@@ -21,14 +21,14 @@ class AdminMailer < ApplicationMailer
 
   def new_user_got_approval(user)
     @user = user
-    @url  = 'http://dpdl.com/users/sing_in'
+    @url  = 'http://dpdl.org/users/sing_in'
     mail(to: @user.email, 
          subject: "DPDL account activated  <#{user.email}>")
   end
 
   def new_user_remove_approval(user)
     @user = user
-    @url  = 'http://dpdl.com/users/sing_in'
+    @url  = 'http://dpdl.org/users/sing_in'
     mail(to: @user.email, 
          subject: "DPDL account deactivated  <#{user.email}>")
   end
