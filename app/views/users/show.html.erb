@@ -30,5 +30,11 @@
   <strong>Approved:</strong>
   <%= @user.approved %>
 </p>
+
+<p>
+  <strong>Admin:</strong>
+  <%= @user.admin %>
+</p>
+
 <%= link_to 'Edit', edit_user_path(@user) %> |
 <%= link_to 'Back', users_path %>

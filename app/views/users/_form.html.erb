@@ -46,6 +46,11 @@
     <%= form.select :approved, [['true', true], ['false',false]] %>
   </div>
    
+  <div class="field">
+    <%= form.label :admin %><br />
+    <%= form.select :admin, [['true', true], ['false',false]] %>
+  </div>
+
   <br>
   <div class="actions">
     <%= form.submit %>

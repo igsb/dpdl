@@ -985,7 +985,7 @@ EOT
 
   #########################VVVVVVVVVV
   def pshow
-    @current_login = Login.last
+    @current_login = current_user.login
     output = ''
 
     @vcf_id = params[:id]
@@ -995,7 +995,7 @@ EOT
     @patient = @vcf_file.patients.take
     @pedia = @patient.pedia.limit(10).order("pedia_score DESC")
     #flash[:alert] = "VCF File not found" and redirect_to vcf_select_path and return if @vcf_file.blank?
-    @user = @current_login.user
+    @user = current_user 
     path = @vcf_file.fullname
 
     @var_count = 0
