@@ -9,7 +9,13 @@ class AdminMailer < ApplicationMailer
 
   def new_user_waiting_for_approval(user)
     @user = user
-    mail(to: "la60312@gmail.com", 
-         subject: "Registration Request  <#{user.email}>")
+    @url  = 'http://dpdl.com/users/sing_in'
+    mail(to: @user.email, 
+         subject: "DPDL Registration Request  <#{user.email}>")
+  end
+
+  def new_registration(user)
+    @user = user
+    mail(to: 'la60312@gmail.com', subject: "New registration <#{user.email} is waiting your approval>")
   end
 end
