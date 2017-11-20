@@ -1,5 +1,7 @@
 class UsersController < ApplicationController
   before_action :set_user, only: [:show, :edit, :update, :destroy]
+  before_action :verify_is_admin
+
   def index
     if params[:approved] == "false"
       @users = User.where(approved: false)
@@ -15,6 +17,7 @@ class UsersController < ApplicationController
   def edit
   end
 
+
   # PATCH/PUT /user/1
   # PATCH/PUT /user/1.json
   def update
@@ -27,6 +30,24 @@ class UsersController < ApplicationController
         format.json { render json: @user.errors, status: :unprocessable_entity }
       end
     end
+  end
+
+  def activate
+    @user = User.find(params[:id])
+    @user.update_attribute(:approved, true)
+    flash[:notice] = 'This account is activated'
+
+    AdminMailer.new_user_got_approval(@user).deliver
+    redirect_to users_url
+  end
+
+  def deactivate
+    @user = User.find(params[:id])
+    @user.update_attribute(:approved, false)
+    flash[:notice] = 'This account is deactivated'
+
+    AdminMailer.new_user_remove_approval(@user).deliver
+    redirect_to users_url
   end
 
   # DELETE /users/1
@@ -48,5 +69,9 @@ class UsersController < ApplicationController
   # Never trust parameters from the scary internet, only allow the white list through.
   def user_params
     params.require(:user).permit(:user_id, :institute, :last_name, :first_name, :title, :approved, :username)
+  end
+
+  def verify_is_admin
+    (current_user.nil?) ? redirect_to(root_path) : (redirect_to(root_path) unless current_user.admin?)
   end
 end

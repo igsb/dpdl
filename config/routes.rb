@@ -1,7 +1,8 @@
 Rails.application.routes.draw do
-  #devise_for :users
   devise_for :users, controllers: { registrations: 'users/registrations' }
   resources :users
+  put 'activate/:id', to: 'users#activate', as: :activate_user
+  put 'deactivate/:id', to: 'users#deactivate', as: :deactivate_user
   namespace :vcf_files do
       get 'pshow'
   end

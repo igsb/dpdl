@@ -18,4 +18,18 @@ class AdminMailer < ApplicationMailer
     @user = user
     mail(to: 'la60312@gmail.com', subject: "New registration <#{user.email} is waiting your approval>")
   end
+
+  def new_user_got_approval(user)
+    @user = user
+    @url  = 'http://dpdl.com/users/sing_in'
+    mail(to: @user.email, 
+         subject: "DPDL account activated  <#{user.email}>")
+  end
+
+  def new_user_remove_approval(user)
+    @user = user
+    @url  = 'http://dpdl.com/users/sing_in'
+    mail(to: @user.email, 
+         subject: "DPDL account deactivated  <#{user.email}>")
+  end
 end
