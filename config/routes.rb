@@ -9,6 +9,8 @@ Rails.application.routes.draw do
   resources :vcf_files
   root :to => "home#index"
   resources :home
+  resources :about
+  resources :contact
   resources :searches
   resources :disorders
   resources :features
