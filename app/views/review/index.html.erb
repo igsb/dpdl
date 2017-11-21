@@ -71,6 +71,59 @@ chr<%= @pos %>
 <% end %>
 
 </p>
+<h2>Ensembl</h2>
+<p>
+<strong>Search by dbSNP ID in Ensembl</strong>
+<% if @ensembl_valid %>
+  <table class='table'>
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Most severe consequence</th>
+        <th>Clinical significance</th>
+        <th>Reference Allele</th>
+        <th>Alternative Allele</th>
+        <th>MAF</th>
+        <th>Evidence</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <% @ensembl_location.each do |row| %>
+            <%= row['location'] + '-' + row['assembly_name'] %><br>
+          <% end %>
+        </td>
+        <td><%= @most_severe %></td>
+        <td>
+          <% @ensembl_clinical_sig.each do |row| %>
+            <%= row %><br>
+          <% end %>
+        </td>
+        <td>
+          <% @ensembl_location.each do |row| %>
+            <%= row['ref'] %><br>
+          <% end %>
+        </td>
+        <td>
+          <% @ensembl_location.each do |row| %>
+            <%= row['alt'] %><br>
+          <% end %>
+        </td>
+        <td><%= @ensembl_maf %></td>
+        <td>
+          <% @evidence.each do |row| %>
+            <%= row %><br>
+          <% end %>
+        </td>
+      </tr>
+  </tbody>
+</table>
+<% else %>
+  <br>This mutation is not found in Ensembl by dbSNP ID!
+<% end %>
+</p>
+<br>
 <h2>ExAC Browser</h2>
 <p>
 <strong>Search by position in ExAC</strong>

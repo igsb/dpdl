@@ -2,10 +2,13 @@ class ReviewController < ApplicationController
 
   def index
     require "open-uri"
+    require 'net/http'
+    require 'uri'
+
     @pos = params[:chr]
     @snp_id = params[:snp]
     @ref = params[:ref]
-      @genotype = params[:genotype]
+    @genotype = params[:genotype]
     @annotation = params[:hgvs]
     # dbSNP
     dbsnp_prefix = "https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs="
@@ -20,7 +23,59 @@ class ReviewController < ApplicationController
       @maf = doc.at_css('[id="Allele"]').css("td")[-1].css('span')
       puts @maf
     end
-    
+
+    parse_exac()
+    parse_mut_taster()
+    parse_ensembl()
+
+  end
+
+  def parse_ensembl
+    server = 'https://rest.ensembl.org'
+    path =  '/variation/human/' + @snp_id + '?'
+    #pos_prefix = "http://exac.broadinstitute.org/variant/"
+    #@exac_pos_link_url = pos_prefix + pos[0] + '-' + pos[1] + '-' + @ref + '-' + alt
+    url = URI.parse(server)
+    http = Net::HTTP.new(url.host, url.port)
+
+    http.use_ssl = true
+    request = Net::HTTP::Get.new(path, {'Content-Type' => 'application/json'})
+
+
+    @ensembl_valid = false
+    if @snp_id != ''
+      res = http.request(request)
+      if response.code != "200"
+        puts "Invalid response: #{response.code}"
+        puts response.body
+        exit
+      else
+        @ensembl_valid = true
+        result = JSON.parse(res.body)
+        @most_severe = result['most_severe_consequence']
+        @evidence = result['evidence']
+        if @evidence.nil?
+          @evidence = []
+        end
+        @ensembl_clinical_sig = result['clinical_significance']
+        if @ensembl_clinical_sig.nil?
+          @ensembl_clinical_sig = []
+        end
+        @ensembl_maf = result['MAF']
+        @ensembl_location = []
+        location_array = result['mappings']
+        location_array.each do |location|
+          allele_string = location['allele_string'].split('/')
+          ref = allele_string[0]
+          alt = allele_string[1..-1].join('/')
+          value = {'location' => location['location'], 'assembly_name' => location['assembly_name'], 'ref' => ref, 'alt' => alt}
+          @ensembl_location.push(value)
+        end
+      end
+    end
+  end
+
+  def parse_exac
     # ExAC
     # The first one is for REST, and the second one is for navigating to the website
     exac_prefix = "http://exac.hms.harvard.edu/rest/"
@@ -50,7 +105,7 @@ class ReviewController < ApplicationController
     url = URI.parse(exac_pos_url)
     req = Net::HTTP::Get.new(url.to_s)
     res = Net::HTTP.start(url.host, url.port) {|http|
-        http.request(req)
+      http.request(req)
     }
     result = JSON.parse(res.body)['variant']
     @pos_result_array = []
@@ -77,7 +132,7 @@ class ReviewController < ApplicationController
       url = URI.parse(@exac_url)
       req = Net::HTTP::Get.new(url.to_s)
       res = Net::HTTP.start(url.host, url.port) {|http|
-          http.request(req)
+        http.request(req)
       }
       result = JSON.parse(res.body)
       results = result['variants_in_region']
@@ -108,7 +163,9 @@ class ReviewController < ApplicationController
         @result_array.push(out)
       end
     end
+  end
 
+  def parse_mut_taster
     # mutation taster
     mut_url_prefix = "http://www.mutationtaster.org/cgi-bin/MutationTaster/MT_ChrPos.cgi"
     uri = URI.parse(mut_url_prefix)
@@ -117,9 +174,9 @@ class ReviewController < ApplicationController
     genotype = @genotype.split("/")
     alt =  ""
     for g in genotype
-        if g != @ref
-          alt = g
-        end
+      if g != @ref
+        alt = g
+      end
     end
     form_data = {
       "chromosome" => @pos.split(":")[0],
