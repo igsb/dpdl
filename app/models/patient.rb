@@ -8,6 +8,7 @@ class Patient < ApplicationRecord
   has_many :vcf_files, :through => :patients_vcf_files, :dependent => :destroy
   #has_many :disorders_mutataion_scores, :through => :patients_vcf_files, :dependent => :destroy
 
+  has_many :disease_causing_mutations, :dependent => :destroy
   has_many :pedia, :dependent => :destroy
   validates :case_id, :submitter_id, presence: true
   validates :case_id, uniqueness: true
@@ -23,6 +24,11 @@ class Patient < ApplicationRecord
     #parse_detected(data['detected_syndromes'])
     #parse_selected(data['selected_syndromes'])
     parse_pedia(data['geneList'])
+    if data.key? "genomicData"
+      if data['genomicData'].length > 1
+        parse_genomic(data['genomicData'][1])
+      end
+    end
   end
 
   def parse_features(data)
@@ -145,8 +151,27 @@ class Patient < ApplicationRecord
           puts gene['gene_name']
           next
         end
-        p = Pedium.find_or_create_by(patient_id: self.id, gene_id: entrez_gene.id, pedia_score: pedia, cadd_score: cadd, pheno_score: pheno, gestalt_score: gestalt)
+        p = Pedium.find_or_create_by(patient_id: self.id, gene_id: entrez_gene.id)
+        p.pedia_score = pedia
         p.save
+      end
+    end
+  end
+
+  def parse_genomic(mut_array)
+    mut_array.each do |mut|
+      test = mut['Test Information']
+      gene = test['Gene Name']
+      genotype = test['Genotype']
+      muts = mut['Mutations']
+      if genotype == 'Compound Heterozygous'
+        hgvs1 = muts['Mutation 1']['HGVS-code']
+        hgvs2 = muts['Mutation 2']['HGVS-code']
+        DiseaseCausingMutation.find_or_create_by(patient_id:self.id, genotype: genotype, gene_name: gene, hgvs: hgvs1)
+        DiseaseCausingMutation.find_or_create_by(patient_id:self.id, genotype: genotype, gene_name: gene, hgvs: hgvs2)
+      else
+        hgvs = muts['HGVS-code']
+        DiseaseCausingMutation.find_or_create_by(patient_id:self.id, genotype: genotype, gene_name: gene, hgvs: hgvs)
       end
     end
   end

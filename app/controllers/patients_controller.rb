@@ -13,6 +13,7 @@ class PatientsController < ApplicationController
     @diagnosed_disorders = @patient.get_selected_disorders 
     @detected_disorders = @patient.get_detected_disorders 
     @gene = @patient.pedia.limit(10).order("pedia_score DESC") 
+    @causing_muts = @patient.disease_causing_mutations
   end
 
   # GET /patients/new

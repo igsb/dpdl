@@ -1,0 +1,13 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  patient_id: 1
+  genotype: MyString
+  gene_name: MyString
+  hgvs: MyString
+
+two:
+  patient_id: 1
+  genotype: MyString
+  gene_name: MyString
+  hgvs: MyString

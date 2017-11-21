@@ -139,12 +139,12 @@ class VcfFile < ActiveRecord::Base
     vcf_file = VcfFile.new(:name => fname,
                             :filtered => false,
                             :sample_names => sample_names,
-                            :user_id => login.user_id);
+                            :user_id => login.id);
 
     FileUtils.cp(tempfile, path)
-    login.user.vcf_files << vcf_file;
-    login.user.uploaded_count += 1
-    login.user.save
+    login.vcf_files << vcf_file;
+    login.uploaded_count += 1
+    login.save
 
     vcf_file.save
     vcf_file.reload
@@ -461,6 +461,9 @@ class VcfFile < ActiveRecord::Base
             end
             if tmp.include? "CADD_INDEL_PHRED="
               cadd_str = tmp[17..-1]
+            end
+            if cadd_str == '' and tmp.include? "CADD_SNV_OVL_PHRED"
+              cadd_str = tmp[19..-1]
             end
           end
           ann_array = ann.split(",").values_at(*gt_alt)

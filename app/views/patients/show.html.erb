@@ -73,10 +73,19 @@
   </table>
 </p>
 <p>
+<strong>Disease causing mutations:</strong>
+<br>
+<% @causing_muts.each_with_index do |mut, idx| %>
+  <%= idx + 1 %>. Gene: <%= mut.gene_name %> <br>
+  Genotype: <%= mut.genotype %> <br>
+  HGVS code: <%= mut.hgvs %> <br><br>
+<% end %>
+</p>
+<p>
 <%= link_to '<button type="button" class="btn btn-dark">VCF Viewer</button>'.html_safe, @patient.vcf_files.first %>
 </p>
 <p>
-  <strong>Predicted gene:</strong>
+  <strong>Predicted genes:</strong>
   <br>
   <% @gene.each_with_index do |g, index| %>
     <%= index + 1 %>. Gene: <strong><%= g.gene.name %></strong><br>
@@ -85,6 +94,7 @@
     <br>
   <% end %>
 </p>
+<% if false %>
 <p>
   <strong>Detected disorders:</strong>
   <br>
@@ -106,6 +116,7 @@
     <% end %>
     <br>
   <% end %>
-</p>
+  </p>
+<% end %>
 <%= link_to 'Edit', edit_patient_path(@patient) %> |
 <%= link_to 'Back', patients_path %>

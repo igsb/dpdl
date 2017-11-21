@@ -191,27 +191,10 @@ class VcfFilesController < ApplicationController
   # POST /vcf_files
   def create
 
-    @current_login = Login.last
+    @current_login = current_user
     remote = false
-    #if @current_login == nil 
-    #   remote = true
-    #   #if params[:user].blank? || params[:pwd].blank?
-    #   #  authenticate_login
-    #   #end
-    #   @login = Login.find_by_username( params[:user] )
-    #   if @login.blank?
-    #      render :text => "Unknown user or wrong password", :content_type => 'text/plain'
-    #      return
-    #   end          
-    #   if ! @login.valid_password?( params[:pwd] )
-    #      render :text => "Unknown user or wrong password", :content_type => 'text/plain'
-    #      return
-    #   end  
-    #   params[:consent_given] = 3
-    #   sign_in @login
-    #end
 
-    login = Login.last
+    login = current_user
 
     if params[:upload].blank?
       if remote
@@ -257,7 +240,7 @@ class VcfFilesController < ApplicationController
       else
         infile = params[:upload]['datafile'].open   
         tempfile = params[:upload]['datafile'].tempfile.path
-        @vcf_file, warnings, alerts = VcfFile.add_file( infile, f, name, login )
+        @vcf_file, warnings, alerts = VcfFile.add_file( infile, tempfile, fname, login )
       end
 
       flash[:warning] = warnings unless warnings.blank?
@@ -1237,18 +1220,17 @@ EOT
   #######################################################################
   # DELETE /vcf_files/1
   def destroy
-    @current_login = Login.last
     vcf_file = VcfFile.find_by_id(params[:id])
 
     if vcf_file != nil
       path = vcf_file.fullname
-      if vcf_file.user_id == @current_login.user_id
+      if vcf_file.user_id == current_user.id
         File.delete( path ) if File.exist?( path )
         FileUtils.rm_rf( Dir.glob(vcf_file.fullname + '*'))
 
         vcf_file.destroy
       else
-        @current_login.user.vcf_files.delete( vcf_file )
+        current_user.vcf_files.delete( vcf_file )
       end
       flash[:notice] = 'File removed';
     else
