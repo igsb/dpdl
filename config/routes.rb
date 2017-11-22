@@ -1,11 +1,13 @@
 Rails.application.routes.draw do
+  resources :result_figures
   devise_for :users, controllers: { registrations: 'users/registrations' }
   resources :users
   put 'activate/:id', to: 'users#activate', as: :activate_user
   put 'deactivate/:id', to: 'users#deactivate', as: :deactivate_user
   namespace :vcf_files do
-      get 'pshow'
+    get 'pshow'
   end
+  get '/get_img/:filename' => 'patients#get_img', :constraints => { :filename => /.*/ }
   resources :vcf_files
   root :to => "home#index"
   resources :home

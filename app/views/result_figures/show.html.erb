@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Patient:</strong>
+  <%= @result_figure.patient.case_id %>
+</p>
+
+<p>
+  <strong>Type:</strong>
+  <%= @result_figure.figure_type.name %>
+</p>
+
+<p>
+  <strong>Link:</strong>
+  <%= @result_figure.link %>
+</p>
+
+<%= link_to 'Edit', edit_result_figure_path(@result_figure) %> |
+<%= link_to 'Back', result_figures_path %>

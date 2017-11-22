@@ -1,5 +1,11 @@
 require 'csv'
 namespace :bootstrap do
+  desc "Add the default figure types"
+  task :default_figure_type => :environment do
+    @@log = Logger.new('log/bootstrap.log')
+    FigureType.create( :name => 'manhattan' )
+    @@log.info "Add figure type complete"
+  end
   desc "Add the default types"
   task :default_type => :environment do
     @@log = Logger.new('log/bootstrap.log')
@@ -111,14 +117,9 @@ namespace :bootstrap do
     @@log.info "Add HPO complete"
   end
 
-  desc "Add default User and Login"
-  task :default_user => :environment do
-    User.create!(username:'admin')
-    Login.create!(username:'admin', user_id:1)
-  end
 
   desc "Run all bootstrapping tasks"
-  task :all => [:default_type, :default_diagnosed_type, :default_omim, :default_hpo, :default_phenotypic_series, :default_disorder_gene, :default_user]
+  task :all => [:default_type, :default_diagnosed_type, :default_omim, :default_hpo, :default_phenotypic_series, :default_disorder_gene, :default_figure_type]
 
   desc "Run hpo tasks"
   task :hpo => [:default_hpo]
@@ -129,6 +130,6 @@ namespace :bootstrap do
   desc "Run disorder gene relationship"
   task :disorder_gene => [:default_disorder_gene]
 
-  desc "Run user tasks"
-  task :user => [:default_user]
+  desc "Run figure type"
+  task :figure_type => [:default_figure_type]
 end

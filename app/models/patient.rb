@@ -8,6 +8,7 @@ class Patient < ApplicationRecord
   has_many :vcf_files, :through => :patients_vcf_files, :dependent => :destroy
   #has_many :disorders_mutataion_scores, :through => :patients_vcf_files, :dependent => :destroy
 
+  has_many :result_figures, :dependent => :destroy
   has_many :disease_causing_mutations, :dependent => :destroy
   has_many :pedia, :dependent => :destroy
   validates :case_id, :submitter_id, presence: true

@@ -14,6 +14,17 @@ class PatientsController < ApplicationController
     @detected_disorders = @patient.get_detected_disorders 
     @gene = @patient.pedia.limit(10).order("pedia_score DESC") 
     @causing_muts = @patient.disease_causing_mutations
+    result_link = @patient.result_figures.take
+    if !result_link.nil?
+      @result_link = result_link.link.split('/')[-1]
+    end
+  end
+
+  def get_img
+    send_file( 'Data/images/' + params[:filename],
+              :disposition => 'inline',
+              :type => 'image/jpeg',
+              :xsend_file => true )
   end
 
   # GET /patients/new
@@ -28,6 +39,7 @@ class PatientsController < ApplicationController
   # POST /patients
   # POST /patients.json
   def create
+
     file = params[:file].read
     data = JSON.parse(file)
     ActiveRecord::Base.transaction do

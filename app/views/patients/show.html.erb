@@ -7,26 +7,26 @@
 </head>
 
 <p>
-  <strong>Case:</strong>
-  <%= @patient.case_id %>
+<strong>Case:</strong>
+<%= @patient.case_id %>
 </p>
 
 <p>
-  <strong>Name:</strong>
-  <%= @patient.first_name %> <%= @patient.last_name %>
+<strong>Name:</strong>
+<%= @patient.first_name %> <%= @patient.last_name %>
 </p>
 
 <p>
-  <strong>Age:</strong>
-  <%= @patient.age %>
+<strong>Age:</strong>
+<%= @patient.age %>
 </p>
 
 <p>
-  <strong>Submitter:</strong>
-  <%= @patient.submitter.name %>
+<strong>Submitter:</strong>
+<%= @patient.submitter.name %>
 </p>
 <% if false %>
-<p>
+  <p>
   <strong>Phenotypic diagnosed disorders:</strong>
   <br>
   <table class='table borderless'>
@@ -47,30 +47,30 @@
       <% end %>
     </tbody>
   </table>
-</p>
+  </p>
 <% end %>
 
 <p>
-  <strong>Features:</strong>
-  <br>
-  <table class='table borderless'>
-    <thead>
-      <tr>
-        <th>HPO</th>
-        <th>Description</th>
-        <th colspan="3"></th>
-      </tr>
-    </thead>
+<strong>Features:</strong>
+<br>
+<table class='table borderless'>
+  <thead>
+    <tr>
+      <th>HPO</th>
+      <th>Description</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
 
-    <tbody>
+  <tbody>
     <% @patient.features.each do |feature| %>
       <tr>
         <td><%= feature.hpo_term %></td>
         <td><%= feature.description %></td>
       </tr>
     <% end %>
-    </tbody>
-  </table>
+  </tbody>
+</table>
 </p>
 <p>
 <strong>Disease causing mutations:</strong>
@@ -85,37 +85,44 @@
 <%= link_to '<button type="button" class="btn btn-dark">VCF Viewer</button>'.html_safe, @patient.vcf_files.first %>
 </p>
 <p>
-  <strong>Predicted genes:</strong>
+<strong>Predicted genes:</strong>
+<br>
+<% @gene.each_with_index do |g, index| %>
+  <%= index + 1 %>. Gene: <strong><%= g.gene.name %></strong><br>
+  Gene ID: <%= g.gene.entrez_id %><br>
+  PEDIA score: <%= g.pedia_score %><br>
   <br>
-  <% @gene.each_with_index do |g, index| %>
-    <%= index + 1 %>. Gene: <strong><%= g.gene.name %></strong><br>
-      Gene ID: <%= g.gene.entrez_id %><br>
-      PEDIA score: <%= g.pedia_score %><br>
-    <br>
-  <% end %>
+<% end %>
 </p>
 <% if false %>
-<p>
+  <p>
   <strong>Detected disorders:</strong>
   <br>
   <% @detected_disorders.each do |disorder| %>
     disorder: <strong><%= disorder.disorder.disorder_name %></strong>
     <br>
     omim: <%= disorder.disorder.disorder_id %>
-    <br>
-    <% disorder.disorders_phenotype_scores.each do |score| %>
-      <% if score.score.name == 'pedia_score'%>
-        <strong><%= score.score.name %>:
+  <br>
+  <% disorder.disorders_phenotype_scores.each do |score| %>
+    <% if score.score.name == 'pedia_score'%>
+      <strong><%= score.score.name %>:
         <%= score.value %></strong>
-        <br>
-      <% elsif score.score.name != 'combined_score' %>
-        <%= score.score.name %>:
-        <%= score.value %>
-        <br>
-      <% end %>
+      <br>
+    <% elsif score.score.name != 'combined_score' %>
+      <%= score.score.name %>:
+      <%= score.value %>
+      <br>
     <% end %>
-    <br>
   <% end %>
+  <br>
+<% end %>
+</p>
+<% end %>
+<% if !@result_link.nil? %>
+  <p>
+  <strong>Manhattan plot:</strong>
+  <% img_path = '/get_img/' + @result_link %>
+  <img src= <%= img_path %> style="width: 100%; height: 100%">
   </p>
 <% end %>
 <%= link_to 'Edit', edit_patient_path(@patient) %> |

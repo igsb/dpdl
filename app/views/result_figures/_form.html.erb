@@ -1,0 +1,32 @@
+<%= form_with(model: result_figure, local: true) do |form| %>
+  <% if result_figure.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(result_figure.errors.count, "error") %> prohibited this result_figure from being saved:</h2>
+
+      <ul>
+      <% result_figure.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :patient_id %>
+    <%= form.number_field :patient_id, id: :result_figure_patient_id %>
+  </div>
+
+  <div class="field">
+    <%= form.label :type %>
+    <%= form.number_field :figure_type_id, id: :result_figure_type %>
+  </div>
+
+  <div class="field">
+    <%= form.label :link %>
+    <%= form.text_field :link, id: :result_figure_link %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>
