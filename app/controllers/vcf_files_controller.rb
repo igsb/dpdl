@@ -1,20 +1,4 @@
 class VcfFilesController < ApplicationController
-  ## protect_from_forgery :except => [ :create ]
-  #before_action :authenticate_login!, :except => [:create, :download, :data]
-
-  #before_action :only => [:edit, :update] do |c|
-  #   c.authorise_as_owner(VcfFile.find(params[:id]).user_id, session[:comm_back])
-  #end
-
-  #before_action :only => [:destroy, :show_comment, :edit_comment, :update_comment, :share, :share_req, :show, :more, :phenix ] do |c|
-  #   @vcf_file = VcfFile.find(params[:id])
-  #   if @vcf_file.blank?
-  #      flash[:alert] = "Please select a VCF file"
-  #      redirect_to vcf_new_path and return
-  #   end
-  #   #c.authorise_as_sharer(@vcf_file.user_ids, session[:comm_back])
-  #end
-
   before_action :only => [:filter] do |c| 
     if !params[:vcf] then
       flash[:alert] = "Please select a VCF file!"
@@ -86,9 +70,6 @@ class VcfFilesController < ApplicationController
   def proc_phenix
     #  output = params.to_yaml
     vcf=VcfFile.find_by_id( params[:id] )
-    #        cmd = %Q|curl -H "enctype: multipart/form-data" -d hpot=#{params[:hpot]} -d inheritance=#{params[:inheritance]} -d frequency=#{params[:frequency]} -d nshow=20 --data-urlencode ufile@#{vcf.fullpath} http://compbio.charite.de/PhenIX/PhenIX 2>> log/phenix |
-    #        cmd = %Q|curl -s -H "enctype: multipart/form-data" -d hpot=#{params[:hpot]} -d inheritance=#{params[:inheritance]} -d frequency=#{params[:frequency]} -d nshow=20 /sandbox/index 2>> log/phenix |
-    #        cmd = %Q|curl -s -H "enctype: multipart/form-data" -d hpot=#{params[:hpot]} -d inheritance=#{params[:inheritance]}  -d frequency=#{params[:frequency]} -d nshow=20 --data-binary @#{vcf.fullpath}  https://www.gene-talk.de/sandbox/index 2>> log/phenix |
     cmd = %Q|curl -s -H "enctype: multipart/form-data" -d hpot=#{params[:hpot]} -d inheritance=#{params[:inheritance]}  -d frequency=#{params[:frequency]} -d nshow=20 --data-urlencode ufile@Data/vcf/tom_Test_CompHet.vcf  https://www.gene-talk.de/sandbox/index 2>> log/phenix |
     output = '<h1>Moin!</h1>' + %x|#{cmd}|
     #       output = %x[curl -s http://www.kamphans.de]
@@ -132,10 +113,7 @@ class VcfFilesController < ApplicationController
       disp = 'inline'
     end 
 
-    # send_data IO.read(file), :filename => params[:name], :type => type, :disposition => disp
     send_file( file, :type => type, :disposition => disp, :filename => params[:name], :x_sendfile => true )
-    #output = "#{file}, :type => #{type}, :disposition => #{disp}, :filename => #{params[:name]}, :x_sendfile => true ==#{ext}== --#{Regexp.last_match(1)}-- --#{Regexp.last_match(0)}--"
-    #render :text => output, :content_type => 'text/plain'
   end
 
   #######################################################################
@@ -521,35 +499,9 @@ EOT
       info =~ /HGVS=([\w,-]+)[;:(]/
       matches = Regexp.last_match(1)
       @genes = matches.split(',') unless matches.blank?
-      # if @genes != nil
-      #    @genes.split(',').each do |i|
-      #       tc = TargetCollection.find_by_name( i )
-      #       target_collections << tc unless tc.blank?
-      #    end
-      # end
-      #(target_collections.blank? ? '' : target_collections.join(',')) \
 
       info_hash = VcfTools::parse_info( info )
       samples_hash = VcfTools::parse_sample_flags( format, gt[0] )
-
-      #info =~ /EFFECT=([^;]+)/
-      # eff = Regexp.last_match(1)  
-      #info =~ /HGVS=([^;]+)/
-      #hgvs = Regexp.last_match(1)
-
-      #      hgvs.sub!( /,$/, '') unless hgvs.blank?
-      #      hgvs =~ /(NM_\d+).*:(c[^:]+):(p[^:]+)/
-      #      transcript = Regexp.last_match(1)
-      #      cdna = Regexp.last_match(2)
-      #      protein = Regexp.last_match(3)
-
-      # next if @genes.blank? && transcript.blank? && cdna.blank? && protein.blank?
-
-      #      @annotations = Annotation.where( :chrom => chrom.to_i,
-      #                                       :pos => pos.to_i ) 
-      #                                       ,
-      #                                       :genotype => "#{ref}/#{alt}" )
-      #      if @annotations.blank?
       lvl_dc, lvl_trust, lvl_exp_g = PositionFlag::maxima( frf['f'] )
 
       a = []
@@ -565,30 +517,7 @@ EOT
         << VcfTools::get_coverage_string( info_hash, samples_hash ) \
         << lvl_dc \
         << lvl_trust
-      #          << samples_hash['GTPP'] \
-      #          << samples_hash['GTPS']
       @outdata << a 
-      #      else
-      #        @annotations.each do |anno|
-      #          @dcs, @trust, @dcmi, @trmi = anno.count_ratings
-      #          a = []
-      #          a << print_chrom( chrom ) \
-      #            << pos \
-      #            << ref \
-      #            << alt \
-      #            << @genes \
-      #            << transcript \
-      #            << cdna \
-      #            << protein \
-      #            << (anno.reference =~ /^dbSNP/ ? 'dbSNP annotation' : anno.comment) \
-      #            << @dcmi << @trmi \
-      #            << '' << ''
-      #        end
-
-      #        @outdata << a
-
-      #      end
-
 
     end # infile
 
@@ -596,8 +525,6 @@ EOT
     #   format.xlsx
     #end
     render :xlsx => 'mutation_report.xlsx', :filename => "#{@vcf_file.name}_mutation_report.xlsx", :disposition => 'inline'
-
-    # render :text => @outdata.inspect, :content_type => 'text/plain'
   end
 
   #######################################################################
@@ -969,235 +896,9 @@ EOT
   #########################VVVVVVVVVV
   def pshow
     @current_login = current_user.login
-    output = ''
-
-    @vcf_id = params[:id]
-    puts @vcf_id
-    @vcf_file = VcfFile.find_by_id(@vcf_id)
-    @p_vcf = @vcf_file.patients_vcf_files.take
-    @patient = @vcf_file.patients.take
-    @pedia = @patient.pedia.limit(10).order("pedia_score DESC")
-    #flash[:alert] = "VCF File not found" and redirect_to vcf_select_path and return if @vcf_file.blank?
     @user = current_user 
-    path = @vcf_file.fullname
-
-    @var_count = 0
-    @outdata = []
-    @pedia.each do |pedia_gene|
-      result = @p_vcf.disorders_mutations_scores.where(gene_id:pedia_gene.gene_id).group_by(&:position_id)
-      pedia_score = pedia_gene.pedia_score
-      alert = ''
-      result.each do |lines|
-        line_group = lines[1]
-        gt_array = []
-        pos = ''
-        snp_id = ''
-        gene_name = ''
-        ref = ''
-        effect = ''
-        score = 0
-        hgvs = ''
-        hgvs_array = []
-        line_group.each do |line|
-          mut_pos = line.mutations_position
-          position = mut_pos.position
-          annotation = mut_pos.annotations.take
-          mut = mut_pos.mutation
-          gene_mut = mut_pos.genes_mutations.take
-          snp = annotation.dbsnps.take
-          pos = "#{VcfTools.chrom_to_s(position.chr)}:#{position.pos}"
-          gene_name = gene_mut.gene.name
-          ref = mut.ref
-          snp_id = ''
-          effect = gene_mut.effect
-          score  = line.value
-          hgvs_array.push(annotation.hgvs)
-          if !snp.nil?
-            snp_id = snp.snp_id
-          end
-          gt = line.genotype
-          if gt.include? '|'
-            gt = gt.split('|')
-          elsif gt.include? '/'
-            gt = gt.split('/')
-          end
-          gt.each do |value|
-            if value == '0'
-              gt_array.push(mut.ref)
-            else
-              gt_array.push(mut.alt)
-            end
-          end
-        end
-        gt_array = gt_array.uniq
-        if gt_array.length == 1
-          gt_array.push(gt_array[0])
-        end
-        genotype = gt_array.join('/')
-        a = {
-          :g  => genotype,
-          :x  => pos,
-          :i  => snp_id,
-          :ge => gene_name,
-          :r  => ref,
-          :e  => effect,
-          :s  => score,
-          :h  => hgvs_array.join(';'),
-          :p  => pedia_score
-        }
-        @var_count = @var_count + 1
-        @outdata << a;
-      end
-    end
-    #@vcf_file.exclusive do
-    #  begin
-    #    inpfile = File.open( path )
-
-    #    inpfile.each do |line|
-    #      line.chomp!
-
-    #      if line =~ /^##GeneTalk_(.*)/
-    #        info = Regexp.last_match(1)
-    #        info =~ /([^=@]*)(?:@(\d+))?=([^=]*)/
-    #        ikey = Regexp.last_match(1)
-    #        pass = Regexp.last_match(2).blank? ? 0 : Regexp.last_match(2).to_i
-    #        ival = Regexp.last_match(3).blank? ? '' : Regexp.last_match(3)
-    #        ival.gsub! /,(?!\s)/, ', '
-    #        if ival != 'None'
-    #          @finfo[pass] = {}  unless @finfo[pass]
-    #          @finfo[pass][ikey] = ival
-    #        end
-    #      end
-
-    #      @name_indiv_file = VcfTools.indiv_names( line, @indiv_from, @indiv_to ) if line =~ /^#CHROM/i
-
-    #      next unless line =~ /^(chr)?(\d+|X|Y|M)\t/i
-
-    #      chrom, pos, ident, ref, alt, qual, filter, info, format, *gt = line.split("\t");
-
-    #      next if chrom == nil
-
-    #      c = VcfTools.chrom_to_i( chrom )
-    #      next if ( c < 1 ) || ( c > 26 )
-
-    #      ## frf = gfv.get_vector( c, pos )
-
-    #      genotypes = []
-    #      frequencies = []
-    #      alt_allele = ''
-    #      alt_alleles = []
-    #      skip_this = false
-
-    #      allele_array = VcfTools.get_allele_array( ref, alt )
-
-    #      @indiv_from.upto( @indiv_to ) do |i|
-    #        first = ''
-    #        sec = ''
-
-    #        type = gt[ i ];
-    #        if type.blank?
-    #          alert = "Unknown samples or not enough samples in line #{$.}"
-    #          break
-    #        end
-
-    #        frequencies[i] = '-'
-
-    #        first, sec, alt_allele = VcfTools.get_alleles_from_array( type, allele_array )
-
-    #        alt_alleles << alt_allele
-
-    #        if first != '.'
-    #          genotypes << first+'/'+sec
-    #        else
-    #          skip_this = true unless @multi
-    #          genotypes << './.'
-    #        end
-    #      end # treat genotypes
-
-    #      next if skip_this
-
-    #      @genes = []
-    #      info =~ /HGVS=([\w,-]+)[;:\(]/
-    #      matches = Regexp.last_match(1)
-
-    #      @genes = matches.split(',') unless matches.blank?
-
-
-    #      info =~ /EFFECT=([^;]+)/
-    #      eff = Regexp.last_match(1)
-
-    #      info =~ /HGVS=([^;]+)/
-    #      hgvs = Regexp.last_match(1)
-
-
-    #      info =~ /CADD_SNV_PHRED=([^;]+)/
-    #      cadd_list = Regexp.last_match(1)
-    #      if cadd_list.nil?
-    #        info =~ /CADD_INDEL_PHRED=([^;]+)/
-    #        cadd_list = Regexp.last_match(1)
-    #      end
-    #      if cadd_list.nil?
-    #        info =~ /CADD_SNV_OVL_PHRED=([^;]+)/
-    #        cadd_list = Regexp.last_match(1)
-    #      end
-    #      cadd_list = cadd_list.split('|')
-    #      cadd_tmp = []
-    #      cadd_list.each do |score|
-    #        cadd_tmp.push(score.to_f)
-    #      end
-    #      cadd = cadd_tmp.max
-
-    #      # @TODO: refactor!, extract other coverage flags
-    #      # Handle flags
-    #      gt_flags = []
-    #      dp_flags = []
-    #      ad_flags = []
-    #      pri_values = []
-
-    #      @indiv_from.upto( @indiv_to ) do |i|
-    #        sample_flags = VcfTools.parse_sample_flags( format, gt[i] )
-    #        gt_flags[i] = sample_flags.sort.reduce(''){ |s,x| s << "\n#{x[0]} = #{x[1]}" }
-    #        ad_flags[i] = sample_flags['AD'].sub(/,/, '/') unless sample_flags['AD'].blank?
-    #        ion_torrent_flag1 = sample_flags['SRF'].to_i + sample_flags['SRR'].to_i
-    #        ion_torrent_flag2 = sample_flags['SAF'].to_i + sample_flags['SAR'].to_i
-    #        ad_flags[i] = "#{ion_torrent_flag1} / #{ion_torrent_flag2}" if ion_torrent_flag1 + ion_torrent_flag2 > 0
-    #        pri_values[i] = [ (sample_flags['GTPP'] || ''), (sample_flags['GTPS'] || '')]
-    #        # Info: DP
-    #        if info =~ /DP=(\d+)/i
-    #          val = Regexp.last_match(1)
-    #          dp_flags << val
-    #          gt_flags[i] << "\nDP=#{val}" unless sample_flags.key?('DP')
-    #        end
-    #      end
-
-    #      show_precious = false
-
-    #      smpl = []
-    #      @indiv_from.upto( @indiv_to ) do |i|
-    #        smpl[i] = {
-    #          :g  => genotypes[i],
-    #          :pp => pri_values[i][0],
-    #          :ps => cadd,
-    #          :r  => ad_flags[i],
-    #          :f  => gt_flags[i]
-    #        }
-    #      end
-    #      a = {
-    #        :x  => "#{chrom}:#{pos}",
-    #        :i  => ident,
-    #        :ge => @genes,
-    #        :r  => ref.upcase,
-    #        :e  => eff,
-    #        :s  => smpl,
-    #        :h  => hgvs,
-    #      }
-
-    #      @outdata << a;
-
-    #    end # infile
-    #  ensure
-    #  end
-    #end # exclusive
+    @vcf_id = params[:id]
+    get_pshow_var(@vcf_id)
 
     @name_indiv = @name_indiv_file
 
@@ -1215,7 +916,87 @@ EOT
   end
 
   #########################^^^^^^^^^^
+  def get_pshow_var(vcf_id)
+    @vcf_file = VcfFile.find_by_id(vcf_id)
+    @p_vcf = @vcf_file.patients_vcf_files.take
+    @patient = @vcf_file.patients.take
+    @pedia = @patient.pedia.limit(10).order("pedia_score DESC")
+    flash[:alert] = "VCF File not found" and redirect_to vcf_select_path and return if @p_vcf.blank?
 
+    @var_count = 0
+    @outdata = []
+    gene_array = []
+    score_hash = {}
+    @pedia.each do |pedia_gene|
+      gene_id = pedia_gene.gene_id 
+      gene_array.push(gene_id)
+      score_hash[gene_id.to_i] = pedia_gene.pedia_score
+    end
+    mut_scores = @p_vcf.disorders_mutations_scores.where('gene_id IN (?)', gene_array).group_by(&:position_id)
+    alert = ''
+    mut_scores.each do |lines|
+      line_group = lines[1]
+      gt_array = []
+      pos = ''
+      snp_id = ''
+      gene_name = ''
+      ref = ''
+      effect = ''
+      score = 0
+      hgvs_array = []
+      pedia_score = 0
+      line_group.each do |line|
+        mut_pos = line.mutations_position
+        position = mut_pos.position
+        annotation = mut_pos.annotations.take
+        mut = mut_pos.mutation
+        gene_mut = mut_pos.genes_mutations.take
+        snp = annotation.dbsnps.take
+        pos = "#{VcfTools.chrom_to_s(position.chr)}:#{position.pos}"
+        gene_name = Gene.find(line.gene_id).name
+        pedia_score = score_hash[line.gene_id]
+        ref = mut.ref
+        snp_id = ''
+        effect = gene_mut.effect
+        score  = line.value
+        hgvs_array.push(annotation.hgvs)
+        if !snp.nil?
+          snp_id = snp.snp_id
+        end
+        gt = line.genotype
+        if gt.include? '|'
+          gt = gt.split('|')
+        elsif gt.include? '/'
+          gt = gt.split('/')
+        end
+        gt.each do |value|
+          if value == '0'
+            gt_array.push(mut.ref)
+          else
+            gt_array.push(mut.alt)
+          end
+        end
+      end
+      gt_array = gt_array.uniq
+      if gt_array.length == 1
+        gt_array.push(gt_array[0])
+      end
+      genotype = gt_array.join('/')
+      a = {
+        :g  => genotype,
+        :x  => pos,
+        :i  => snp_id,
+        :ge => gene_name,
+        :r  => ref,
+        :e  => effect,
+        :s  => score,
+        :h  => hgvs_array.join(';'),
+        :p  => pedia_score
+      }
+      @var_count = @var_count + 1
+      @outdata << a;
+    end
+  end
 
   #######################################################################
   # DELETE /vcf_files/1
