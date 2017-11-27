@@ -17,6 +17,7 @@ class AdminMailer < ApplicationMailer
   def new_registration(user)
     @user = user
     mail(to: 'la60312@gmail.com', subject: "New registration <#{user.email} is waiting your approval>")
+    mail(to: 'peter.krawitz@gmail.com', subject: "New registration <#{user.email} is waiting your approval>")
   end
 
   def new_user_got_approval(user)
