@@ -111,8 +111,12 @@ cellTemplate: '<div class="ui-grid-cell-contents"><button ng-click="grid.appScop
     }
   ];
 }]);
+var ready;
 
-$(document).ready(function() {
+
+
+
+ready = function() {
   $('.dropitmenu').dropit();
   $('#filtersettings').hide();
   $('#showhidefiltersettings').click( function() {
@@ -132,7 +136,10 @@ $(document).ready(function() {
     $('#showhidehposettingsoff').toggle();
     $('#showhidehposettingson').toggle();
   });
-});
+};
+$(document).ready(ready);
+
+$(document).on('page:load', ready);
 </script>    
 
 <style type="text/css">
@@ -142,9 +149,9 @@ $(document).ready(function() {
 }
 </style>
 <% end %>
-<%=  heading_block 'View VCF' do %>
+<%= heading_block 'View VCF' do %>
 
-<% @ped = nil#@vcf_file.ped_array -%>
+<% if nil %>
 <% @sample_ids = @vcf_file.sample_links_array -%>
 
 <div class="cols cols1v2">
@@ -157,7 +164,7 @@ $(document).ready(function() {
 
   </div>
 </div>
-
+<% end %>
 
 <div ng-app="app">
     <div ng-controller="MainCtrl">
@@ -166,7 +173,7 @@ $(document).ready(function() {
 </div>
 <br>
 <br>
-<br>
+<%= link_to 'Back', :back %>
 <br>
 <br>
 <% end %>

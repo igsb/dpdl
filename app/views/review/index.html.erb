@@ -1,12 +1,26 @@
-<p id="notice"><%= notice %></p>
 <head>
   <style>
     .borderless tr, .borderless td, .borderless th {
       border: none !important;
     }
   </style>
+  <%= stylesheet_link_tag params[:controller] %>
 </head>
 <h1>Mutation Review</h1>
+<div class="outer">
+  <div class="floatcontainer">
+    <div class="inner">
+      <select name="city_id" id="city_id">
+        <option value="1">benign</option>
+        <option value="2">likely benign</option>
+        <option value="3">uncertain significance</option>
+        <option value="4">likely pathogenic</option>
+        <option value="5">pathogenic</option>
+      </select>
+      <button type="submit" class="btn btn-dark">Submit</button>
+    </div>
+  </div>
+</div>
 
 <p>
 <strong>
@@ -14,7 +28,6 @@
 </strong>
 chr<%= @pos %>
 </p>
-
 
 <p>
 <strong>
@@ -117,8 +130,8 @@ chr<%= @pos %>
           <% end %>
         </td>
       </tr>
-  </tbody>
-</table>
+    </tbody>
+  </table>
 <% else %>
   <br>This mutation is not found in Ensembl by dbSNP ID!
 <% end %>
@@ -245,4 +258,8 @@ Summary:
   <% end %>
 </ol>
 </p>
-<%= image_tag("star.png") %> <button type="button" class="btn btn-dark">Classify</button>
+<% if nil %>
+  <%= image_tag("star.png") %> <button type="button" class="btn btn-dark">Classify</button>
+<% end %>
+<br>
+<%= link_to 'Back', :back %>
