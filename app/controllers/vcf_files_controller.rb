@@ -116,49 +116,6 @@ class VcfFilesController < ApplicationController
     send_file( file, :type => type, :disposition => disp, :filename => params[:name], :x_sendfile => true )
   end
 
-  #######################################################################
-  # GET /vcf_files/1/more
-  def more
-    @vcf_file = VcfFile.find(params[:id])
-  end 
-
-  #######################################################################
-  # GET /vcf_comments/1
-  # GET /vcf_comments/1.json
-  def show_comment
-    @vcf_file = VcfFile.find(params[:id])
-
-    respond_to do |format|
-      format.html # show_comment.html.erb
-      format.json { render :json => @vcf_comment }
-    end
-  end
-
-
-  #######################################################################
-  # GET /vcf_comments/1/edit
-  def edit_comment
-    @vcf_file = VcfFile.find(params[:id])
-  end
-
-
-  #######################################################################
-  # PUT /vcf_comments/1
-  # PUT /vcf_comments/1.json
-  def update_comment
-    @vcf_file = VcfFile.find(params[:id])
-
-    respond_to do |format|
-      if @vcf_file.update_attributes(params[:vcf_file])
-        format.html { redirect_to vcf_comment_path( @vcf_file.id ), :notice => 'Comment was successfully updated.' }
-        format.json { head :ok }
-      else
-        format.html { render :action => "edit_comment" }
-        format.json { render :json => @vcf_file.errors, :status => :unprocessable_entity }
-      end
-    end
-  end
-
 
   #######################################################################
   # GET /vcf_files/new
@@ -597,19 +554,19 @@ EOT
   #######################################################################
   # GET /vcf_files/1
   # GET /vcf_files/1.json
-  def _show 
-    vcf_file = VcfFile.find(params[:id])
-    path = vcf_file.fullname
+  #def _show 
+  #  vcf_file = VcfFile.find(params[:id])
+  #  path = vcf_file.fullname
 
-    send_data( File.open( path ).read, :filename => vcf_file.name, :disposition => 'inline', :type => 'text/plain' );
+  #  send_data( File.open( path ).read, :filename => vcf_file.name, :disposition => 'inline', :type => 'text/plain' );
 
-  end
+  #end
 
   #######################################################################
   # GET /vcf_files/1
   # GET /vcf_files/1.json
   # Parameters: id, page, max, 
-  def show
+  def show_back
 
     @current_login = Login.last
     @vcf_id = params[:id]
@@ -894,14 +851,13 @@ EOT
   end
 
   #########################VVVVVVVVVV
-  def pshow
-    @current_login = current_user.login
+  def show
+    #@current_login = current_user.login
     @user = current_user 
     @vcf_id = params[:id]
-    get_pshow_var(@vcf_id)
 
+    gon.vcf_id = @vcf_id
     @name_indiv = @name_indiv_file
-
     if !alert.blank?
       flash[:alert] = alert
       redirect_to vcf_files_path and return
@@ -915,7 +871,12 @@ EOT
     end
   end
 
-  #########################^^^^^^^^^^
+  def get_var
+    vcf_id = params[:id]
+    get_pshow_var(vcf_id)
+    render :json => ActiveSupport::JSON.encode(@result)
+  end
+
   def get_pshow_var(vcf_id)
     @vcf_file = VcfFile.find_by_id(vcf_id)
     @p_vcf = @vcf_file.patients_vcf_files.take
@@ -996,6 +957,7 @@ EOT
       @var_count = @var_count + 1
       @outdata << a;
     end
+    @result = {'var_num': @var_count, 'variants': @outdata}
   end
 
   #######################################################################

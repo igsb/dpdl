@@ -11,6 +11,7 @@ group :assets do
   end
 gem 'delayed_job'
 gem 'sqlite3'
+gem 'gon'
 
 # Authentication
 gem 'bcrypt', '~> 3.1.7'
