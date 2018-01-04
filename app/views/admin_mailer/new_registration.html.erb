@@ -4,7 +4,7 @@
 		<meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
 	</head>
 	<body>
-		<h1>There is a new registraion, <%= @user.email %></h1>
+		<p>There is a new registraion, <%= @user.email %></p>
 		<p>
 		Name: <%= @user.title + ' ' + @user.first_name + ' ' + @user.last_name %>
 		<br>
@@ -14,5 +14,7 @@
 		To approve this user, please review the profile in this link: <%= link_to 'User profile', @user %>.
 		</p>
 		<p>Thanks for joining and have a great day!</p>
+		<p>Best regards,<br>
+		The DPDL Team</p>
 	</body>
 </html>
