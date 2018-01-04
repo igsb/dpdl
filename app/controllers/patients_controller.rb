@@ -66,6 +66,10 @@ class PatientsController < ApplicationController
   # PATCH/PUT /patients/1
   # PATCH/PUT /patients/1.json
   def update
+    usi = UsiMaterialnr.find_or_create_by(patient_id:@patient.id)
+    usi.usi_id = usi_params[:usi_id]
+    usi.materialnr = usi_params[:materialnr]
+    usi.save
     respond_to do |format|
       if @patient.update(patient_params)
         format.html { redirect_to @patient, notice: 'Patient was successfully updated.' }
@@ -96,5 +100,9 @@ class PatientsController < ApplicationController
   # Never trust parameters from the scary internet, only allow the white list through.
   def patient_params
     params.require(:patient).permit(:patient_id, :age, :submitter_id, :publication_id)
+  end
+
+  def usi_params
+    params.require(:patient).permit(:usi_id, :materialnr)
   end
 end

@@ -48,13 +48,18 @@
     <%= form.number_field :publication_id, id: :patient_publication_id %>
   </div>
 
+  <% usi = patient.usi_materialnrs.take %>
+  <% if usi != nil %>
+    <% usi_id = usi.usi_id %>
+    <% materialnr = usi.materialnr %>
+  <% end %>
   <div class="field">
     <strong>USI ID</strong>
-    <%= form.text_field :usi_id, id: :patient_usi_id, :size=>"30"  %>
+    <%= form.text_field :usi_id, id: :patient_usi, :size=>"30", :value => usi_id  %>
   </div>
   <div class="field">
     <strong>Materialnr</strong>
-    <%= form.text_field :material_id, id: :patient_material_id %>
+    <%= form.text_field :materialnr, id: :patient_materialnr, :value => materialnr %>
   </div>
   <div class="actions">
     <%= form.submit %>
