@@ -59,7 +59,7 @@ $(document).on('page:load', ready);
 }
 </style>
 <% end %>
-<%= heading_block 'View VCF' do %>
+<%= heading_block 'VCF Viewer' do %>
 
 <% if nil %>
 
@@ -75,17 +75,9 @@ $(document).on('page:load', ready);
 </div>
 <% end %>
     <h5 id='var_num'>Variants: </h5>
-<% if false %>
-<div ng-app="app">
-    <div ng-controller="MainCtrl">
-      <div id="grid1" ui-grid="gridOptions" ui-grid-cellNav ui-grid-edit ui-grid-resize-columns ui-grid-pinning ui-grid-selection ui-grid-move-columns class="grid">
-      </div>
-    </div>
-  </div>
-<% end %>
 <div ng-app="app">
   <div ng-controller="MainCtrl">
-    <div ui-grid="gridOptions" ui-grid-cellNav ui-grid-resize-columns class="grid">
+      <div id="grid1" ui-grid="gridOptions" class="grid">
       <div class="well grid-loading" ng-show="grid.rows.length == 0">
         <i class="fa fa-spin fa-spinner"></i>
           <strong>Data Loading...</strong>
