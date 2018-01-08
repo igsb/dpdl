@@ -46,6 +46,7 @@ chr<%= @pos %>
 <br>
 <%= render_async get_review_path(:chr => @pos, :snp => @snp_id, :ref => @ref, :genotype => @genotype, :hgvs => @annotation) do %>
   <h1>Fetching variant's information from other websites...</h1>
+  <div class="loader"></div>
 <% end %>
 <br>
 <%= link_to 'Back', :back %>
