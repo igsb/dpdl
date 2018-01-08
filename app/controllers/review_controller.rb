@@ -10,6 +10,23 @@ class ReviewController < ApplicationController
     @ref = params[:ref]
     @genotype = params[:genotype]
     @annotation = params[:hgvs]
+    
+  end
+  
+  def get_review
+    @pos = params[:chr]
+    @snp_id = params[:snp]
+    @ref = params[:ref]
+    @genotype = params[:genotype]
+    @annotation = params[:hgvs]
+    parse_dbsnp()
+    parse_exac()
+    parse_mut_taster()
+    parse_ensembl()
+    render :partial => "get_review"
+  end
+
+  def parse_dbsnp
     # dbSNP
     dbsnp_prefix = "https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs="
     @hgvs = []
@@ -23,18 +40,10 @@ class ReviewController < ApplicationController
       @maf = doc.at_css('[id="Allele"]').css("td")[-1].css('span')
       puts @maf
     end
-
-    parse_exac()
-    parse_mut_taster()
-    parse_ensembl()
-
   end
-
   def parse_ensembl
     server = 'https://rest.ensembl.org'
     path =  '/variation/human/' + @snp_id + '?'
-    #pos_prefix = "http://exac.broadinstitute.org/variant/"
-    #@exac_pos_link_url = pos_prefix + pos[0] + '-' + pos[1] + '-' + @ref + '-' + alt
     url = URI.parse(server)
     http = Net::HTTP.new(url.host, url.port)
 

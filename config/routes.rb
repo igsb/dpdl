@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   put 'activate/:id', to: 'users#activate', as: :activate_user
   put 'deactivate/:id', to: 'users#deactivate', as: :deactivate_user
   get 'vcf_files/get_var/:id', to: 'vcf_files#get_var', as: :vcf_files_get_var 
+  get :get_review, :controller => :review
   get '/get_img/:filename' => 'patients#get_img', :constraints => { :filename => /.*/ }
   resources :vcf_files
   root :to => "home#index"

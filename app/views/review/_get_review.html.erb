@@ -1,0 +1,220 @@
+<p>
+<h2>dbSNP</h2>
+<strong>
+  dbSNP ID:
+</strong>
+<% if !@dbsnp_url.nil? %>
+  <a href= <%= @dbsnp_url %> target="_blank"><%= @snp_id %></a>
+  <br>
+  <br>
+  <table class='table'>
+    <thead>
+      <tr>
+        <th><%= @cli_sig[0].text %></th>
+        <th><%= @maf_title.text %></th>
+        <th>HGVS</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td><%= @cli_sig[1].text%></td>
+        <td>
+          <% @maf.each do |value| %>
+            <%= value.text %>
+            <br>
+          <% end %>
+        </td>
+        <td>
+          <% @hgvs.each_with_index do |value, idx| %>
+            <% if idx < 10 %>
+              <li><%= value.text %></li>
+            <% end %>
+          <% end %>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+<% else %>
+  dbSNP not found!
+<% end %>
+</p>
+<h2>Ensembl</h2>
+<p>
+<strong>Search by dbSNP ID in Ensembl</strong>
+<% if @ensembl_valid %>
+  <table class='table'>
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Most severe consequence</th>
+        <th>Clinical significance</th>
+        <th>Reference Allele</th>
+        <th>Alternative Allele</th>
+        <th>MAF</th>
+        <th>Evidence</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <% @ensembl_location.each do |row| %>
+            <%= row['location'] + '-' + row['assembly_name'] %><br>
+          <% end %>
+        </td>
+        <td><%= @most_severe %></td>
+        <td>
+          <% @ensembl_clinical_sig.each do |row| %>
+            <%= row %><br>
+          <% end %>
+        </td>
+        <td>
+          <% @ensembl_location.each do |row| %>
+            <%= row['ref'] %><br>
+          <% end %>
+        </td>
+        <td>
+          <% @ensembl_location.each do |row| %>
+            <%= row['alt'] %><br>
+          <% end %>
+        </td>
+        <td><%= @ensembl_maf %></td>
+        <td>
+          <% @evidence.each do |row| %>
+            <%= row %><br>
+          <% end %>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+<% else %>
+  <br>This mutation is not found in Ensembl by dbSNP ID!
+<% end %>
+</p>
+<br>
+<h2>ExAC Browser</h2>
+<p>
+<strong>Search by position in ExAC</strong>
+<% if @exac_pos_valid %>
+  <li><a href= <%= @exac_pos_link_url %> target="_blank">ExAC Browser link (position)</a></li>
+  <table class='table'>
+    <thead>
+      <tr>
+        <th>Variant</th>
+        <th>Filter</th>
+        <th>Allele Count</th>
+        <th>Allele Number</th>
+        <th>Allele Freq</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <% @pos_result_array.each_with_index do |row, row_idx| %>
+          <% row.each_with_index do |entry, entry_idx| %>
+            <% if entry_idx == 0 %>
+              <td nowrap="nowrap"><a href= <%= "http://exac.broadinstitute.org/variant/" + entry %> target="_blank"><%= entry %></a></td>
+            <% else %>
+              <td><%= entry %></td>
+            <% end %>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <br>This mutation is not found in ExAC by position!
+<% end %>
+<br>
+<strong>Search by dbSNP ID in ExAC</strong>
+<% if !@result_array.empty? %>
+  <li><a href= <%= @exac_link_url %> target="_blank">ExAC Browser link (dbSNP)</a></li>
+  <table class='table'>
+    <thead>
+      <tr>
+        <th>Variant</th>
+        <th>Chrom</th>
+        <th>Position</th>
+        <th>Consequence</th>
+        <th>Filter</th>
+        <th>Annotation</th>
+        <th>Flags</th>
+        <th>Allele Count</th>
+        <th>Allele Number</th>
+        <th># of Homozygotes</th>
+        <th>Allele Freq</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <% @result_array.each_with_index do |row, row_idx| %>
+        <tr>
+          <% row.each_with_index do |entry, entry_idx| %>
+            <% if entry_idx == 0 %>
+              <td nowrap="nowrap"><a href= <%= "http://exac.broadinstitute.org/variant/" + entry %> target="_blank"><%= entry %></a></td>
+            <% else %>
+              <td><%= entry %></td>
+            <% end %>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <br>This mutation is not found in ExAC by dbSNP ID!
+<% end %>
+</p>
+<h2>Mutation Taster</h2>
+<p>
+<li><a href= <%= @mut_taster_url %> target="_blank">mutation taster link</a></li>
+<ol>
+  <% @transcripts.each do |row|%>
+    <li><%= row %></li>
+  <% end %>
+</ol>
+<table class='table'>
+  <thead>
+    <tr>
+      <th>Gene</th>
+      <th>Prediction</th>
+      <th>Probability</th>
+      <th>Model</th>
+      <th>Problem</th>
+      <th>Splicing</th>
+      <th>ClinVar</th>
+      <th>amino acid changes</th>
+      <th>dbSNP</th>
+      <th>link</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% table_idx = (0..7).to_a.push(9, 11)%>
+    <% @mt_tables.each_with_index do |mt_table, row_idx| %>
+      <tr>
+        <% mt_table.css('td').each_with_index do |value, idx| %>
+          <% if table_idx.include? idx %>
+            <% if idx  == 11 %>
+              <td><a href= <%= @mut_taster_url + '#' + (row_idx + 1).to_s %> target="_blank">link</a></td>
+            <% else%>
+              <td><%= value.text %></td>
+            <% end %>
+          <% end %>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+Summary: 
+<br>
+<ol>
+  <% @summary.each do |sum| %>
+    <li><%= sum.to_s.html_safe %></li>
+  <% end %>
+</ol>
+</p>
+</div>
+<% if nil %>
+  <%= image_tag("star.png") %> <button type="button" class="btn btn-dark">Classify</button>
+<% end %>
+<br>

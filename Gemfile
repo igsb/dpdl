@@ -5,6 +5,7 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
+gem 'render_async'
 gem 'bootstrap-sass'
 group :assets do
   gem 'twitter-bootstrap-rails'
