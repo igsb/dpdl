@@ -920,7 +920,9 @@ EOT
         snp_id = ''
         effect = gene_mut.effect
         score  = line.value
-        hgvs_array.push(mut_pos.hgvs_codes)
+        mut_pos.hgvs_codes.each do |value|
+          hgvs_array.push(value.code)
+        end
         if !snp.nil?
           snp_id = snp.snp_id
         end

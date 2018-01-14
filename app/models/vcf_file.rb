@@ -492,7 +492,7 @@ class VcfFile < ActiveRecord::Base
             end
             hgvs = ann[ANN_FEATURE_ID] + ':' + ann[ANN_HGVS_C]
             hgvs_code = HgvsCode.find_or_create_by(code: hgvs)
-            ann_hgvs = MutationsHgvsCode.find_or_create_by(hgvs_code_id: hgvs_code, mutations_position_id:mut_pos.id)
+            ann_hgvs = MutationsHgvsCode.find_or_create_by(hgvs_code_id: hgvs_code.id, mutations_position_id:mut_pos.id)
             snps = ident.split(',')
             if snps[0] != '.'
               snps.each do |snp_id|
