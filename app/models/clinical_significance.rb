@@ -1,0 +1,2 @@
+class ClinicalSignificance < ApplicationRecord
+end

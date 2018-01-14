@@ -1,0 +1,2 @@
+class ReviewStatus < ApplicationRecord
+end
