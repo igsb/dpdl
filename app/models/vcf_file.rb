@@ -491,12 +491,13 @@ class VcfFile < ActiveRecord::Base
               gene_mut = GenesMutation.find_or_create_by(gene_id: gene.id, mutations_position_id:mut_pos.id, effect: effect)
             end
             hgvs = ann[ANN_FEATURE_ID] + ':' + ann[ANN_HGVS_C]
-            annotation = Annotation.find_or_create_by(hgvs: hgvs, mutations_position_id:mut_pos.id)
+            hgvs_code = HgvsCode.find_or_create_by(code: hgvs)
+            ann_hgvs = MutationsHgvsCode.find_or_create_by(hgvs_code_id: hgvs_code, mutations_position_id:mut_pos.id)
             snps = ident.split(',')
             if snps[0] != '.'
               snps.each do |snp_id|
                 snp = Dbsnp.find_or_create_by(snp_id:snp_id)
-                ann_dbsnp = AnnotationsDbsnp.find_or_create_by(dbsnp_id:snp.id, annotation_id:annotation.id)
+                ann_dbsnp = MutationsDbsnp.find_or_create_by(dbsnp_id:snp.id, mutations_position_id:mut_pos.id)
               end
             end
 

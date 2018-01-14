@@ -1,0 +1,9 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  mutations_position: 1
+  hgvs_code_id: 1
+
+two:
+  mutations_position: 1
+  hgvs_code_id: 1
