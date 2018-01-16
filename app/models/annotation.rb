@@ -1,6 +1,8 @@
 class Annotation < ApplicationRecord
-  belongs_to :mutations_position, :optional => true
-  has_many :annotations_dbsnps
-  has_many :dbsnps, :through => :annotations_dbsnps
-  has_many :classifications
+  has_many :mutations_annotations
+  has_many :mutations_positions, :through => :mutations_annotations
+  belongs_to :clinical_significance, :optional => true
+  belongs_to :review_status, :optional => true
+  belongs_to :gene, :optional => true
+  validates :scv, uniqueness: true
 end

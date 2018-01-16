@@ -8,4 +8,6 @@ class MutationsPosition < ApplicationRecord
   has_many :disorders_mutations_scores
   has_many :genes_mutations
   has_many :genes, :through => :genes_mutations
+  has_many :mutations_annotations
+  has_many :annotations, :through => :mutations_annotations
 end
