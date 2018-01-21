@@ -59,10 +59,10 @@ app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGrid
                 displayName: 'Genotype', name: 'g', width:150
             },
             {
-                displayName: 'PEDIA', name: 'p', width:100
+                displayName: 'PEDIA', name: 'p', width:100, type: 'number', sort: { direction: 'desc' }
             },
             {
-                displayName: 'CADD', name: 's', width:100
+                displayName: 'CADD', name: 's', width:100, type: 'number', sort: { direction: 'desc' }
             },
             { 
                 displayName: 'Effect/HGVS', 
