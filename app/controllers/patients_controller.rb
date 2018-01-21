@@ -47,6 +47,9 @@ class PatientsController < ApplicationController
       @patient = Patient.create(case_id: data['case_id'], age: data['age'], submitter: submitter, last_name:data['last_name'], first_name:data['first_name'])
       if @patient.valid?
         @patient.parse_json(data)
+        name = params[:file].original_filename
+        path = File.join("Data", "jsons", name)
+        File.open(path, "wb") { |f| f.write(file) }
       end
     end
 
