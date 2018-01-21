@@ -21,9 +21,10 @@ class Patient < ApplicationRecord
   def parse_json(data)
     @@log = Logger.new('log/patient.log')
     @@log.info "Patient: #{data['case_id']}"
+    @algo_version = data['algo_deploy_version']
     features = parse_features(data['features'])
     self.features << features
-    #parse_detected(data['detected_syndromes'])
+    parse_detected(data['detected_syndromes'])
     #parse_selected(data['selected_syndromes'])
     parse_pedia(data['geneList'])
     if data.key? "genomicData"
@@ -180,7 +181,8 @@ class Patient < ApplicationRecord
 
   def assign_scores(scores, patient_disorder)
     for key in get_score_key(scores)
-      score = Score.find_or_create_by(name: key)
+      puts @algo_version
+      score = Score.find_or_create_by(name: key, version: @algo_version)
       DisordersPhenotypeScore.create(patients_disorder_id: patient_disorder.id, score_id: score.id, value: scores[key])
     end
   end
