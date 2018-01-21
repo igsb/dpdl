@@ -84,7 +84,7 @@ class VcfFilesController < ApplicationController
     if @current_login
       #      if @current_login.admin?
       user = Login.find_by_user_id( @vcf_file.user_id ).username
-      file = VcfFile.vcf_to_path( user, params[:name] )
+      file = VcfFile.vcf_to_path(params[:name])
       #      else
       #        file = VcfFile.vcf_to_path( @current_login.username, params[:name] )
       #      end
@@ -95,7 +95,7 @@ class VcfFilesController < ApplicationController
         end
       end
     else
-      file = VcfFile.vcf_to_path( Login.find(8).username, params[:name] )
+      file = VcfFile.vcf_to_path(params[:name])
     end  
     if !File.exists? file
       flash[:alert] = "File not found: #{file}"
@@ -299,7 +299,7 @@ class VcfFilesController < ApplicationController
     vcf_name.gsub!(/[^\w\.\-]/,'_')
     vcf_name.sub!(/\.(xls|xlsx|ods)$/i, '.vcf')
 
-    path = VcfFile.vcf_to_path( @current_login.username, vcf_name )
+    path = VcfFile.vcf_to_path(vcf_name)
 
     if File.exist?( path )
       FileUtils.rm filename_ext
@@ -1519,7 +1519,7 @@ EOT
     infile.rewind
 
     fname.gsub!(/[^\w\.\-]/,'_')
-    path = VcfFile.vcf_to_path( @current_login.username, fname )
+    path = VcfFile.vcf_to_path(fname)
 
     if File.exist?( path )
       alerts << "File #{fname}: File aready exists \n" 

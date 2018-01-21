@@ -128,7 +128,7 @@ class VcfFile < ActiveRecord::Base
     infile.close
 
     fname.gsub!(/[^\w\.\-]/,'_')
-    path = VcfFile.vcf_to_path(login.username, fname)
+    path = VcfFile.vcf_to_path(fname)
     if File.exist?(path)
       alerts << "File #{fname}: File aready exists \n"
       return nil, warnings, alerts
@@ -178,8 +178,8 @@ class VcfFile < ActiveRecord::Base
 
   #######################################################################
   # @Todo: refactor, what's that good for?
-  def self.vcf_to_path( username, filename )
-    Rails.root.join( VCF_PATH, username + '_' + filename )
+  def self.vcf_to_path( filename )
+    Rails.root.join( VCF_PATH, filename )
   end
 
 
@@ -421,7 +421,7 @@ class VcfFile < ActiveRecord::Base
   # Parse vcf file into database
   ########################################################################
   def parse_vcf
-    path = VcfFile.vcf_to_path(User.find(self.user_id).username, self.name)
+    path = VcfFile.vcf_to_path(self.name)
     infile = File.open(path)
     start_parsing = false
     infile.each do |line|
