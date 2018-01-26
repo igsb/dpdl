@@ -4,7 +4,7 @@ class PatientsController < ApplicationController
   # GET /patients
   # GET /patients.json
   def index
-    @patients = Patient.page(params[:page]).per(25)
+    @patients = Patient.order(:case_id).page(params[:page]).per(25)
   end
 
   # GET /patients/1
