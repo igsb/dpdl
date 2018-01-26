@@ -1,0 +1,17 @@
+<%= form_with(model: pedia_service, local: true) do |form| %>
+  <% if pedia_service.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(pedia_service.errors.count, "error") %> prohibited this pedia_service from being saved:</h2>
+
+      <ul>
+      <% pedia_service.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>

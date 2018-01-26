@@ -1,0 +1,66 @@
+<h1>PEDIA Submission</h1>
+
+<%= form_tag({:action => 'create', :pedia_service => @pedia_service}, :multipart => true) do %>
+  <div class="field">
+    <%= label_tag "json_file", "JSON file (*.json)" %>
+    <%= file_field_tag "json_file",  accept: '.json', :required => true%>
+  </div>
+  <div class="field">
+    <%= label_tag "vcf", "VCF (*.vcf.gz)" %>
+    <%= file_field_tag "vcf",  accept: '.vcf.gz', :required => true%>
+  </div>
+  <div class="field">
+    <%= label_tag :name %>
+    <%= text_field_tag :username, nil, :required => true%>
+  </div>
+  <div class="field">
+    <%= label_tag :email %>
+    <%= text_field_tag :email, nil, :required => true%>
+  </div>
+  <div class="actions">
+    <%= submit_tag "Upload" %>
+  </div>
+<% end %>
+<br>
+<%= link_to 'Back', pedia_services_path %>
+
+<br><br>
+<h2>Example</h2>
+<p>Here we provide a sample JSON file for your reference. This is the format of file which you receive from Face2Gene.</p>
+<pre>
+<code>
+  {
+    "case_id": your case ID,
+    "features": [
+      "HP:0002000",
+      "HP:0002345",
+      "HP:0001234"
+    ],
+    "detected_syndromes": [
+      {
+        "feature_score": 0.85,
+        "omim_id": [
+        614753,
+        117550,
+        617169
+        ],
+        "combined_score": 0.52,
+        "syndrome_name": "Sotos Syndrome",
+        "gestalt_score": 0.365563
+      },
+      {
+        "feature_score": 1,
+        "omim_id": 235730,
+        "combined_score": 0.52,
+        "syndrome_name": "Mowat-Wilson Syndrome; MOWS",
+        "gestalt_score": 0.12918
+      }
+    ],
+    "submitter": {
+      "user_email": "your@email",
+      "user_name": "your name",
+      "user_team": "your team"
+    }
+  }
+</code>
+</pre>

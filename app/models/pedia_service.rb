@@ -1,0 +1,2 @@
+class PediaService < ApplicationRecord
+end
