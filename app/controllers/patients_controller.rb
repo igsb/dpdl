@@ -1,23 +1,41 @@
 class PatientsController < ApplicationController
   before_action :set_patient, only: [:show, :edit, :update, :destroy]
+  before_action :check_access, only: [:show, :edit, :update, :destroy] 
 
   # GET /patients
   # GET /patients.json
   def index
-    @patients = Patient.order(:case_id).page(params[:page]).per(25)
+    user = current_user
+    sub_ids = []
+    if not current_user.admin
+      for group in user.groups
+        group_owner = User.find(group.administrator_id)
+        first_name = group_owner.first_name
+        last_name = group_owner.last_name
+        sub = Submitter.where("first_name LIKE ? AND last_name LIKE ?", "%#{first_name}","%#{last_name}" )
+        if sub != nil
+          for id in sub.ids
+            sub_ids.append(id)
+          end
+        end
+        @patients = Patient.where(submitter_id: sub_ids).order(:case_id).page(params[:page]).per(25)
+      end
+    else
+      @patients = Patient.page(params[:page]).per(25)
+    end
   end
 
   # GET /patients/1
   # GET /patients/1.json
   def show
-    @diagnosed_disorders = @patient.get_selected_disorders 
-    @detected_disorders = @patient.get_detected_disorders 
-    @gene = @patient.pedia.limit(10).order("pedia_score DESC") 
-    @causing_muts = @patient.disease_causing_mutations
-    result_link = @patient.result_figures.take
-    if !result_link.nil?
-      @result_link = result_link.link.split('/')[-1]
-    end
+      @diagnosed_disorders = @patient.get_selected_disorders 
+      @detected_disorders = @patient.get_detected_disorders 
+      @gene = @patient.pedia.limit(10).order("pedia_score DESC") 
+      @causing_muts = @patient.disease_causing_mutations
+      result_link = @patient.result_figures.take
+      if !result_link.nil?
+        @result_link = result_link.link.split('/')[-1]
+      end
   end
 
   def get_img
@@ -43,7 +61,30 @@ class PatientsController < ApplicationController
     file = params[:file].read
     data = JSON.parse(file)
     ActiveRecord::Base.transaction do
-      submitter = Submitter.find_or_create_by(name:data['submitter']['user_name'], email:data['submitter']['user_email'], team:data['submitter']['team'])
+      sub_user = data['submitter']['user_name']
+      user_array = sub_user.split('.', 2)
+      title = ''
+      name = ''
+      if user_array.length > 1
+        title = user_array[0] + '.'
+        name = user_array[1][1..-1]
+        name_array = name.split(' ')
+        first_name = name_array[0]
+        last_name = name_array[-1]
+        if name_array.length > 2
+          first_name = name_array[0..-2].join(' ')
+        end
+      else
+        name = user_array[0]
+        name_array = name.split(' ')
+        first_name = name_array[0]
+        last_name = name_array[-1]
+        if name_array.length > 2
+          first_name = name_array[0..-2].join(' ')
+        end
+      end
+
+      submitter = Submitter.find_or_create_by(first_name: first_name, last_name: last_name, email:data['submitter']['user_email'], team:data['submitter']['team'], title: title)
       @patient = Patient.create(case_id: data['case_id'], age: data['age'], submitter: submitter, last_name:data['last_name'], first_name:data['first_name'])
       if @patient.valid?
         @patient.parse_json(data)
@@ -107,5 +148,24 @@ class PatientsController < ApplicationController
 
   def usi_params
     params.require(:patient).permit(:usi_id, :materialnr)
+  end
+
+  def check_access
+    access = false
+    if not current_user.admin
+      user = current_user
+      @names = [@patient.submitter.first_name, @patient.submitter.last_name]
+      sub_user = User.where("first_name LIKE ? AND last_name LIKE ?", "%#{@names[0]}","%#{@names[1]}" )
+      group = Group.find_by_administrator_id(sub_user.ids)
+      if group != nil and user.groups.exists?(group.id)
+        access = true
+      end
+    else
+      access = true
+    end
+    if not access 
+      flash[:alert] = 'You do not have permissions to enter this case!'
+      redirect_to action: "index"
+    end
   end
 end

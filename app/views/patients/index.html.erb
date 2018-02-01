@@ -12,7 +12,7 @@
     <% @patients.each do |patient| %>
       <tr>
         <td><%= patient.case_id %></td>
-        <td><%= patient.submitter.name %></td>
+        <td><%= [patient.submitter.title, patient.submitter.first_name, patient.submitter.last_name].join(' ') %></td>
         <td><%= link_to 'Show', patient %></td>
         <td><%= link_to 'Edit', edit_patient_path(patient) %></td>
         <td><%= link_to 'Delete', patient, method: :delete, data: { confirm: 'Are you sure?' } %></td>
