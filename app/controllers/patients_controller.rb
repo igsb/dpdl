@@ -21,7 +21,7 @@ class PatientsController < ApplicationController
         @patients = Patient.where(submitter_id: sub_ids).order(:case_id).page(params[:page]).per(25)
       end
     else
-      @patients = Patient.page(params[:page]).per(25)
+      @patients = Patient.order(:case_id).page(params[:page]).per(25)
     end
   end
 
