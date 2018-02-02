@@ -1,6 +1,28 @@
 <h1>Editing Patient</h1>
 
+
+  <%= form_tag patient_path(@patient), :method => :put, :multipart => true do %>
+  <% if @patient.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@patient.errors.count, "error") %> prohibited this patient from being saved:</h2>
+
+      <ul>
+        <% @patient.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= label_tag :file %>
+    <%= file_field_tag :file,  accept: '.json' %>
+  </div>
+  <div class="actions">
+    <%= submit_tag "Upload" %>
+  </div>
 <%= render 'form', patient: @patient %>
+<% end %>
 
 <%= link_to 'Show', @patient %> |
 <%= link_to 'Back', patients_path %>

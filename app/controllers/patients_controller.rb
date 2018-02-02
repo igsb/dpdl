@@ -99,10 +99,25 @@ class PatientsController < ApplicationController
   # PATCH/PUT /patients/1
   # PATCH/PUT /patients/1.json
   def update
-    usi = UsiMaterialnr.find_or_create_by(patient_id:@patient.id)
-    usi.usi_id = usi_params[:usi_id]
-    usi.materialnr = usi_params[:materialnr]
-    usi.save
+    if params[:file]
+      file = params[:file].read
+      data = JSON.parse(file)
+      ActiveRecord::Base.transaction do
+        @patient = Patient.find_by(case_id: data['case_id'])
+        if @patient.valid?
+          @patient.update_json(data)
+          name = params[:file].original_filename
+          path = File.join("Data", "jsons", name)
+          File.open(path, "wb") { |f| f.write(file) }
+        end
+      end
+    end
+    if usi_params
+      usi = UsiMaterialnr.find_or_create_by(patient_id:@patient.id)
+      usi.usi_id = usi_params[:usi_id]
+      usi.materialnr = usi_params[:materialnr]
+      usi.save
+    end
     respond_to do |format|
       if @patient.update(patient_params)
         format.html { redirect_to @patient, notice: 'Patient was successfully updated.' }

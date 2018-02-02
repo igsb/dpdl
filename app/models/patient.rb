@@ -28,6 +28,19 @@ class Patient < ApplicationRecord
     self.features << features
     parse_detected(data['detected_syndromes'])
     #parse_selected(data['selected_syndromes'])
+    #parse_pedia(data['geneList'])
+    if data.key? "genomicData"
+      if data['genomicData'].length > 1
+        parse_genomic(data['genomicData'][1])
+      end
+    end
+  end
+
+  def update_json(data)
+    @@log = Logger.new('log/patient.log')
+    @@log.info "Patient: #{data['case_id']}"
+    @algo_version = data['algo_deploy_version']
+    #parse_selected(data['selected_syndromes'])
     parse_pedia(data['geneList'])
     if data.key? "genomicData"
       if data['genomicData'].length > 1
