@@ -8,18 +8,7 @@ class PatientsController < ApplicationController
     user = current_user
     sub_ids = []
     if not current_user.admin
-      for group in user.groups
-        group_owner = User.find(group.administrator_id)
-        first_name = group_owner.first_name
-        last_name = group_owner.last_name
-        sub = Submitter.where("first_name LIKE ? AND last_name LIKE ?", "%#{first_name}","%#{last_name}" )
-        if sub != nil
-          for id in sub.ids
-            sub_ids.append(id)
-          end
-        end
-        @patients = Patient.where(submitter_id: sub_ids).order(:case_id).page(params[:page]).per(25)
-      end
+      @patients = user.patients.order(:case_id).page(params[:page]).per(25)
     else
       @patients = Patient.order(:case_id).page(params[:page]).per(25)
     end
@@ -154,10 +143,7 @@ class PatientsController < ApplicationController
     access = false
     if not current_user.admin
       user = current_user
-      @names = [@patient.submitter.first_name, @patient.submitter.last_name]
-      sub_user = User.where("first_name LIKE ? AND last_name LIKE ?", "%#{@names[0]}","%#{@names[1]}" )
-      group = Group.find_by_administrator_id(sub_user.ids)
-      if group != nil and user.groups.exists?(group.id)
+      if user.patients.exists?(@patient.id)
         access = true
       end
     else

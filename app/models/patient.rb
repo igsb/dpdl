@@ -12,6 +12,8 @@ class Patient < ApplicationRecord
   has_many :disease_causing_mutations, :dependent => :destroy
   has_many :pedia, :dependent => :destroy
   has_many :usi_materialnrs, :dependent => :destroy
+  has_many :users_patients
+  has_many :users, :through => :users_patients
   validates :case_id, :submitter_id, presence: true
   validates :case_id, uniqueness: true
 

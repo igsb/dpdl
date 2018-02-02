@@ -4,8 +4,8 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
     :recoverable, :rememberable, :trackable, :validatable
   has_many :vcf_files
-  has_many :users_groups
-  has_many :groups, :through => :users_groups
+  has_many :users_patients
+  has_many :patients, :through => :users_patients
   after_create :send_admin_mail
   validates :institute, :presence => true
   validates :last_name, :presence => true
@@ -19,7 +19,7 @@ class User < ApplicationRecord
   validates_format_of :username, with: /^[a-zA-Z0-9_\.]*$/, :multiline => true
   attr_accessor :login
   validate :validate_username
-  after_create :assign_default_group
+  after_create :assign_default_patients
 
  
   def validate_username
@@ -60,9 +60,16 @@ class User < ApplicationRecord
 
   private
  
-  def assign_default_group
+  def assign_default_patients
     # This automatically creates the UserGroup record
-    name = self.first_name + ' ' + self.last_name
-    self.groups << Group.find_or_create_by(group_name:name, administrator_id: self.id)
+    email = self.email
+    submitter = Submitter.find_by_email(email)
+    if submitter != nil
+      submitter.patient.each do |patient|
+        if not self.patients.exists?(patient.id)
+          self.patients << patient
+        end
+      end
+    end
   end
 end
