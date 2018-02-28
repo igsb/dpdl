@@ -75,6 +75,12 @@ class PatientsController < ApplicationController
 
       submitter = Submitter.find_or_create_by(first_name: first_name, last_name: last_name, email:data['submitter']['user_email'], team:data['submitter']['team'], title: title)
       @patient = Patient.create(case_id: data['case_id'], age: data['age'], submitter: submitter, last_name:data['last_name'], first_name:data['first_name'])
+      user = User.find_by_email(submitter.email)
+      if not user.nil?
+        if not user.patients.exists?(@patient.id)
+          user.patients << @patient
+        end
+      end
       if @patient.valid?
         @patient.parse_json(data)
         name = params[:file].original_filename
