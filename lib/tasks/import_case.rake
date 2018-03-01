@@ -27,7 +27,6 @@ namespace :lab do
 
     request = Net::HTTP::Post.new(connect_uri.path, {"Content-Type" => "application/json", "Accept" => "application/json"})
     data = { "api_key" => api_key, "secret" => api_secret }.to_json
-    puts data
     request.body = data
     response = http.request(request)
     puts response.code
@@ -35,7 +34,6 @@ namespace :lab do
     if response.code == '200'
       token = JSON.parse(response.body)['jwt']
       auth = "Bearer " + token
-      puts token
       http = Net::HTTP.new(case_uri.host, case_uri.port)
       http.use_ssl = true
       req = Net::HTTP::Get.new(case_uri.path, {"Accept" => "application/json", "Authorization" => auth})
@@ -47,7 +45,7 @@ namespace :lab do
       user_name = user['userDisplayName']
       user_email = user['userEmail']
       user_institute = user['userInstitution']
-      user_team = ""
+      user_team = nil
       features = content['case_data']['selected_features']
       hpo_array = []
       features.each do |feature|
@@ -83,7 +81,6 @@ namespace :lab do
         feature_array.push(hpo_result)
       end
       patient.features << feature_array
-      puts feature_array[0].hpo_term
       patient.save
 
     end
