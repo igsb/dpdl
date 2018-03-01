@@ -27,11 +27,14 @@ class Patient < ApplicationRecord
     features = parse_features(data['features'])
     self.features << features
     parse_detected(data['detected_syndromes'])
-    #parse_selected(data['selected_syndromes'])
+
+    if data.key? "selected_syndromes"
+      parse_selected(data['selected_syndromes'])
+    end
     #parse_pedia(data['geneList'])
     if data.key? "genomicData"
-      if data['genomicData'].length > 1
-        parse_genomic(data['genomicData'][1])
+      if data['genomicData'].length > 0 
+        parse_genomic(data['genomicData'])
       end
     end
   end
@@ -40,11 +43,13 @@ class Patient < ApplicationRecord
     @@log = Logger.new('log/patient.log')
     @@log.info "Patient: #{data['case_id']}"
     @algo_version = data['algo_deploy_version']
-    #parse_selected(data['selected_syndromes'])
+    if data.key? "selected_syndromes"
+      parse_selected(data['selected_syndromes'])
+    end
     parse_pedia(data['geneList'])
     if data.key? "genomicData"
-      if data['genomicData'].length > 1
-        parse_genomic(data['genomicData'][1])
+      if data['genomicData'].length > 0
+        parse_genomic(data['genomicData'])
       end
     end
   end
@@ -96,43 +101,45 @@ class Patient < ApplicationRecord
     end
   end
 
-  def parse_selected(disorder)
-    if !disorder.empty?
-      if disorder['omim_id'].kind_of?(Array)
-        # This syndrome is PS
-        syndrome_name = disorder['syndrome_name']
-        psn = PhenotypicSeries.where(title:syndrome_name).take
-        if psn.nil?
-          @@log.fatal "PSN not found: #{syndrome_name}"
-        else  
-          psn_id = psn.id
-          psn_num = psn.phenotypic_series_id
-          psn_disorder_id = Disorder.where(disorder_id:psn_num, is_phenotypic_series: true).take.id
-          omims = disorder['omim_id']
-          for omim in omims
-            disorder_result = Disorder.where(disorder_id: omim, is_phenotypic_series: false).take
-            if disorder_result.nil?
-              @@log.fatal "Omim not found: #{omim}"
-              disorder_result = Disorder.create(disorder_id: omim)
-            else
-              PhenotypicSeriesDisorder.find_or_create_by(disorder_id:disorder_result.id, phenotypic_series_id:psn_id)
+  def parse_selected(disorders)
+    if !disorders.empty?
+      for disorder in disorders
+        if disorder['omim_id'].kind_of?(Array)
+          # This syndrome is PS
+          syndrome_name = disorder['syndrome_name']
+          psn = PhenotypicSeries.where(title:syndrome_name).take
+          if psn.nil?
+            @@log.fatal "PSN not found: #{syndrome_name}"
+          else  
+            psn_id = psn.id
+            psn_num = psn.phenotypic_series_id
+            psn_disorder_id = Disorder.where(disorder_id:psn_num, is_phenotypic_series: true).take.id
+            omims = disorder['omim_id']
+            for omim in omims
+              disorder_result = Disorder.where(disorder_id: omim, is_phenotypic_series: false).take
+              if disorder_result.nil?
+                @@log.fatal "Omim not found: #{omim}"
+                disorder_result = Disorder.create(disorder_id: omim)
+              else
+                PhenotypicSeriesDisorder.find_or_create_by(disorder_id:disorder_result.id, phenotypic_series_id:psn_id)
+              end
             end
+            patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id:psn_disorder_id)
+            patient_disorder.diagnose_type_id = PHENOTYPE_DIAGNOSED
+            patient_disorder.save
           end
-          patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id:psn_disorder_id)
-          patient_disorder.diagnose_type_id = PHENOTYPE_DIAGNOSED
-          patient_disorder.save
-        end
-      else
-        if disorder['omim_id'].nil?
-          @@log.fatal "Syndrome has no omim: #{disorder['syndrome_name']}"
         else
-          disorder_result = Disorder.where(disorder_id: disorder['omim_id']).take
-          if disorder_result.nil?
-            disorder_result = Disorder.create(disorder_id: disorder['omim_id'])
+          if disorder['omim_id'].nil?
+            @@log.fatal "Syndrome has no omim: #{disorder['syndrome_name']}"
+          else
+            disorder_result = Disorder.where(disorder_id: disorder['omim_id']).take
+            if disorder_result.nil?
+              disorder_result = Disorder.create(disorder_id: disorder['omim_id'])
+            end
+            patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id: disorder_result.id)
+            patient_disorder.diagnose_type_id = PHENOTYPE_DIAGNOSED
+            patient_disorder.save
           end
-          patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id: disorder_result.id)
-          patient_disorder.diagnose_type_id = PHENOTYPE_DIAGNOSED
-          patient_disorder.save
         end
       end
     end
@@ -177,19 +184,24 @@ class Patient < ApplicationRecord
   end
 
   def parse_genomic(mut_array)
-    mut_array.each do |mut|
-      test = mut['Test Information']
-      gene = test['Gene Name']
-      genotype = test['Genotype']
-      muts = mut['Mutations']
-      if genotype == 'Compound Heterozygous'
-        hgvs1 = muts['Mutation 1']['HGVS-code']
-        hgvs2 = muts['Mutation 2']['HGVS-code']
-        DiseaseCausingMutation.find_or_create_by(patient_id:self.id, genotype: genotype, gene_name: gene, hgvs: hgvs1)
-        DiseaseCausingMutation.find_or_create_by(patient_id:self.id, genotype: genotype, gene_name: gene, hgvs: hgvs2)
-      else
-        hgvs = muts['HGVS-code']
-        DiseaseCausingMutation.find_or_create_by(patient_id:self.id, genotype: genotype, gene_name: gene, hgvs: hgvs)
+    if not mut_array.nil?
+      mut_array.each do |mut|
+        test = mut['Test Information']
+        if test.key? 'Gene Name'
+          gene = test['Gene Name']
+          genotype = test['Genotype']
+          muts = mut['Mutations']
+          #if genotype == 'Compound Heterozygous'
+          if genotype == 'COMPOUND HETEROZYGOUS'
+            hgvs1 = muts['Mutation 1']['HGVS-code']
+            hgvs2 = muts['Mutation 2']['HGVS-code']
+            DiseaseCausingMutation.find_or_create_by(patient_id:self.id, genotype: genotype, gene_name: gene, hgvs: hgvs1)
+            DiseaseCausingMutation.find_or_create_by(patient_id:self.id, genotype: genotype, gene_name: gene, hgvs: hgvs2)
+          else
+            hgvs = muts['HGVS-code']
+            DiseaseCausingMutation.find_or_create_by(patient_id:self.id, genotype: genotype, gene_name: gene, hgvs: hgvs)
+          end
+        end
       end
     end
   end
