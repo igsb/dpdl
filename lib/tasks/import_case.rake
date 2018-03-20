@@ -39,6 +39,7 @@ namespace :lab do
       req = Net::HTTP::Get.new(case_uri.path, {"Accept" => "application/json", "Authorization" => auth})
       res = http.request(req)
       content = JSON.parse(res.body)
+      puts content
       patient_id = content['f2g_case_id']
       sample_id = content['sample_id']
       user = content['case_data']['posting_user']
@@ -82,6 +83,13 @@ namespace :lab do
       end
       patient.features << feature_array
       patient.save
+      user = User.find_by_email(submitter.email)
+
+      if not user.nil?
+        if not user.patients.exists?(patient.id)
+          user.patients << patient
+        end
+      end
 
     end
   end
