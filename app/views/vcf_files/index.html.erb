@@ -1,101 +1,38 @@
 <%# VCF-File Index %>
 
-<% content_for :head do %>
-<script type="text/javascript">
-  $(document).ready(function() {
-     $('#hidefilter').change( function(){
-        if ( $('#hidefilter').attr('checked') ) {
-          $('.vcf_filtered').each( function(){ 
-                $(this).hide();
-          });
-        } else {
-          $('.vcf_filtered').each( function(){ 
-            $(this).show();
-          });
-        };
-     });
-     $('.sub-row').hide();
-     $('.show-subrow').click( function(){
-        id = $(this).attr('id').substr(2);
-        $('.VCF'+id ).toggle( 'slow', 'swing' );
-        $('#ON'+id ).toggle();
-        $('#OF'+id ).toggle();
-     });
-  });
-</script>
-<% end %>
+  <div class="headlines">
+    <h2><span>My VCF Files</span></h2>
+    <!-- a href="#" class="show-filter">show filter</a -->
+  </div>
 
-<!-- box -->
-<div class="box">
- <div class="headlines">
-  <h2><span>My VCF Files</span></h2>
-  <!-- a href="#" class="show-filter">show filter</a -->
- </div>
-<div id="debug"></div>
+  </table>
 
+  <br />
+  <table class='table'>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Submitter</th>
+        <th>Modified date</th>
+        <th colspan="2"></th>
+      </tr>
+    </thead>
 
- <!-- table -->
- <table class="table">
-    <tr class="top nodrop nodrag">
-       <!-- th class="checkbox"><input type="checkbox" name="" value="" class="check-all" /></th -->
-       <th>Name <%= link_to 'Sort by name', vcf_files_path + '?sort=name', :class => 'r_ico ico-sort-up', :title => 'Sort by name'%></th>
-       <th width="10px"></th>
-       <th>Owner</th>
-       <th class="action1"></th>
-       <th>Comment</th>
-       <th class="action1"></th>
-       <th>Creation date <%= link_to 'Sort by date', vcf_files_path + '?sort=upload', :class => 'r_ico ico-sort-up', :title => 'Sort by date'%></th>
-       <!-- th>Modified date<%# = link_to 'Sort by date', vcf_files_path + '?sort=modified', :class => 'r_ico ico-sort-up', :title => 'Sort by date'%></th -->
-       <th style="padding:0" width="72px"></th>
-       <th class="action5"></th>
-    </tr>
+    <tbody>
+      <% @vcf_files.each do |vcf| %>
+        <tr>
+          <td><%= vcf.name %></td>
+          <td><%= vcf.user.first_name + ' ' + vcf.user.last_name %></td>
+          <td><%= vcf.updated_at %></td>
+          <td><%= link_to 'Show', vcf %></td>
+          <td><%= link_to 'Delete', vcf, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
 
- <%= render :partial => @vcf_files, :locals => { :shareable => true, :more => true, :groups => false } %>
+  <div align="center">
+    <%= link_to 'New upload', new_vcf_file_path, :class => "btn-default"  %>
+  </div>
 
- </table>
-
-<br />
-
-<div align="center">
-<%= link_to 'New upload', new_vcf_file_path, :class => "btn-default"  %>
-</div>
-
-<br />
-<% if false %>
-          <!-- filter -->
-          <!-- div class="filter">
-            <input type="text" value="column one" title="column one" class="input" />
-            <input type="text" value="column two" title="column two" class="input" />
-            <input type="text" value="column three" title="column three" class="input" />
-            <input type="submit" value="Use filter" class="submit" />
-          </div -->
-          <!-- /filter -->
-
-          <!-- box-action -->  
-          <!-- div class="tab-action">
-            <select class="select">
-              <option>Choose an action</option>
-            </select>
-            <input type="submit" value="Apply action" class="submit" />
-          </div -->
-          <!-- /box-action -->
-
-          <!-- /pagination -->
-          <!-- div class="pagination">
-            <ul>
-              <li class="graphic first"><a href=""></a></li>
-              <li class="graphic prev"><a href=""></a></li>
-              <li><a href="">1</a></li>
-              <li class="active"><a href="">2</a></li>
-              <li><a href="">3</a></li>
-              <li><a href="">4</a></li>
-              <li><a href="">5</a></li>
-              <li class="graphic next"><a href=""></a></li>
-              <li class="graphic last"><a href=""></a></li>
-            </ul>
-            <p>Pages 1 of 5</p>
-          </div -->
-          <!-- /pagination --> 
-<% end %>
- </div>
- <!-- /box -->
+  <br />

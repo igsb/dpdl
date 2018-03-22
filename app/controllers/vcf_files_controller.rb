@@ -89,6 +89,8 @@ class VcfFilesController < ApplicationController
 
       @vcf_file.create_samples
       @vcf_file.parse_vcf
+      @vcf_file.create_tabix
+      @vcf_file.name = @vcf_file.name + '.gz'
       @vcf_file.save
     end
     redirect_to :action => :index
@@ -149,7 +151,7 @@ class VcfFilesController < ApplicationController
 
     #@vcf_files = current_user.vcf_files.order( 'name' )
     @vcf_files = VcfFile.all 
-
+    puts @vcf_files.count
     session[:comment_back] = vcf_files_path
 
     respond_to do |format|

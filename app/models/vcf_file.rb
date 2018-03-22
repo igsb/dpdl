@@ -155,10 +155,10 @@ class VcfFile < ActiveRecord::Base
 
   #######################################################################
   def create_tabix
-    vcf_fullname = self.fullpath
+    vcf_fullname = self.fullname
     gzfilename = "#{vcf_fullname}.gz"
-    %x@#{Rails.root}/bin/bgzip -c -f "#{vcf_fullname}" > "#{gzfilename}"@
-    %x@#{Rails.root}/bin/tabix -f -p vcf "#{gzfilename}"@
+    %x@bgzip "#{vcf_fullname}"@
+    %x@tabix -f -p vcf "#{gzfilename}"@
   end
 
   #######################################################################
@@ -168,30 +168,12 @@ class VcfFile < ActiveRecord::Base
 
   #######################################################################
   def fullname
-    if self.user != nil
-       File.join( VCF_PATH, "#{self.user.username}_#{self.name}" )
-    else
-       File.join( VCF_PATH, "__#{self.name}" )
-    end
+    File.join( VCF_PATH, "#{self.name}" )
   end
 
   #######################################################################
   def fullpath
-    if self.user != nil
-       File.join( Rails.root, VCF_PATH, "#{self.login.username}_#{self.name}" )
-    else
-       File.join( Rails.root, VCF_PATH, "__#{self.name}" )
-    end
-  end
-
-  #######################################################################
-  def user_file_name
-    owner = Login.find_by_id( self.user_id )
-    if owner != nil
-       File.join( owner.username + '_' + self.name )
-    else
-       File.join( '__' + self.name )
-    end
+    File.join( Rails.root, VCF_PATH, "#{self.name}" )
   end
 
   #######################################################################
