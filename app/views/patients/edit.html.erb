@@ -1,7 +1,7 @@
 <h1>Editing Patient</h1>
 
 
-  <%= form_tag patient_path(@patient), :method => :put, :multipart => true do %>
+<%= form_tag patient_path(@patient), :method => :put, :multipart => true do %>
   <% if @patient.errors.any? %>
     <div id="error_explanation">
       <h2><%= pluralize(@patient.errors.count, "error") %> prohibited this patient from being saved:</h2>
@@ -15,13 +15,18 @@
   <% end %>
 
   <div class="field">
+    <h3>Update PEDIA score:</h3>
+    <p>Please upload the case_id_pedia.json to update the PEDIA score.</p>
     <%= label_tag :file %>
     <%= file_field_tag :file,  accept: '.json' %>
   </div>
   <div class="actions">
     <%= submit_tag "Upload" %>
   </div>
-<%= render 'form', patient: @patient %>
+
+  <br><br>
+  <h3>Update patient data</h3>
+  <%= render 'form', patient: @patient %>
 <% end %>
 
 <%= link_to 'Show', @patient %> |
