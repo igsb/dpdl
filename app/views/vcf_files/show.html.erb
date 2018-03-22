@@ -61,19 +61,7 @@ $(document).on('page:load', ready);
 <% end %>
 <%= heading_block 'VCF Viewer' do %>
 
-<% if nil %>
-
-<div class="cols cols1v2">
-  <div class="col1">
-    <h4>File: <%= @vcf_file.name%></h4>
-</div>
-
-
-    <h5>Variants: <%= @var_count %></h5>
-
-  </div>
-</div>
-<% end %>
+    <h5>File: <%= @vcf.name%></h5>
     <h5 id='var_num'>Variants: </h5>
 <div ng-app="app">
   <div ng-controller="MainCtrl">

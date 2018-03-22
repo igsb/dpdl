@@ -165,6 +165,7 @@ class VcfFilesController < ApplicationController
     #@current_login = current_user.login
     @user = current_user 
     @vcf_id = params[:id]
+    @vcf = VcfFile.find(@vcf_id)
 
     gon.vcf_id = @vcf_id
     @name_indiv = @name_indiv_file
