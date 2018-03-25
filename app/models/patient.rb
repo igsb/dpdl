@@ -225,7 +225,7 @@ class Patient < ApplicationRecord
   end
 
   def get_selected_disorders
-    return self.patients_disorders.where(diagnose_type_id:PHENOTYPE_DIAGNOSED)
+    return self.patients_disorders.where("diagnose_type_id = ? OR diagnose_type_id = ?", PHENOTYPE_DIAGNOSED, MOLECULAR_DIAGNOSED)
   end
 
   def get_detected_disorders

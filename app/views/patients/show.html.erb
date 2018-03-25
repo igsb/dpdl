@@ -39,14 +39,14 @@
   </p>
 <% end %>
   <p>
-  <strong>Phenotypic diagnosed disorders:</strong>
+  <strong>Diagnosed disorders:</strong>
   <br>
   <table class='table borderless'>
     <thead>
       <tr>
         <th>OMIM</th>
         <th>Disorder</th>
-        <th colspan="3"></th>
+        <th>Diagnosed</th>
       </tr>
     </thead>
 
@@ -55,6 +55,7 @@
         <tr>
           <td><%= disorder.disorder.disorder_id %></td>
           <td><%= disorder.disorder.disorder_name %></td>
+          <td><%= disorder.diagnose_type.name %></td>
         </tr>
       <% end %>
     </tbody>
