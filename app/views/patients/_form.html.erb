@@ -57,10 +57,12 @@
     <strong>USI ID</strong>
     <%= form.text_field :usi_id, id: :patient_usi, :size=>"30", :value => usi_id  %>
   </div>
+  <% if nil %>
   <div class="field">
     <strong>Materialnr</strong>
     <%= form.text_field :materialnr, id: :patient_materialnr, :value => materialnr %>
   </div>
+  <% end %>
   <div class="actions">
     <%= form.submit %>
   </div>
