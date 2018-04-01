@@ -8,9 +8,17 @@ class PatientsController < ApplicationController
     user = current_user
     sub_ids = []
     if not current_user.admin
-      @patients = user.patients.order(:case_id).page(params[:page]).per(25)
+      if params[:result] == "true"
+        @patients = user.patients.where(result: true).order(:case_id).page(params[:page]).per(25)
+      else
+        @patients = user.patients.order(:case_id).page(params[:page]).per(25)
+      end
     else
-      @patients = Patient.order(:case_id).page(params[:page]).per(25)
+      if params[:result] == "true"
+        @patients = Patient.where(result: true).order(:case_id).page(params[:page]).per(25)
+      else
+        @patients = Patient.order(:case_id).page(params[:page]).per(25)
+      end
     end
   end
 

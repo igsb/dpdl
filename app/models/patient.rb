@@ -52,6 +52,7 @@ class Patient < ApplicationRecord
         parse_genomic(data['genomicData'])
       end
     end
+    self.result = true
   end
 
   def parse_features(data)
