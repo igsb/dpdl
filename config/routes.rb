@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :imprints
   resources :pedia_services, only: [:index, :new, :create, :destroy]
   resources :result_figures
   devise_for :users, controllers: { registrations: 'users/registrations' }

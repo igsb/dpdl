@@ -1,0 +1,2 @@
+class Imprint < ApplicationRecord
+end
