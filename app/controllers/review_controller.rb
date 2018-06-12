@@ -20,7 +20,7 @@ class ReviewController < ApplicationController
     @genotype = params[:genotype]
     @annotation = params[:hgvs]
     parse_dbsnp()
-    parse_exac()
+    #parse_exac()
     parse_mut_taster()
     parse_ensembl()
     render :partial => "get_review"
@@ -111,6 +111,7 @@ class ReviewController < ApplicationController
     exac_pos_url = exac_prefix + 'variant/'+ pos[0] + '-' + pos[1] + '-' + @ref + '-' + alt
     pos_prefix = "http://exac.broadinstitute.org/variant/"
     @exac_pos_link_url = pos_prefix + pos[0] + '-' + pos[1] + '-' + @ref + '-' + alt
+    puts(@exac_pos_link_url)
     url = URI.parse(exac_pos_url)
     req = Net::HTTP::Get.new(url.to_s)
     res = Net::HTTP.start(url.host, url.port) {|http|
