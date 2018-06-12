@@ -8,7 +8,7 @@ function chtoi(x){
 }
 var app = angular.module('app', ['ngTouch', 'ui.grid', 'ui.grid.cellNav', 'ui.grid.resizeColumns', 'ui.grid.selection', 'ui.grid.moveColumns']);
 
-app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGridConstants', '$sce',
+app.controller('MainCtrl',  ['$scope', '$https', '$timeout', '$interval', 'uiGridConstants', '$sce',
     function ($scope, $http, $timeout, $interval, uiGridConstants, $sce) {
         $scope.gridOptions = {
             enableSorting: true,
