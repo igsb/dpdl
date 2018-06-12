@@ -217,19 +217,7 @@ class VcfFile < ActiveRecord::Base
        line.chomp!
        if start_parsing == true
           chrom, pos, ident, ref, alt, qual, filter, info, format, *gt = line.split("\t");
-          if chrom.include? "chr"
-            chrom_tmp = chrom.split("chr")[1]
-            chrom_num = 0
-            if chrom_tmp == 'X'
-              chrom_num = 23
-            elsif chrom_tmp == 'Y'
-              chrom_num = 24
-            else
-              chrom_num = chrom_tmp.to_i 
-            end
-          else
-            chrom_num = chrom.to_i
-          end
+          chrom_num = VcfTools.chrom_to_i(chrom)
 
           #Skip the variant which is not in chr1-22 X,Y
           next if chrom_num == 0
