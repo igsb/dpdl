@@ -11,34 +11,38 @@
 <%= @patient.case_id %>
 </p>
 
-<p>
-<strong>Name:</strong>
-<%= @patient.first_name %> <%= @patient.last_name %>
-</p>
+<% if not @demo %>
+  <p>
+  <strong>Name:</strong>
+  <%= @patient.first_name %> <%= @patient.last_name %>
+  </p>
 
-<p>
-<strong>Age:</strong>
-<%= @patient.age %>
-</p>
+  <p>
+  <strong>Age:</strong>
+  <%= @patient.age %>
+  </p>
+<% end %>
 
 <p>
 <strong>Submitter:</strong>
 <%= [@patient.submitter.title, @patient.submitter.first_name, @patient.submitter.last_name].join(' ')%>
 </p>
-
-<% usi = @patient.usi_materialnrs.take %>
-<% if usi != nil %>
-  <% usi_id = usi.usi_id %>
-  <% materialnr = usi.materialnr %>
-  <p>
-  <strong>USI:</strong>
-  <%= usi_id %>
-  <br>
-  <% if nil %>
-  <strong>Materialnr:</strong>
-  <%= materialnr %>
+  
+<% if not @demo %>
+  <% usi = @patient.usi_materialnrs.take %>
+  <% if usi != nil %>
+    <% usi_id = usi.usi_id %>
+    <% materialnr = usi.materialnr %>
+    <p>
+    <strong>USI:</strong>
+    <%= usi_id %>
+    <br>
+    <% if nil %>
+    <strong>Materialnr:</strong>
+    <%= materialnr %>
+    <% end %>
+    </p>
   <% end %>
-  </p>
 <% end %>
   <p>
   <strong>Diagnosed disorders:</strong>
@@ -154,6 +158,7 @@
   </p>
 <% end %>
 
+<% if false %>
 <div class="field">
   <%= label_tag :file %>
   <%= file_field_tag :file,  :accept => 'text/vcf', :required => true%>
@@ -161,6 +166,11 @@
 <div class="actions">
   <%= submit_tag "Upload" %>
 </div>
+<% end %>
 
-<%= link_to 'Edit', edit_patient_path(@patient) %> |
-<%= link_to 'Back', patients_path %>
+<% if not @demo %>
+  <%= link_to 'Edit', edit_patient_path(@patient) %> |
+  <%= link_to 'Back', patients_path %>
+<% else %>
+  <%= link_to 'Back', patients_path %>
+<% end %>

@@ -19,8 +19,10 @@
         <td><%= [patient.submitter.title, patient.submitter.first_name, patient.submitter.last_name].join(' ') %></td>
         <td><%= patient.result ? "Yes" : "No"  %></td>
         <td><%= link_to 'Show', patient %></td>
-        <td><%= link_to 'Edit', edit_patient_path(patient) %></td>
-        <td><%= link_to 'Delete', patient, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <% if not @demo %>
+          <td><%= link_to 'Edit', edit_patient_path(patient) %></td>
+          <td><%= link_to 'Delete', patient, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <% end %>
       </tr>
     <% end %>
   </tbody>
@@ -29,4 +31,6 @@
 
 <%= paginate @patients %>
 <br>
-<%= link_to 'New Patient', new_patient_path %>
+<% if not @demo %>
+  <%= link_to 'New Patient', new_patient_path %>
+<% end %>

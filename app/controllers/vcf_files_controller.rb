@@ -1,4 +1,5 @@
 class VcfFilesController < ApplicationController
+  before_action :verify_is_admin, only: [:index, :edit, :destroy, :update]
 
   #######################################################################
   # GET /vcf_files/new
@@ -364,6 +365,10 @@ class VcfFilesController < ApplicationController
     #Delayed::Job.enqueue( PreprocJob.new( vcf_file.id, @current_login.user_id ), :queue => ( vcf_file.is_premium?( @current_login ) ? 'prio' : 'basic' ) )
 
     return vcf_file, warnings, alerts
+  end
+
+  def verify_is_admin
+    (current_user.nil?) ? redirect_to(root_path) : (redirect_to(root_path) unless current_user.admin?)
   end
 
 end # class

@@ -1,6 +1,8 @@
 class PatientsController < ApplicationController
   before_action :set_patient, only: [:show, :edit, :update, :destroy]
   before_action :check_access, only: [:show, :edit, :update, :destroy] 
+  before_action :check_read_only, only: [:edit, :update, :destroy] 
+  before_action :check_demo, only: [:index, :show, :edit, :update, :destroy] 
 
   # GET /patients
   # GET /patients.json
@@ -180,7 +182,19 @@ class PatientsController < ApplicationController
     end
     if not access 
       flash[:alert] = 'You do not have permissions to enter this case!'
-      redirect_to action: "index"
+      redirect_back(fallback_location: root_path)
+    end
+  end
+  def check_read_only
+    if current_user.username == "demo"
+      flash[:alert] = 'You do not have permissions to modify this case!'
+      redirect_back(fallback_location: root_path)
+    end
+  end
+  def check_demo
+    @demo = false
+    if current_user.username == "demo"
+      @demo = true
     end
   end
 end
