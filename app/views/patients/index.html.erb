@@ -7,6 +7,7 @@
     <tr>
       <th>Case</th>
       <th>Submitter</th>
+      <th>Disorder</th>
       <th>Result</th>
       <th colspan="3"></th>
     </tr>
@@ -14,9 +15,20 @@
 
   <tbody>
     <% @patients.each do |patient| %>
+
+      <% @diagnosed_disorders = patient.get_selected_disorders %>
+      <% if @diagnosed_disorders.empty? %>
+        <% @diagnosed_disorders = patient.get_detected_disorders %>
+      <% end %>
+      <% @diagnosed = @diagnosed_disorders.take %>
       <tr>
         <td><%= patient.case_id %></td>
         <td><%= [patient.submitter.title, patient.submitter.first_name, patient.submitter.last_name].join(' ') %></td>
+        <% if @diagnosed.nil? %>
+          <td> </td>
+        <% else %>
+          <td><%= @diagnosed.disorder.disorder_name %></td>
+        <% end %>
         <td><%= patient.result ? "Yes" : "No"  %></td>
         <td><%= link_to 'Show', patient %></td>
         <% if not @demo %>
