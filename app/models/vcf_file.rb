@@ -331,7 +331,13 @@ class VcfFile < ActiveRecord::Base
         value_max = value
         if value.include? ','
           value_array = value.split(',')
-          vaule_max = value_array.max
+          tmp = []
+          value_array.each do |v|
+            tmp.push(v.to_f)
+          end
+          value_max = tmp.max
+        else
+          value_max = value_max.to_f
         end
         cadd_tmp.push(value_max)
       end

@@ -20,7 +20,7 @@ class ReviewController < ApplicationController
     @genotype = params[:genotype]
     @annotation = params[:hgvs]
     parse_dbsnp()
-    #parse_exac()
+    parse_exac()
     parse_mut_taster()
     parse_ensembl()
     render :partial => "get_review"
@@ -206,10 +206,17 @@ class ReviewController < ApplicationController
       end
       @transcripts.push(value.text)
     end
-    @mt_tables = doc.css("table")[1].css("tr")[1..-1]
-    sum = doc.css("td").css("ul")
-    if !sum.nil?
-      @summary = sum
+    @mt_tables = []
+    @summary = []
+    if !doc.nil?
+      tmp = doc.css("table")[1]
+      if not tmp.nil?
+        @mt_tables = tmp.css("tr")[1..-1]
+        sum = doc.css("td").css("ul")
+        if !sum.nil?
+          @summary = sum
+        end
+      end
     end
   end
 end
