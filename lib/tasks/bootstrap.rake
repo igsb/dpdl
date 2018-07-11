@@ -12,7 +12,7 @@ namespace :bootstrap do
     @@log = Logger.new('log/bootstrap.log')
     SearchType.create( :type_name => 'HPO' )
     SearchType.create( :type_name => 'OMIM' )
-    SearchType.create( :type_name => 'Case id' )
+    SearchType.create( :type_name => 'Case ID' )
     SearchType.create( :type_name => 'Submitter' )
     @@log.info "Add search type complete"
   end

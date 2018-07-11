@@ -3,7 +3,7 @@
 <%= form_tag(searches_path, :method => "get", id: "search-form") do %>
   <% if @search_list.nil? %>
     <div id='search_form' style="margin-bottom: 10px;">
-      <%= render partial: "form" , :locals => {:search_item => '', :search_type => 1}%>
+      <%= render partial: "form" , :locals => {:search_item => '', :search_type => 3}%>
     </div>
   <% else%>
     <% @search_list.zip(@search_type_list) do |search_item, search_type|%>
