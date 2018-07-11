@@ -60,6 +60,17 @@ class UsersController < ApplicationController
     end
   end
 
+  def impersonate
+    user = User.find(params[:id])
+    impersonate_user(user)
+    redirect_to root_path
+  end
+
+  def stop_impersonating
+    stop_impersonating_user
+    redirect_to root_path
+  end
+
   private
   # Use callbacks to share common setup or constraints between actions.
   def set_user
@@ -72,6 +83,7 @@ class UsersController < ApplicationController
   end
 
   def verify_is_admin
-    (current_user.nil?) ? redirect_to(root_path) : (redirect_to(root_path) unless current_user.admin?)
+    (current_user.nil?) ? redirect_to(root_path) : (redirect_to(root_path) unless current_user.admin? or true_user.admin?)
   end
+
 end

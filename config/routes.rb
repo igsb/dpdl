@@ -5,6 +5,10 @@ Rails.application.routes.draw do
   resources :result_figures
   devise_for :users, controllers: { registrations: 'users/registrations' }
   resources :users
+  resources :users, only: [:index] do
+    post :impersonate, on: :member
+    post :stop_impersonating, on: :collection
+  end
   put 'activate/:id', to: 'users#activate', as: :activate_user
   put 'deactivate/:id', to: 'users#deactivate', as: :deactivate_user
   get 'vcf_files/get_var/:id', to: 'vcf_files#get_var', as: :vcf_files_get_var 

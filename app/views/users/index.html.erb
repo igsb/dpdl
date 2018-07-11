@@ -32,6 +32,7 @@
       <% else %>
         <td><%= link_to 'Deactivate', deactivate_user_path(user), method: :put, data: { confirm: 'Deactivate this account?' } %></td>
       <% end %>
+      <td><%= link_to 'Switch to', impersonate_user_path(user.id), method: :post, data: { confirm: 'Switch to this account?' } %></td>
     </tr>
     <% end %>
   </tbody>
