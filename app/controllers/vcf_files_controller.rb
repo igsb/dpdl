@@ -47,13 +47,13 @@ class VcfFilesController < ApplicationController
         end
         FileUtils.rmtree( tdir )
       elsif fname =~ /gz$/ || fname =~ /txt$/  
-        f = "#{Rails.root}/#{VcfFile::VCF_TEMP}/#{fname}"
+        f = "#{Rails.root}/#{VcfFile::VCF_TEMP}#{fname}"
         FileUtils.cp( params[:upload]['datafile'].tempfile.path, f )
-        e=%x@/bin/gzip -d -f "#{f}"@
+        e=%x@gunzip -d -f "#{f}"@
         f.sub!(/\.gz$/,'')
         infile = File.open( f )
         name = File::basename( f )
-        @vcf_file, warnings, alerts = VcfFile.add_file( infile, f, name, login )
+        @vcf_file, warnings, alerts = VcfFile.add_file( infile, f, name, nil )
         FileUtils.rm_f f       
       else
         infile = params[:upload]['datafile'].open   
