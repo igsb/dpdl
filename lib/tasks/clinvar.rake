@@ -72,9 +72,9 @@ namespace :bootstrap do
   task :import_clinvar => :environment do
     count = 0
     @@log = Logger.new('log/bootstrap_clinvar.log')
-    filename = "Data/clinvar/012018/final.csv.gz"
+    filename = "Data/clinvar/012018/final_1.csv.gz"
     version = '12312017'
-    sub = Submitter.find_or_create_by(name: 'Clinvar')
+    sub = User.find_or_create_by(username: 'Clinvar')
     Zlib::GzipReader.open(filename) do |gzip|
       csv = CSV.new(gzip, {headers: true, col_sep: ","})
       csv.each do |row|
@@ -94,7 +94,7 @@ namespace :bootstrap do
         gene_entry = Gene.find_or_create_by(entrez_id: gene)
         sig_entry = ClinicalSignificance.find_or_create_by(name: sig)
         status_entry = ReviewStatus.find_or_create_by(name: status)
-        ann = Annotation.create(clinical_significance_id: sig_entry.id, review_status_id: status_entry.id, hgvs: hgvs, gene_id: gene_entry.id, clinvar_id: var_id.to_i, submitter_id: sub.id, scv: scv, version: version)
+        ann = Annotation.create(clinical_significance_id: sig_entry.id, review_status_id: status_entry.id, hgvs: hgvs, gene_id: gene_entry.id, clinvar_id: var_id.to_i, user_id: sub.id, scv: scv, version: version)
         MutationsAnnotation.create(mutations_position_id: mut_pos.id, annotation_id: ann.id)
 
         @@log.debug "Submission completed: #{scv}"

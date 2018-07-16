@@ -1,0 +1,72 @@
+<head>
+  <style>
+    .borderless tr, .borderless td, .borderless th {
+      border: none !important;
+    }
+  </style>
+</head>
+<h3>Annotation Information</h3>
+<p>
+<strong>Annotation ID:</strong>
+<%= @annotation.id %>
+</p>
+
+<p>
+<strong>Submitter:</strong>
+<%= [@annotation.user.title, @annotation.user.first_name, @annotation.user.last_name].join(' ') %>
+</p>
+<p>
+<strong>Position:</strong>
+<%= @pos %>
+</p>
+
+<p>
+<strong>Gene:</strong>
+<%= @gene_name %>
+</p>
+  
+<p>
+<strong>Ref:</strong>
+<%= @ref %>
+</p>
+
+<p>
+<strong>Alt:</strong>
+<%= @alt %>
+</p>
+
+<p>
+<strong>Genotype:</strong>
+<%= @annotation.genotype %>
+</p>
+
+<p>
+<strong>HGVS:</strong>
+<%= @annotation.hgvs %>
+</p>
+
+<p>
+<strong>Clinical significance:</strong>
+<%= @sig %>
+</p>
+
+<p>
+<strong>Review status:</strong>
+<%= @status %>
+</p>
+
+<p>
+<strong>Comment:</strong>
+<%= @comment %>
+</p>
+
+<p>
+<strong>Last update:</strong>
+<%= @updated_date %>
+</p>
+<% if not @demo %>
+  <%= link_to 'Edit', edit_annotation_path(@annotation) %> |
+  <%= link_to 'Back', annotations_path %>
+<% else %>
+  <%= link_to 'Back', annotations_path %>
+<% end %>

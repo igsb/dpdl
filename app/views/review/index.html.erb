@@ -10,14 +10,16 @@
 <div class="outer">
   <div class="floatcontainer">
     <div class="inner">
-      <select class="dropdown" name="class_id" id="class_id">
+      <%= form_tag(annotations_new_path(:pos => @pos, :ref => @ref, :genotype => @genotype, :hgvs => @annotation, :gene => @gene_id, :mut_pos_id => @mut_pos_id, :vcf_id => @vcf_id), :method => "post", id: "search-form") do %>
+      <select class="dropdown" name="sig" id="class_id">
         <option value="1">benign</option>
         <option value="2">likely benign</option>
         <option value="3">uncertain significance</option>
         <option value="4">likely pathogenic</option>
         <option value="5">pathogenic</option>
       </select>
-      <button type="submit" class="btn btn-dark dropdown">Submit</button>
+      <%= link_to '<button type="submit" class="btn btn-dark dropdown">Submit</button>'.html_safe %>
+<% end %>
     </div>
   </div>
 </div>
@@ -44,7 +46,7 @@ chr<%= @pos %>
 </p>
 
 <br>
-<%= render_async get_review_path(:chr => @pos, :snp => @snp_id, :ref => @ref, :genotype => @genotype, :hgvs => @annotation) do %>
+<%= render_async get_review_path(:chr => @pos, :snp => @snp_id, :ref => @ref, :genotype => @genotype, :hgvs => @annotationm, :gene_id => @gene_id, :mut_pos_id => @mut_pos_id, :vcf_id => @vcf_id) do %>
   <h1>Fetching variant's information from other websites...</h1>
   <div class="loader"></div>
 <% end %>

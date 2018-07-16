@@ -8,7 +8,7 @@ function chtoi(x){
 }
 var app = angular.module('app', ['ngTouch', 'ui.grid', 'ui.grid.cellNav', 'ui.grid.resizeColumns', 'ui.grid.selection', 'ui.grid.moveColumns']);
 
-app.controller('MainCtrl',  ['$scope', '$https', '$timeout', '$interval', 'uiGridConstants', '$sce',
+app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGridConstants', '$sce',
     function ($scope, $http, $timeout, $interval, uiGridConstants, $sce) {
         $scope.gridOptions = {
             enableSorting: true,
@@ -100,7 +100,7 @@ app.controller('MainCtrl',  ['$scope', '$https', '$timeout', '$interval', 'uiGri
             window.open(url, '_blank');
         }
         $scope.clicked = function(row){
-            url = '/review?chr=' + row.x + "&snp=" + row.i + "&hgvs=" + row.h + "&genotype=" + row.g + "&ref=" + row.r;
+            url = '/review?chr=' + row.x + "&snp=" + row.i + "&hgvs=" + row.h + "&genotype=" + row.g + "&ref=" + row.r + "&mut=" + row.m + "&vcf=" + row.v + "&gene_id=" + row.gene_id;
             window.open(url, '_blank');
         }
         $scope.igv_clicked = function(pos){

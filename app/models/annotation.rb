@@ -4,5 +4,5 @@ class Annotation < ApplicationRecord
   belongs_to :clinical_significance, :optional => true
   belongs_to :review_status, :optional => true
   belongs_to :gene, :optional => true
-  validates :scv, uniqueness: true
+  belongs_to :user, :optional => true
 end

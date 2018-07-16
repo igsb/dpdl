@@ -218,13 +218,17 @@ class VcfFilesController < ApplicationController
       score = 0
       hgvs_array = []
       pedia_score = 0
+      mut_id = 0
+      gene_id = 0
       line_group.each do |line|
         mut_pos = line.mutations_position
+        mut_id = mut_pos.id
         position = mut_pos.position
         #annotation = mut_pos.annotations.take
         mut = mut_pos.mutation
         gene_mut = mut_pos.genes_mutations.take
         snp = mut_pos.dbsnps.take
+        gene_id = line.gene_id
         pos = "#{VcfTools.chrom_to_s(position.chr)}:#{position.pos}"
         gene_name = Gene.find(line.gene_id).name
         pedia_score = score_hash[line.gene_id]
@@ -262,11 +266,14 @@ class VcfFilesController < ApplicationController
         :x  => pos,
         :i  => snp_id,
         :ge => gene_name,
+        :gene_id => gene_id,
         :r  => ref,
         :e  => effect,
         :s  => score,
         :h  => hgvs_array.join(';'),
-        :p  => pedia_score
+        :p  => pedia_score,
+        :m  => mut_id,
+        :v  => vcf_id
       }
       @var_count = @var_count + 1
       @outdata << a;

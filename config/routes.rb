@@ -24,5 +24,7 @@ Rails.application.routes.draw do
   resources :features
   resources :patients
   resources :review
+  resources :annotations
+  post '/annotations/new' => 'annotations#new', as: :annotations_new 
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 end

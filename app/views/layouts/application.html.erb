@@ -19,31 +19,33 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav mr-auto">
-          <li class="nav-item active">
+          <li class="nav-item <%= 'active' if params[:controller] == 'home' %>">
           <a class="nav-link" href="/">Home
-            <span class="sr-only">(current)</span>
           </a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item  <%= 'active' if params[:controller] == 'searches' %>">
           <a class="nav-link" href="/searches">Search</a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item <%= 'active' if params[:controller] == 'patients' %>">
           <a class="nav-link" href="/patients">Patients</a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item <%= 'active' if params[:controller] == 'annotations' %>">
+          <a class="nav-link" href="/annotations">Annotations</a>
+          </li>
+          <li class="nav-item <%= 'active' if params[:controller] == 'about' %>">
           <a class="nav-link" href="/about">Team</a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item <%= 'active' if params[:controller] == 'contact' %>">
           <a class="nav-link" href="/contact">Contact</a>
           </li>
-		      <li class="nav-item">
+		      <li class="nav-item <%= 'active' if params[:controller] == 'imprints' %>">
           <a class="nav-link" href="/imprints">Imprint</a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item <%= 'active' if params[:controller] == 'privacies' %>">
           <a class="nav-link" href="/privacies">Privacy</a>
           </li>
           <% if (not current_user.nil?) and current_user.admin? %>
-          <li class="nav-item">
+          <li class="nav-item <%= 'active' if params[:controller] == 'users' %>">
           <a class="nav-link" href="/users">Users</a>
           </li>
           <% end %>

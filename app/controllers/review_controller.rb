@@ -10,6 +10,9 @@ class ReviewController < ApplicationController
     @ref = params[:ref]
     @genotype = params[:genotype]
     @annotation = params[:hgvs]
+    @gene_id = params[:gene_id]
+    @vcf_id = params[:vcf]
+    @mut_pos_id = params[:mut]
     
   end
   
@@ -19,6 +22,9 @@ class ReviewController < ApplicationController
     @ref = params[:ref]
     @genotype = params[:genotype]
     @annotation = params[:hgvs]
+    @gene_id = params[:gene_id]
+    @vcf_id = params[:vcf_id]
+    @mut_pos_id = params[:mut_pos_id]
     parse_dbsnp()
     parse_exac()
     parse_mut_taster()

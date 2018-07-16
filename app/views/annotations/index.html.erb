@@ -1,0 +1,41 @@
+<h1>Annotations</h1>
+<table class='table'>
+  <thead>
+    <tr>
+      <th>Submitter</th>
+      <th>chr:Pos</th>
+      <th>Ref</th>
+      <th>Alt</th>
+      <th>Gene</th>
+      <th>Classification</th>
+      <th>Date</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @annotations.each do |ann| %>
+      <tr>
+        <td><%= [ann.user.title, ann.user.first_name, ann.user.last_name].join(' ') %></td>
+        <% mut_pos = ann.mutations_positions.take %>
+        <td><%=  'chr' + mut_pos.position.chr.to_s + ":" +  mut_pos.position.pos.to_s %></td>
+        <td><%=  mut_pos.mutation.ref %></td>
+        <td><%=  mut_pos.mutation.alt %></td>
+        <td><%=  ann.gene.name %></td>
+        <td><%=  ann.clinical_significance.name %></td>
+        <td><%=  ann.updated_at.to_date %></td>
+        <td><%= link_to 'View', ann %></td>
+        <% if not @demo %>
+          <td><%= link_to 'Delete', ann, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+
+<%= paginate @annotations %>
+<br>
+<% if not @demo %>
+  <%= link_to 'New Annotation', new_annotation_path %>
+<% end %>

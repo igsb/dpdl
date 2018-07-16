@@ -1,0 +1,61 @@
+<%= form_with(model: annotation, local: true) do |form| %>
+  <% if annotation.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(annotation.errors.count, "error") %> prohibited this annotation from being saved:</h2>
+
+      <ul>
+        <% annotation.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+
+  <div class="field">
+    <%= form.label :chr_id, 'Position:' %>
+    <%= form.text_field :pos, :value => @pos%>
+  </div>
+
+  <div class="field">
+    <%= form.label :gene_id, 'Gene:' %>
+    <%= form.text_field :gene, :value => @gene%>
+  </div>
+
+  <div class="field">
+    <%= form.label :ref_id, 'Ref' %>
+    <%= form.text_field :ref, :value => @ref%>
+  </div>
+
+  <div class="field">
+    <%= form.label :alt_id, 'Alt' %>
+    <%= form.text_field :alt, :value => @alt%>
+  </div>
+
+  <div class="field">
+    <%= form.label :genotype_id, 'Genotype' %>
+    <%= form.text_field :genotype, :value => @genotype%>
+  </div>
+
+  <div class="field">
+    <%= form.label :hgvs_id, 'HGVS' %>
+    <%= form.text_field :hgvs, :value => @hgvs%>
+  </div>
+
+  <div class="field">
+    <%= form.label :sig_id, 'Clinical significance' %>
+    <%= form.select :sig_id, [['benign',1], ['likely benign', 2], ['uncertain significance', 3], ['likely pathogenic', 4],[ 'pathogenic' , 5]], :selected => @sig %>
+
+  </div>
+
+  <div class="field">
+    <%= form.label :stext_id, 'Comment' %>
+    <br>
+    <%= form.text_area :comment, :cols => "30", :rows => "3"  %>
+  </div>
+  <%= form.hidden_field 'mut_pos_id', :value => @mut_pos_id %>
+  <%= form.hidden_field 'vcf_id', :value => @vcf_id %>
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>
