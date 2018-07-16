@@ -5,5 +5,8 @@
 #
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
-user = User.create!(:username => "admin", :password => "admin1", :password_confirmation => "admin1", :email => 'admin@gmail.com', :approved => 1, :admin => 1, :created_at => '2018-01-01 00:00:00', :updated_at => '2018-01-01 00:00:00', :first_name => 'admin',:last_name => 'admin', :institute => 'uni bonn')
-user.save!
+case Rails.env
+when "development"
+  user = User.create!(:username => "admin", :password => "admin1", :password_confirmation => "admin1", :email => 'admin@gmail.com', :approved => 1, :admin => 1, :created_at => Time.now.to_datetime, :updated_at => Time.now.to_datetime, :first_name => 'admin',:last_name => 'admin', :institute => 'uni bonn')
+  user.save!
+end
