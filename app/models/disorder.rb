@@ -10,6 +10,8 @@ class Disorder < ApplicationRecord
 
   has_many :disorders_genes
   has_many :genes, :through => :disorders_genes
+
+  has_many :annotations
   #validates :disorder_id, uniqueness: true, presence: true
   
   def assign_disorders_scores

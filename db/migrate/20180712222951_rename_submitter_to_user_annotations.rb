@@ -4,6 +4,6 @@ class RenameSubmitterToUserAnnotations < ActiveRecord::Migration[5.1]
   end
 
   def self.down
-    rename_column :annotations, :submitter_id, :user_id
+    rename_column :annotations, :user_id, :submitter_id
   end
 end

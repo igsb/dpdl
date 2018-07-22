@@ -19,7 +19,7 @@ class AnnotationsController < ApplicationController
   # GET /annotations/1.json
   def show
     mut_pos = @annotation.mutations_positions.take
-    @pos = 'chr' + mut_pos.position.chr.to_s + ":" +  mut_pos.position.pos.to_s
+    @pos = 'chr' + VcfTools.chrom_to_s(mut_pos.position.chr) + ":" +  mut_pos.position.pos.to_s
     @ref = mut_pos.mutation.ref
     @alt = mut_pos.mutation.alt
     @gene_name = @annotation.gene.name
