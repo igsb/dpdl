@@ -119,30 +119,6 @@ namespace :bootstrap do
     @@log.info "Add HPO complete"
   end
 
-  #desc "Add clinical signicance"
-  #task :default_cli_sig => :environment do
-  #  @@log = Logger.new('log/bootstrap.log')
-  #  ClinicalSignificance.create( :name => 'Benign' )
-  #  ClinicalSignificance.create( :name => 'Likely benign' )
-  #  ClinicalSignificance.create( :name => 'Uncertain significance' )
-  #  ClinicalSignificance.create( :name => 'Likely pathogenic' )
-  #  ClinicalSignificance.create( :name => 'Pathogenic' )
-
-  #  @@log.info "Add clinifical significance complete"
-  #end
-
-  #desc "Add review status"
-  #task :default_review_status => :environment do
-  #  @@log = Logger.new('log/bootstrap.log')
-  #  ClinicalSignificance.create( :name => 'Benign' )
-  #  ClinicalSignificance.create( :name => 'Likely benign' )
-  #  ClinicalSignificance.create( :name => 'Uncertain significance' )
-  #  ClinicalSignificance.create( :name => 'Likely pathogenic' )
-  #  ClinicalSignificance.create( :name => 'Pathogenic' )
-
-  #  @@log.info "Add review status complete"
-  #end
-
   desc "Run all bootstrapping tasks"
   task :all => [:default_type, :default_diagnosed_type, :default_omim, :default_hpo, :default_phenotypic_series, :default_disorder_gene, :default_figure_type, :default_cli_sig]
 

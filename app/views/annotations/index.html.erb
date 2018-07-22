@@ -18,7 +18,7 @@
       <tr>
         <td><%= [ann.user.title, ann.user.first_name, ann.user.last_name].join(' ') %></td>
         <% mut_pos = ann.mutations_positions.take %>
-        <td><%=  'chr' + mut_pos.position.chr.to_s + ":" +  mut_pos.position.pos.to_s %></td>
+        <td><%=  'chr' + VcfTools.chrom_to_s(mut_pos.position.chr) + ":" +  mut_pos.position.pos.to_s %></td>
         <td><%=  mut_pos.mutation.ref %></td>
         <td><%=  mut_pos.mutation.alt %></td>
         <td><%=  ann.gene.name %></td>

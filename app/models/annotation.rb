@@ -5,4 +5,5 @@ class Annotation < ApplicationRecord
   belongs_to :review_status, :optional => true
   belongs_to :gene, :optional => true
   belongs_to :user, :optional => true
+  belongs_to :disorder, :optional => true
 end
