@@ -30,10 +30,12 @@ Rails.application.routes.draw do
   resources :review
   resources :annotations
   post '/annotations/new' => 'annotations#new', as: :annotations_new 
+
   namespace :api do
     resources :patients, only: [:create]
-	resources :auth ,only: [:create]
-	resources :vcf_files, only: [:create]
+    resources :auth ,only: [:create]
+    resources :vcf_files, only: [:create]
+    post '/get_results/' => 'patients#get_results'
   end
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 end
