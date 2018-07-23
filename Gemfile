@@ -14,6 +14,7 @@ gem 'delayed_job'
 gem 'sqlite3'
 gem 'gon'
 gem 'mime-types'
+gem 'rubyzip'
 # Authentication
 gem 'bcrypt', '~> 3.1.7'
 gem "haml"

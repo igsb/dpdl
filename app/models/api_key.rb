@@ -1,5 +1,4 @@
 class ApiKey < ActiveRecord::Base
-
   before_create :generate_access_token
   before_create :set_expiration
 
