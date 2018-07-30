@@ -218,24 +218,29 @@ class VcfFilesController < ApplicationController
       score = 0
       hgvs_array = []
       pedia_score = 0
-      mut_id = 0
+      mut_ids = []
       gene_id = 0
+      cs_score = 0
       line_group.each do |line|
         mut_pos = line.mutations_position
-        mut_id = mut_pos.id
+        mut_ids << mut_pos.id
         position = mut_pos.position
-        #annotation = mut_pos.annotations.take
+        max_score = mut_pos.annotations.maximum('score')
+        if max_score and max_score > cs_score
+          cs_score = max_score
+        end
+
         mut = mut_pos.mutation
         gene_mut = mut_pos.genes_mutations.take
         snp = mut_pos.dbsnps.take
         gene_id = line.gene_id
         pos = "#{VcfTools.chrom_to_s(position.chr)}:#{position.pos}"
         gene_name = Gene.find(line.gene_id).name
-        pedia_score = score_hash[line.gene_id]
+        pedia_score = score_hash[line.gene_id].round(3)
         ref = mut.ref
         snp_id = ''
         effect = gene_mut.effect
-        score  = line.value
+        score = line.value.round(2)
         mut_pos.hgvs_codes.each do |value|
           hgvs_array.push(value.code)
         end
@@ -272,7 +277,8 @@ class VcfFilesController < ApplicationController
         :s  => score,
         :h  => hgvs_array.join(';'),
         :p  => pedia_score,
-        :m  => mut_id,
+        :m  => mut_ids.join(','),
+        :cs_score => cs_score,
         :v  => vcf_id
       }
       @var_count = @var_count + 1

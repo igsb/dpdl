@@ -24,66 +24,69 @@ app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGrid
                 $scope.gridApi = gridApi;
             },
             columnDefs: [ {
-                displayName: 'Chrom. Pos', name:'x', width:150,
-                sortingAlgorithm: function(a, b) {
-                    var nulls = $scope.gridApi.core.sortHandleNulls(a, b);
-                    if (nulls !== null) {
-                        return nulls;
-                    } else {
-                        aa = a.split(':');
-                        ba=b.split(':');
-                        ac=chtoi(aa[0]);
-                        bc=chtoi(ba[0]);
-                        if( ac < bc ) { return -1; }
-                        if( ac > bc ) { return 1; }
-                        ap=parseInt(aa[1],10);
-                        bp=parseInt(ba[1],10);
-                        if( ap < bp ) { return -1; }
-                        if( ap > bp ) { return 1;  }
-                        return 0;
+                displayName: 'Chrom. Pos', name:'x', width:130,
+                    sortingAlgorithm: function(a, b) {
+                        var nulls = $scope.gridApi.core.sortHandleNulls(a, b);
+                        if (nulls !== null) {
+                            return nulls;
+                        } else {
+                            aa = a.split(':');
+                            ba=b.split(':');
+                            ac=chtoi(aa[0]);
+                            bc=chtoi(ba[0]);
+                            if( ac < bc ) { return -1; }
+                            if( ac > bc ) { return 1; }
+                            ap=parseInt(aa[1],10);
+                            bp=parseInt(ba[1],10);
+                            if( ap < bp ) { return -1; }
+                            if( ap > bp ) { return 1;  }
+                            return 0;
+                        }
                     }
+                },
+                { 
+                    displayName: 'ID',  name:'i', width:140,
+                    cellTemplate: '<div class="ui-grid-cell-contents"><a href ng-click="grid.appScope.show_rs(row.entity.i)">{{COL_FIELD}}</a></div>' 
+                },
+                { 
+                    displayName: 'Gene', name:'ge', width:100,
+                    cellTemplate: '<div class="ui-grid-cell-contents"><a href ng-click="grid.appScope.show_gene(row.entity.ge)">{{COL_FIELD}}</a></div>' 
+                },
+                { 
+                    displayName: 'Ref', name:'r', width:80, displaySubTitle: 'Foo'
+                },
+                { 
+                    displayName: 'Genotype', name: 'g', width:120
+                },
+                {
+                    displayName: 'PEDIA', name: 'p', width:80, type: 'number', sort: { direction: 'desc' }
+                },
+                {
+                    displayName: 'CADD', name: 's', width:80, type: 'number', sort: { direction: 'desc' }
+                },
+                {
+                    displayName: 'Significance', name: 'cs_score', width:120, type: 'number'
+                },
+                { 
+                    displayName: 'Effect/HGVS', 
+                    name: 'e', 
+                    width:150,
+                    cellTemplate: '<div class="ui-grid-cell-contents" title="{{row.entity.h}}"><span>{{COL_FIELD}}</span></div>' 
+                },
+                {
+                    displayName: 'Review',  name:'review', width:75,
+                    enableColumnMenu: false,
+                    enableFiltering: false,
+                    enableSorting: false,
+                    cellTemplate: '<div align="center"><button ng-click="grid.appScope.clicked(row.entity)">Review</button></div>'
+                },
+                { 
+                    displayName: 'IGV',  name:'igv', width:50,
+                    enableColumnMenu: false,
+                    enableSorting: false,
+                    enableFiltering: false,
+                    cellTemplate: '<div align="center"><button ng-click="grid.appScope.igv_clicked(row.entity.x)">IGV</button></div>'
                 }
-            },
-            { 
-                displayName: 'ID',  name:'i', width:150,
-                cellTemplate: '<div class="ui-grid-cell-contents"><a href ng-click="grid.appScope.show_rs(row.entity.i)">{{COL_FIELD}}</a></div>' 
-            },
-            { 
-                displayName: 'Gene', name:'ge', width:100,
-                cellTemplate: '<div class="ui-grid-cell-contents"><a href ng-click="grid.appScope.show_gene(row.entity.ge)">{{COL_FIELD}}</a></div>' 
-            },
-            { 
-                displayName: 'Ref', name:'r', width:100, displaySubTitle: 'Foo'
-            },
-            { 
-                displayName: 'Genotype', name: 'g', width:150
-            },
-            {
-                displayName: 'PEDIA', name: 'p', width:100, type: 'number', sort: { direction: 'desc' }
-            },
-            {
-                displayName: 'CADD', name: 's', width:100, type: 'number', sort: { direction: 'desc' }
-            },
-            { 
-                displayName: 'Effect/HGVS', 
-                name: 'e', 
-                width:150,
-                cellTemplate: '<div class="ui-grid-cell-contents" title="{{row.entity.h}}"><span>{{COL_FIELD}}</span></div>' 
-            },
-            {
-                displayName: 'Review',  name:'review', width:75,
-                enableColumnMenu: false,
-                enableFiltering: false,
-                enableSorting: false,
-                cellTemplate: '<div align="center"><button ng-click="grid.appScope.clicked(row.entity)">Review</button></div>'
-            },
-            { 
-                displayName: 'IGV',  name:'igv', width:50,
-                enableColumnMenu: false,
-                enableSorting: false,
-                enableFiltering: false,
-                cellTemplate: '<div align="center"><button ng-click="grid.appScope.igv_clicked(row.entity.x)">IGV</button></div>'
-            }
             ]
         };
         $scope.show_rs = function(input) {
@@ -100,7 +103,7 @@ app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGrid
             window.open(url, '_blank');
         }
         $scope.clicked = function(row){
-            url = '/review?chr=' + row.x + "&snp=" + row.i + "&hgvs=" + row.h + "&genotype=" + row.g + "&ref=" + row.r + "&mut=" + row.m + "&vcf=" + row.v + "&gene_id=" + row.gene_id;
+            url = '/review?chr=' + row.x + "&snp=" + row.i + "&hgvs=" + row.h + "&genotype=" + row.g + "&ref=" + row.r + "&mut=" + row.m + "&vcf=" + row.v + "&gene_id=" + row.gene_id + "&cadd=" + row.s;
             window.open(url, '_blank');
         }
         $scope.igv_clicked = function(pos){

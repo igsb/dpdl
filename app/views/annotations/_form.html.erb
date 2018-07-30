@@ -18,8 +18,13 @@
   </div>
 
   <div class="field">
-    <%= form.label :gene_id, 'Gene:' %>
-    <%= form.text_field :gene, :value => @gene%>
+    <%= form.label :gene_name, 'Gene Name:' %>
+    <%= form.text_field :gene_name, :value => @gene_name%>
+  </div>
+
+  <div class="field">
+    <%= form.label :gene_id, 'Gene Entrez ID:' %>
+    <%= form.text_field :gene_id, :value => @gene_id%>
   </div>
 
   <div class="field">
