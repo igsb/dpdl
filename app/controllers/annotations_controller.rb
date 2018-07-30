@@ -45,6 +45,9 @@ class AnnotationsController < ApplicationController
     @vcf_id = params[:vcf_id]
     @mut_pos_id = params[:mut_pos_id]
     @gene = params[:gene]
+    gene = Gene.find(@gene)
+    @gene_name = gene.name
+    @gene_id = gene.entrez_id
     @genotype = params[:genotype]
     tmp_genotype = @genotype.split('/')
     tmp_genotype.each do |tmp|
@@ -69,29 +72,43 @@ class AnnotationsController < ApplicationController
       @sig = params[:annotation][:sig_id]
       @ref = params[:annotation][:ref]
       @hgvs = params[:annotation][:hgvs]
-      @gene = params[:annotation][:gene]
+      @gene_name = params[:annotation][:gene_name]
+      @gene_id = params[:annotation][:gene_id]
+      @gene = Gene.find_by_entrez_id(@gene_id)
       @comment = params[:annotation][:comment]
       @genotype = params[:annotation][:genotype]
       @alt = params[:annotation][:alt]
       @annotation.genotype = @genotype
-      @annotation.gene_id = @gene
+
+      gene_errors = ''
+      if @gene
+        @annotation.gene_id = @gene.id
+      else
+        gene_errors = 'please check if the entrez ID is correct'
+      end
       @annotation.hgvs = @hgvs
       @annotation.comment = @comment
       @annotation.clinical_significance_id = @sig
-      @mut_pos = MutationsPosition.find(params[:annotation][:mut_pos_id])
-      @mut_pos.annotations << @annotation
-      @mut_pos
+      @mut_pos_id = params[:annotation][:mut_pos_id]
+      @vcf_id = params[:annotation][:vcf_id]
+      @mut_pos = MutationsPosition.find(@mut_pos_id)
+      @annotation.score = ClinicalSignificance.find(@sig).value
+
+      respond_to do |format|
+        if @annotation.save
+          @mut_pos.annotations << @annotation
+          format.html { redirect_to @annotation, notice: 'Annotation was successfully created.' }
+          format.json { render :show, status: :created, location: @annotation }
+        else
+          if gene_errors
+            @annotation.errors[:error] << gene_errors
+          end
+          format.html { render :new }
+          format.json { render json: @annotation.errors, status: :unprocessable_entity }
+        end
+      end          
     end
 
-    respond_to do |format|
-      if @annotation.save
-        format.html { redirect_to @annotation, notice: 'Annotation was successfully created.' }
-        format.json { render :show, status: :created, location: @annotation }
-      else
-        format.html { render :new }
-        format.json { render json: @annotation.errors, status: :unprocessable_entity }
-      end
-    end          
   end
 
   # PATCH/PUT /annotations/1
@@ -117,7 +134,7 @@ class AnnotationsController < ApplicationController
 
   # Never trust parameters from the scary internet, only allow the white list through.
   def annotation_params
-    params.require(:annotation).permit(:annotation_id, :pos, :ref, :genotype, :class_id, :gene_id, :mut_pos_id, :vcf_id, :comment)
+    params.require(:annotation).permit(:annotation_id, :pos, :ref, :genotype, :class_id, :gene_id, :mut_pos_id, :vcf_id, :comment, :hgvs)
   end
 
   def check_access

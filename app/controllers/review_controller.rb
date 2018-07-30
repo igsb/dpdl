@@ -9,10 +9,17 @@ class ReviewController < ApplicationController
     @snp_id = params[:snp]
     @ref = params[:ref]
     @genotype = params[:genotype]
-    @annotation = params[:hgvs]
+    @hgvs = params[:hgvs]
     @gene_id = params[:gene_id]
     @vcf_id = params[:vcf]
-    @mut_pos_id = params[:mut]
+    @mut_pos_ids = params[:mut]
+    mut_pos = @mut_pos_ids.split(',')
+    puts mut_pos
+    @annotations = Annotation.includes(:mutations_annotations).where(:mutations_annotations => {mutations_position_id: mut_pos})
+    gene = Gene.find(@gene_id)
+    @gene_name = gene.name
+    @entrez_id = gene.entrez_id
+    @cadd = params[:cadd]
     
   end
   
@@ -21,12 +28,13 @@ class ReviewController < ApplicationController
     @snp_id = params[:snp]
     @ref = params[:ref]
     @genotype = params[:genotype]
-    @annotation = params[:hgvs]
+    @hgvs = params[:hgvs]
     @gene_id = params[:gene_id]
     @vcf_id = params[:vcf_id]
     @mut_pos_id = params[:mut_pos_id]
     parse_dbsnp()
     parse_exac()
+    parse_gnomad()
     parse_mut_taster()
     parse_ensembl()
     render :partial => "get_review"
@@ -47,6 +55,7 @@ class ReviewController < ApplicationController
       puts @maf
     end
   end
+
   def parse_ensembl
     server = 'https://rest.ensembl.org'
     path =  '/variation/human/' + @snp_id + '?'
@@ -56,6 +65,7 @@ class ReviewController < ApplicationController
     http.use_ssl = true
     request = Net::HTTP::Get.new(path, {'Content-Type' => 'application/json'})
 
+    @ensembl_link_url = "https://www.ensembl.org/Homo_sapiens/Variation/Explore?v=" + @snp_id
 
     @ensembl_valid = false
     if @snp_id != ''
@@ -224,5 +234,33 @@ class ReviewController < ApplicationController
         end
       end
     end
+  end
+
+  def parse_gnomad
+    # gnomAD
+    # The first one is for REST, and the second one is for navigating to the website
+
+    pos = @pos.split(':')
+
+    # Parse genotype
+    genotype = []
+    if @genotype.include? "|"
+      genotype = @genotype.split("|")
+    end
+    if @genotype.include? "/"
+      genotype = @genotype.split("/")
+    end
+    alt = ''
+    genotype.each do |value|
+      if value != @ref
+        alt =value 
+      end
+    end
+
+    # Send request by position to gnomAD
+    pos_prefix = "http://gnomad.broadinstitute.org/variant/"
+    @gnomad_pos_link_url = pos_prefix + pos[0] + '-' + pos[1] + '-' + @ref + '-' + alt
+    puts(@gnomad_pos_link_url)
+
   end
 end

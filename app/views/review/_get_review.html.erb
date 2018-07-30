@@ -1,5 +1,5 @@
 <p>
-<h2>dbSNP</h2>
+<h2 id="C1">dbSNP</h2>
 <strong>
   dbSNP ID:
 </strong>
@@ -39,10 +39,11 @@
   dbSNP not found!
 <% end %>
 </p>
-<h2>Ensembl</h2>
+<h2 id="C2">Ensembl</h2>
 <p>
 <strong>Search by dbSNP ID in Ensembl</strong>
 <% if @ensembl_valid %>
+  <li><a href= <%= @ensembl_link_url %> target="_blank">Ensembl link (dbsnp)</a></li>
   <table class='table'>
     <thead>
       <tr>
@@ -93,7 +94,7 @@
 </p>
 <br>
 <% if true %>
-<h2>ExAC Browser</h2>
+<h2 id="C3">ExAC Browser</h2>
 <p>
 <strong>Search by position in ExAC</strong>
 <% if @exac_pos_valid %>
@@ -165,7 +166,14 @@
 <% end %>
 </p>
 <% end %>
-<h2>Mutation Taster</h2>
+<% if true %>
+<h2 id="C4">gnomAD Browser</h2>
+<p>
+<strong>Search by position in gnomAD</strong>
+  <li><a href= <%= @gnomad_pos_link_url %> target="_blank">gnomAD Browser link (position)</a></li>
+</p>
+<% end %>
+<h2 id="C5">Mutation Taster</h2>
 <p>
 <li><a href= <%= @mut_taster_url %> target="_blank">mutation taster link</a></li>
 <ol>
