@@ -59,6 +59,25 @@ class AnnotationsController < ApplicationController
 
   # GET /annotations/1/edit
   def edit
+    mut_pos = @annotation.mutations_positions.take
+    @mut_pos_id = mut_pos.id
+    @hgvs = @annotation.hgvs
+    @pos = 'chr' + VcfTools.chrom_to_s(mut_pos.position.chr) + ":" +  mut_pos.position.pos.to_s
+    @ref = mut_pos.mutation.ref
+    @alt = mut_pos.mutation.alt
+    @gene_name = @annotation.gene.name
+    @gene_id = @annotation.gene.entrez_id
+    @genotype = @annotation.genotype
+    @sig = @annotation.clinical_significance.name
+    @updated_date = @annotation.updated_at
+    if !@annotation.review_status.nil?
+      @status = @annotation.review_status.name
+    end
+    if @annotation.user.username == 'Clinvar'
+      @comment = 'SCV: ' + @annotation.scv + ', ClinVar version: ' + @annotation.version
+    else
+      @comment = @annotation.comment
+    end
   end
 
   # POST /annotations
@@ -67,6 +86,41 @@ class AnnotationsController < ApplicationController
    
     ActiveRecord::Base.transaction do
       @annotation = Annotation.new
+      @annotation.user_id = current_user.id
+      @pos = params[:annotation][:pos]
+      @sig = params[:annotation][:sig_id]
+      @ref = params[:annotation][:ref]
+      @hgvs = params[:annotation][:hgvs]
+      @gene_name = params[:annotation][:gene_name]
+      @gene_id = params[:annotation][:gene_id]
+      @comment = params[:annotation][:comment]
+      @genotype = params[:annotation][:genotype]
+      @alt = params[:annotation][:alt]
+      errors = @annotation.new_annotation(params)
+      @mut_pos_id = params[:annotation][:mut_pos_id]
+      @mut_pos = MutationsPosition.find(@mut_pos_id)
+      respond_to do |format|
+        if @annotation.save
+          @mut_pos.annotations << @annotation
+          update_max(@mut_pos)
+          format.html { redirect_to @annotation, notice: 'Annotation was successfully created.' }
+          format.json { render :show, status: :created, location: @annotation }
+        else
+          if errors.count > 0
+            @annotation.errors[:error] << errors.values
+          end
+          format.html { render :new }
+          format.json { render json: @annotation.errors, status: :unprocessable_entity }
+        end
+      end          
+    end
+
+  end
+
+  # PATCH/PUT /annotations/1
+  # PATCH/PUT /annotations/1.json
+  def update
+    ActiveRecord::Base.transaction do
       @annotation.user_id = current_user.id
       @pos = params[:annotation][:pos]
       @sig = params[:annotation][:sig_id]
@@ -97,7 +151,8 @@ class AnnotationsController < ApplicationController
       respond_to do |format|
         if @annotation.save
           @mut_pos.annotations << @annotation
-          format.html { redirect_to @annotation, notice: 'Annotation was successfully created.' }
+          update_max(@mut_pos)
+          format.html { redirect_to @annotation, notice: 'Annotation was successfully updated.' }
           format.json { render :show, status: :created, location: @annotation }
         else
           if gene_errors
@@ -108,18 +163,20 @@ class AnnotationsController < ApplicationController
         end
       end          
     end
-
-  end
-
-  # PATCH/PUT /annotations/1
-  # PATCH/PUT /annotations/1.json
-  def update
   end
 
   # DELETE /annotations/1
   # DELETE /annotations/1.json
   def destroy
+    mut_pos_arrays = []
+    @annotation.mutations_positions.each do |mut|
+      mut_pos_arrays.push(mut)
+    end
+
     @annotation.destroy
+    mut_pos_arrays.each do |mut_pos| 
+      update_max(mut_pos)
+    end
     respond_to do |format|
       format.html { redirect_to annotations_url, notice: 'Annotation was successfully destroyed.' }
       format.json { head :no_content }
@@ -147,21 +204,31 @@ class AnnotationsController < ApplicationController
     else
       access = true
     end
+
     if not access 
       flash[:alert] = 'You do not have permissions to enter this case!'
       redirect_back(fallback_location: root_path)
     end
   end
+
   def check_read_only
     if current_user.username == "demo"
       flash[:alert] = 'You do not have permissions to modify this case!'
       redirect_back(fallback_location: root_path)
     end
   end
+
   def check_demo
     @demo = false
     if current_user.username == "demo"
       @demo = true
     end
+  end
+
+  def update_max(mut_pos)
+    max_score = mut_pos.annotations.maximum('score')
+    puts max_score
+    mut_pos.max_classification = max_score
+    mut_pos.save
   end
 end
