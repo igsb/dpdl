@@ -241,8 +241,8 @@ class VcfFilesController < ApplicationController
         snp_id = ''
         effect = gene_mut.effect
         score = line.value.round(2)
-        mut_pos.hgvs_codes.each do |value|
-          hgvs_array.push(value.code)
+        mut_pos.mutations_hgvs_codes.each do |value|
+          hgvs_array.push(value.hgvs_code)
         end
         if !snp.nil?
           snp_id = snp.snp_id
