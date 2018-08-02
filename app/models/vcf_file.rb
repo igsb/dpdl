@@ -128,24 +128,25 @@ class VcfFile < ActiveRecord::Base
 
     # write the file
     # File.open(path, "wb") { |f| f.write( data ) }
-	
-	if login.nil? 
-		id = "null"
-	else
-		id = login.id
-	end
+    
+	#when uploaded through API, no login or user information is available
+    if login.nil? 
+      id = "null"
+    else
+      id = login.id
+    end
     vcf_file = VcfFile.new(:name => fname,
                             :filtered => false,
                             :sample_names => sample_names,
                             :user_id => id);
 
     FileUtils.cp(tempfile, path)
-	if !login.nil?
-		login.vcf_files << vcf_file;
-		login.uploaded_count += 1
-		login.save
+    if !login.nil?
+        login.vcf_files << vcf_file;
+        login.uploaded_count += 1
+        login.save
     end 
-	
+    
     vcf_file.save
     vcf_file.reload
 
@@ -281,7 +282,7 @@ class VcfFile < ActiveRecord::Base
             effect = ann[ANN_ANNOTATION]
             DisordersMutationsScore.find_or_create_by(patients_vcf_file_id: patient_vcf.id, score_id: score.id, mutations_position_id: mut_pos.id, value: cadd_score, genotype: genotype, position_id: var_pos.id, gene_id: gene.id)
             
-			if effect.include? '&'
+            if effect.include? '&'
               effect_array = effect.split('&')
               effect_array.each do |value|
                 gene_mut = GenesMutation.find_or_create_by(gene_id: gene.id, mutations_position_id:mut_pos.id, effect: value)

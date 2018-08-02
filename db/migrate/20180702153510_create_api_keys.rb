@@ -6,6 +6,6 @@ class CreateApiKeys < ActiveRecord::Migration[5.1]
 
       t.timestamps
     end
-	add_index :api_keys, ["access_token"], name: "index_api_keys_on_access_token", unique: true
+    add_index :api_keys, ["access_token"], name: "index_api_keys_on_access_token", unique: true
   end
 end
