@@ -3,14 +3,17 @@
   <head>
     <title>DPDL</title>
     <%= csrf_meta_tags %>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
     <link rel="icon" type="image/png" href="/assets/Einzel_blue.png">
     <%= yield :head %>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
   </head>
 
   <body>
-  <%= include_gon %>
+    <%= include_gon %>
     <nav class="navbar navbar-expand-md navbar-dark bg-dark navbar-static-top">
     <div class="container">
       <a class="navbar-brand" href="/">DPDL</a>
@@ -19,35 +22,44 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarResponsive">
         <ul class="navbar-nav mr-auto">
-          <li class="nav-item <%= 'active' if params[:controller] == 'home' %>">
-          <a class="nav-link" href="/">Home
-          </a>
+          <li class="nav-item <%= 'active' if params[:controller] == 'patients' %>">
+          <a class="nav-link" href="/patients">Patients</a>
           </li>
           <li class="nav-item  <%= 'active' if params[:controller] == 'searches' %>">
           <a class="nav-link" href="/searches">Search</a>
           </li>
-          <li class="nav-item <%= 'active' if params[:controller] == 'patients' %>">
-          <a class="nav-link" href="/patients">Patients</a>
-          </li>
           <li class="nav-item <%= 'active' if params[:controller] == 'annotations' %>">
           <a class="nav-link" href="/annotations">Annotations</a>
           </li>
-          <li class="nav-item <%= 'active' if params[:controller] == 'about' %>">
-          <a class="nav-link" href="/about">Team</a>
+          <li class="nav-item <%= 'active' if params[:controller] == 'documents' %>">
+          <a class="nav-link" href="/documents">Consent form</a>
           </li>
-          <li class="nav-item <%= 'active' if params[:controller] == 'contact' %>">
-          <a class="nav-link" href="/contact">Contact</a>
-          </li>
-		      <li class="nav-item <%= 'active' if params[:controller] == 'imprints' %>">
+          <li class="nav-item <%= 'active' if params[:controller] == 'imprints' %>">
           <a class="nav-link" href="/imprints">Imprint</a>
           </li>
           <li class="nav-item <%= 'active' if params[:controller] == 'privacies' %>">
           <a class="nav-link" href="/privacies">Privacy</a>
           </li>
-          <% if (not current_user.nil?) and current_user.admin? %>
-          <li class="nav-item <%= 'active' if params[:controller] == 'users' %>">
-          <a class="nav-link" href="/users">Users</a>
+          <li class="nav-item dropdown <%= 'active' if ['about', 'contact'].include?(params[:controller]) %>">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            About us
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <a class="dropdown-item" href="/about">Team</a>
+            <a class="dropdown-item" href="/contact">Contact</a>
+          </div>
           </li>
+          <% if (not current_user.nil?) and current_user.admin? %>
+            <li class="nav-item dropdown <%= 'active' if params[:controller] == 'users' %>">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Admin
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <a class="dropdown-item" href="/users">Users</a>
+              <a class="dropdown-item" href="/vcf_files">VCF</a>
+              <a class="dropdown-item" href="/result_figures">Figures</a>
+            </div>
+            </li>
           <% end %>
         </ul>
 
@@ -57,23 +69,23 @@
           <%= link_to 'Edit profile', edit_user_registration_path, :class => 'navbar-link' %> |
           <%= link_to "Logout", destroy_user_session_path, method: :delete, :class => 'navbar-link'  %> 
           <% if true_user.admin? and true_user != current_user %>
-            
-            <br><%= link_to 'Stop impersonating', stop_impersonating_users_path, method: :post, data: { confirm: 'Switch back to your account?' } %>
-          <% end %>
-        <% else %>
-          <%= link_to "Sign up", new_user_registration_path, :class => 'navbar-link'  %> |
-          <%= link_to "Login", new_user_session_path, :class => 'navbar-link'  %>
-        <% end %>
-        </p>
-      </div>
-    </div>
-    </nav>
-    <div class="container">
-      <p class="notice"><%= notice %></p>
-      <p class="alert"><%= alert %></p>
 
-      <%= yield %>
+            <br><%= link_to 'Stop impersonating', stop_impersonating_users_path, method: :post, data: { confirm: 'Switch back to your account?' } %>
+        <% end %>
+      <% else %>
+        <%= link_to "Sign up", new_user_registration_path, :class => 'navbar-link'  %> |
+        <%= link_to "Login", new_user_session_path, :class => 'navbar-link'  %>
+      <% end %>
+      </p>
     </div>
-    <%= content_for :render_async %>
-  </body>
+  </div>
+  </nav>
+  <div class="container">
+    <p class="notice"><%= notice %></p>
+    <p class="alert"><%= alert %></p>
+
+    <%= yield %>
+  </div>
+  <%= content_for :render_async %>
+</body>
 </html>
