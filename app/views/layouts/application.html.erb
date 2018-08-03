@@ -42,6 +42,11 @@
 		   <li class="nav-item">
           <a class="nav-link" href="/privacies">Privacy</a>
           </li>
+		  <% if current_user.try(:admin?) %>
+		    <li class="dropdown">
+              <a class="nav-link" href="/groups">Group</a>
+		    </li>
+		  <% end %>
         </ul>
 
         <p class="navbar-text">
