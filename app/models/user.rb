@@ -6,6 +6,7 @@ class User < ApplicationRecord
   has_many :vcf_files
   has_many :users_patients
   has_many :patients, :through => :users_patients
+  has_many :annotations
   after_create :send_admin_mail
   validates :institute, :presence => true
   validates :last_name, :presence => true
@@ -41,8 +42,8 @@ class User < ApplicationRecord
   end
 
   def send_admin_mail
-    AdminMailer.new_user_waiting_for_approval(self).deliver
-    AdminMailer.new_registration(self).deliver
+    #AdminMailer.new_user_waiting_for_approval(self).deliver
+    #AdminMailer.new_registration(self).deliver
   end
 
   def self.find_first_by_auth_conditions(warden_conditions)
