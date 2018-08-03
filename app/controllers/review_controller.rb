@@ -15,6 +15,7 @@ class ReviewController < ApplicationController
     @mut_pos_ids = params[:mut]
     mut_pos = @mut_pos_ids.split(',')
     puts mut_pos
+    @classification = MutationsPosition.find(mut_pos[0]).max_classification
     @annotations = Annotation.includes(:mutations_annotations).where(:mutations_annotations => {mutations_position_id: mut_pos})
     gene = Gene.find(@gene_id)
     @gene_name = gene.name
