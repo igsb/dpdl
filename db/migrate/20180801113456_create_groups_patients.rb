@@ -1,6 +1,6 @@
-class CreateGroupPatients < ActiveRecord::Migration[5.1]
+class CreateGroupsPatients < ActiveRecord::Migration[5.1]
   def change
-    create_table :group_patients do |t|
+    create_table :groups_patients do |t|
       t.integer :patient_id
       t.integer :group_id
       t.datetime :created_at
