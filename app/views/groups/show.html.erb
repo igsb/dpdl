@@ -1,0 +1,25 @@
+<head>
+  <style>
+    .borderless tr, .borderless td, .borderless th {
+      border: none !important;
+    }
+  </style>
+</head>
+<h3>Group Information</h3>
+
+<p>
+<strong>Name:</strong>
+<%= @group.name %> 
+</p>
+
+<p>
+<strong>Groupmembers:</strong>
+<% for user in @group.users %>
+  <li> 
+    <%= [user.first_name,user.last_name].join(' ') %> 
+  </li> 
+<% end %>
+</p>
+
+
+<%= link_to 'Back', groups_path %>

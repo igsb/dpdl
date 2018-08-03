@@ -6,6 +6,11 @@ class User < ApplicationRecord
   has_many :vcf_files
   has_many :users_patients
   has_many :patients, :through => :users_patients
+  
+ 
+  has_many :members
+  has_many :groups, :through => :members
+  
   after_create :send_admin_mail
   validates :institute, :presence => true
   validates :last_name, :presence => true

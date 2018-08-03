@@ -1,0 +1,18 @@
+<h1>New Group</h1>
+
+<br/>
+<%= form_tag({:action => 'create', :group => @groups}) %>
+
+  <div class="field">
+    <%= label_tag :"Group name" %>
+    <%= text_field_tag :name%>
+  </div>
+  <br/>	
+  <div class="field">
+    <%= label_tag :"Select Users " %>
+    <%= select_tag "users[]", options_for_select(@users.collect{|x| [x.username,x.id]}), {:multiple => :multiple} %>
+  </div>
+  <br/>
+  <div class="actions">
+    <%= submit_tag "Create" %>
+  </div>

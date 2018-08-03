@@ -1,17 +1,25 @@
 class PatientsController < ApplicationController
   before_action :set_patient, only: [:show, :edit, :update, :destroy]
-  before_action :check_access, only: [:show, :edit, :update, :destroy] 
+  before_action :check_access, only: [:show, :edit, :update, :destroy]
 
   # GET /patients
   # GET /patients.json
   def index
     user = current_user
+    group = user.groups
     sub_ids = []
+    @patients = []
     if not current_user.admin
       if params[:result] == "true"
         @patients = user.patients.where(result: true).order(:case_id).page(params[:page]).per(25)
+        group.each do |g|   
+          @patients = g.patients.where(result: true).order(:case_id).page(params[:page]).per(25)
+        end  
       else
-        @patients = user.patients.order(:case_id).page(params[:page]).per(25)
+        @patients  = user.patients.order(:case_id).page(params[:page]).per(25)
+        group.each do |g|       
+          @patients  = g.patients.order(:case_id).page(params[:page]).per(25)
+        end
       end
     else
       if params[:result] == "true"
@@ -25,14 +33,14 @@ class PatientsController < ApplicationController
   # GET /patients/1
   # GET /patients/1.json
   def show
-      @diagnosed_disorders = @patient.get_selected_disorders 
-      @detected_disorders = @patient.get_detected_disorders 
-      @gene = @patient.pedia.limit(10).order("pedia_score DESC") 
-      @causing_muts = @patient.disease_causing_mutations
-      result_link = @patient.result_figures.take
-      if !result_link.nil?
-        @result_link = result_link.link.split('/')[-1]
-      end
+    @diagnosed_disorders = @patient.get_selected_disorders 
+    @detected_disorders = @patient.get_detected_disorders 
+    @gene = @patient.pedia.limit(10).order("pedia_score DESC") 
+    @causing_muts = @patient.disease_causing_mutations
+    result_link = @patient.result_figures.take
+    if !result_link.nil?
+      @result_link = result_link.link.split('/')[-1]
+    end
   end
 
   def get_img
@@ -54,7 +62,6 @@ class PatientsController < ApplicationController
   # POST /patients
   # POST /patients.json
   def create
-
     file = params[:file].read
     data = JSON.parse(file)
     ActiveRecord::Base.transaction do
@@ -85,8 +92,16 @@ class PatientsController < ApplicationController
       @patient = Patient.create(case_id: data['case_id'], age: data['age'], submitter: submitter, last_name:data['last_name'], first_name:data['first_name'])
       user = User.find_by_email(submitter.email)
       if not user.nil?
+        usergrp = user.groups
         if not user.patients.exists?(@patient.id)
           user.patients << @patient
+        end
+        if not usergrp.nil?
+          usergrp.each do |g|
+            if not g.patients.exists?(@patient.id)
+              g.patients << @patient
+            end
+          end
         end
       end
       if @patient.valid?
@@ -105,9 +120,7 @@ class PatientsController < ApplicationController
         format.html { render :new }
         format.json { render json: @patient.errors, status: :unprocessable_entity }
       end
-    end          
-
-    #end
+    end
   end
 
   # PATCH/PUT /patients/1
@@ -168,12 +181,18 @@ class PatientsController < ApplicationController
     params.require(:patient).permit(:usi_id, :materialnr)
   end
 
-  def check_access
+   def check_access
     access = false
     if not current_user.admin
       user = current_user
-      if user.patients.exists?(@patient.id)
+      group = user.groups
+      if user.patients.exists?(@patient.id) 
         access = true
+      end
+      group.each do |g|
+        if g.patients.exists?(@patient.id) 
+          access = true
+        end
       end
     else
       access = true

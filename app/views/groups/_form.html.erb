@@ -1,0 +1,35 @@
+<%= form_with(model: group, local: true) do |form| %>
+  <% if group.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(group.errors.count, "error") %> prohibited this group from being saved:</h2>
+
+      <ul>
+        <% group.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+ 
+  <div class="field">
+    <%= form.label :name %>
+    <%= form.text_field :name, id: :group_name %>
+  </div>
+
+  <div class="field">
+    <%= label_tag :"Add Users " %>
+    <%= select_tag "users[]", options_for_select(@users.collect{|x| [x.username,x.id]}), {:multiple => :multiple}  %>
+  </div>
+
+  <div class="field">
+    <%= label_tag :"Remove Users " %>
+    <%= select_tag "members[]", options_for_select(@members.collect{|x| [x.username,x.id]}), {:multiple => :multiple} %>
+  </div>
+  <br/>
+ 
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+  
+<% end %>

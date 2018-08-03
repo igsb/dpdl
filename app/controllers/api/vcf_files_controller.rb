@@ -4,8 +4,28 @@ class Api::VcfFilesController < Api::BaseController
   # POST /vcf_files
   def create
     fname = File.basename( params[:file].original_filename)
+    case_id = fname.split(".")[0]
     warnings = ""
     alerts = ""
+    
+    # check if the corresponding case is already created
+    p = Patient.where(case_id:case_id).first
+    if p.nil?
+      respond_to do |format|
+        format.json { render plain: {msg:'Corresponding case does not exist.Please create the case first.'}.to_json, status: 400, content_type: 'application/json'}
+      end
+      return
+    end
+    
+    # check if the vcf file has already been uploaded, if so do not continue processing
+    v = VcfFile.where(name:fname).first
+    if !v.nil?
+      respond_to do |format|
+        format.json { render plain: {msg:'VCF file already exists, use update to replace the file.'}.to_json, status: 400, content_type: 'application/json'}
+      end
+      return
+    end
+    
     ActiveRecord::Base.transaction do
       if fname =~ /zip$/  
         tdir = File.join( VcfFile::VCF_PATH, fname )
@@ -56,12 +76,12 @@ class Api::VcfFilesController < Api::BaseController
   end
 
   def authenticate_token
-    token = ApiKey.where(access_token: params[:token]).first
+    api_token, options = ActionController::HttpAuthentication::Token.token_and_options(request)
+    token = ApiKey.where(access_token: api_token).first
     if token && !token.expired?
 
     else
       if token.expired?
-        token.destroy
         respond_to do |format|
           format.json { render plain: {error:'token expired.'}.to_json, status: 401, content_type: 'application/json'}
         end
