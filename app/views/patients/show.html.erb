@@ -27,7 +27,7 @@
 <strong>Submitter:</strong>
 <%= [@patient.submitter.title, @patient.submitter.first_name, @patient.submitter.last_name].join(' ')%>
 </p>
-  
+
 <% if not @demo %>
   <% usi = @patient.usi_materialnrs.take %>
   <% if usi != nil %>
@@ -36,17 +36,12 @@
     <p>
     <strong>USI:</strong>
     <%= usi_id %>
-    <br>
-    <% if nil %>
-    <strong>Materialnr:</strong>
-    <%= materialnr %>
-    <% end %>
     </p>
   <% end %>
 <% end %>
-  <p>
-  <strong>Diagnosed disorders:</strong>
-  <br>
+<p>
+<h3>Diagnosed disorders</h3>
+<% if @diagnosed_disorders.count > 0 %>
   <table class='table borderless'>
     <thead>
       <tr>
@@ -66,10 +61,14 @@
       <% end %>
     </tbody>
   </table>
-  </p>
+<% else %>
+  No diagnosed disorder!
+<% end %>
+</p>
 
 <h3>Phenotypic Information</h3>
 <p>
+<% if @patient.features.count > 0 %>
 <table class='table borderless'>
   <thead>
     <tr>
@@ -88,6 +87,9 @@
     <% end %>
   </tbody>
 </table>
+<% else %>
+  No phenotypic features!
+<% end %>
 </p>
 <h3>Mutation</h3>
 <p>
@@ -102,29 +104,33 @@
 </p>
 <h3>PEDIA result</h3>
 <p>
-<% omim_prefix = "https://www.omim.org/search/?index=entry&start=1&limit=10&sort=score+desc%2C+prefix_sort+desc&search=" %>
-<% gene_prefix = "http://www.genecards.org/cgi-bin/carddisp.pl?gene=" %>
-<table class='table'>
-  <thead>
-    <tr>
-      <th>Rank</th>
-      <th>Gene</th>
-      <th>Gene ID</th>
-      <th>PEDIA Score</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <% @gene.each_with_index do |g, index| %>
+<% if @gene.count > 0 %>
+  <% omim_prefix = "https://www.omim.org/search/?index=entry&start=1&limit=10&sort=score+desc%2C+prefix_sort+desc&search=" %>
+  <% gene_prefix = "http://www.genecards.org/cgi-bin/carddisp.pl?gene=" %>
+  <table class='table'>
+    <thead>
       <tr>
-        <td><%= index + 1 %></td>
-        <td><a href= <%= omim_prefix + g.gene.name %> target="_blank" ><%= g.gene.name %></a></td>
-        <td><a href= <%= gene_prefix + g.gene.entrez_id.to_s %> target="_blank" ><%= g.gene.entrez_id %></a></td>
-        <td><%= g.pedia_score %></td>
+        <th>Rank</th>
+        <th>Gene</th>
+        <th>Gene ID</th>
+        <th>PEDIA Score</th>
       </tr>
-    <% end %>
-  </tbody>
-</table>
+    </thead>
+  
+    <tbody>
+      <% @gene.each_with_index do |g, index| %>
+        <tr>
+          <td><%= index + 1 %></td>
+          <td><a href= <%= omim_prefix + g.gene.name %> target="_blank" ><%= g.gene.name %></a></td>
+          <td><a href= <%= gene_prefix + g.gene.entrez_id.to_s %> target="_blank" ><%= g.gene.entrez_id %></a></td>
+          <td><%= g.pedia_score %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  No PEDIA results!
+<% end %>
 </p>
 <% if false %>
   <p>
@@ -159,13 +165,13 @@
 <% end %>
 
 <% if false %>
-<div class="field">
-  <%= label_tag :file %>
-  <%= file_field_tag :file,  :accept => 'text/vcf', :required => true%>
-</div>
-<div class="actions">
-  <%= submit_tag "Upload" %>
-</div>
+  <div class="field">
+    <%= label_tag :file %>
+    <%= file_field_tag :file,  :accept => 'text/vcf', :required => true%>
+  </div>
+  <div class="actions">
+    <%= submit_tag "Upload" %>
+  </div>
 <% end %>
 
 <% if not @demo %>
