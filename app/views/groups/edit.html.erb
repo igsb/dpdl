@@ -1,0 +1,22 @@
+<h1>Editing Group</h1>
+
+<%= form_tag group_path(@group) do %>
+  <% if @group.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@group.errors.count, "error") %> prohibited this group from being saved:</h2>
+
+      <ul>
+        <% @group.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <br><br>
+  <h3>Update group data</h3>
+  <%= render 'form', group: @group %>
+<% end %>
+
+<%= link_to 'Show', @group %> |
+<%= link_to 'Back', groups_path %>

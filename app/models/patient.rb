@@ -14,6 +14,8 @@ class Patient < ApplicationRecord
   has_many :usi_materialnrs, :dependent => :destroy
   has_many :users_patients
   has_many :users, :through => :users_patients
+  has_many :groups_patients
+  has_many :groups, :through => :groups_patients
   validates :case_id, :submitter_id, presence: true
   validates :case_id, uniqueness: true
 

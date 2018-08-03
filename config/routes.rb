@@ -20,6 +20,7 @@ Rails.application.routes.draw do
   resources :features
   resources :patients
   resources :review
+  resources :groups
  
   namespace :api do
     resources :patients, only: [:create]
