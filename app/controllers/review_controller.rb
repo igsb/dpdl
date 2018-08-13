@@ -45,15 +45,28 @@ class ReviewController < ApplicationController
     # dbSNP
     dbsnp_prefix = "https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs="
     @hgvs = []
+    @dbsnp_valid = false
     if @snp_id != ""
       @dbsnp_url = dbsnp_prefix + @snp_id.split("rs")[1]
       @data = URI.parse(@dbsnp_url).read
       doc = Nokogiri::HTML(@data)
-      @hgvs = doc.at_css('[id="HGVS Names"]').css("li")
-      @cli_sig = doc.at_css('[id="Allele"]').css("td")[-4..-3]
-      @maf_title = doc.at_css('[id="Allele"]').css("td")[-2]
-      @maf = doc.at_css('[id="Allele"]').css("td")[-1].css('span')
-      puts @maf
+      unless doc.nil?
+        # Check if this snp id already merged to another one
+        merged_text = "This snp_id was merged into"
+        if @data.include? merged_text
+          @snp_id = "rs" + doc.at_css("a")[:href].split("rs=")[1]
+          @dbsnp_url = dbsnp_prefix + @snp_id.split("rs")[1]
+          @data = URI.parse(@dbsnp_url).read
+          doc = Nokogiri::HTML(@data)
+        end
+        unless doc.at_css('[id="HGVS Names"]').nil?
+          @dbsnp_valid = true
+          @hgvs = doc.at_css('[id="HGVS Names"]').css("li")
+          @cli_sig = doc.at_css('[id="Allele"]').css("td")[-4..-3]
+          @maf_title = doc.at_css('[id="Allele"]').css("td")[-2]
+          @maf = doc.at_css('[id="Allele"]').css("td")[-1].css('span')
+        end
+      end
     end
   end
 
