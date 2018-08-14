@@ -89,7 +89,6 @@ class ReviewController < ApplicationController
         puts response.body
         exit
       else
-        @ensembl_valid = true
         result = JSON.parse(res.body)
         @most_severe = result['most_severe_consequence']
         @evidence = result['evidence']
@@ -103,12 +102,15 @@ class ReviewController < ApplicationController
         @ensembl_maf = result['MAF']
         @ensembl_location = []
         location_array = result['mappings']
-        location_array.each do |location|
-          allele_string = location['allele_string'].split('/')
-          ref = allele_string[0]
-          alt = allele_string[1..-1].join('/')
-          value = {'location' => location['location'], 'assembly_name' => location['assembly_name'], 'ref' => ref, 'alt' => alt}
-          @ensembl_location.push(value)
+        unless location_array.nil?
+          @ensembl_valid = true
+          location_array.each do |location|
+            allele_string = location['allele_string'].split('/')
+            ref = allele_string[0]
+            alt = allele_string[1..-1].join('/')
+            value = {'location' => location['location'], 'assembly_name' => location['assembly_name'], 'ref' => ref, 'alt' => alt}
+            @ensembl_location.push(value)
+          end
         end
       end
     end
