@@ -175,7 +175,7 @@ class VcfFilesController < ApplicationController
       redirect_to vcf_files_path and return
     end
 
-    session[ :anno_back ] = vcf_file_path( @vcf_id )
+    session[:anno_back] = vcf_file_path(@vcf_id)
 
     if !session[:warning].blank?
       flash[:warning] = session[:warning]
@@ -279,7 +279,7 @@ class VcfFilesController < ApplicationController
         :p  => pedia_score,
         :m  => mut_ids.join(','),
         :cs_score => cs_score,
-        :v  => vcf_id
+        :v  => @p_vcf.id
       }
       @var_count = @var_count + 1
       @outdata << a;

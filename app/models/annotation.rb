@@ -6,6 +6,7 @@ class Annotation < ApplicationRecord
   belongs_to :gene, :optional => true
   belongs_to :user, :optional => true
   belongs_to :disorder, :optional => true
+  belongs_to :patients_vcf_file, :optional => true
 
   validates :gene_id, :genotype, :clinical_significance, presence: true
 
@@ -18,7 +19,7 @@ class Annotation < ApplicationRecord
     @comment = params[:annotation][:comment]
     @genotype = params[:annotation][:genotype]
     @alt = params[:annotation][:alt]
-    @vcf_id = params[:annotation][:vcf_id]
+    @p_vcf_id = params[:annotation][:p_vcf_id]
 
     errors = {}
     if @gene
@@ -28,6 +29,7 @@ class Annotation < ApplicationRecord
     end
     self.genotype = @genotype
     self.hgvs = @hgvs
+    self.patients_vcf_file_id = @p_vcf_id
     self.comment = @comment
     self.clinical_significance_id = @sig
     self.score = ClinicalSignificance.find(@sig).value
@@ -58,7 +60,7 @@ class Annotation < ApplicationRecord
     self.comment = @comment
     self.clinical_significance_id = @sig
     self.score = ClinicalSignificance.find(@sig).value
-    @vcf_id = params[:annotation][:vcf_id]
+    @p_vcf_id = params[:annotation][:p_vcf_id]
 
     return gene_errors
 

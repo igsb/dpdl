@@ -25,6 +25,10 @@ class AnnotationsController < ApplicationController
     @gene_name = @annotation.gene.name
     @sig = @annotation.clinical_significance.name
     @updated_date = @annotation.updated_at
+    p_vcf = @annotation.patients_vcf_file
+    unless p_vcf.nil?
+      @patient = p_vcf.patient
+    end
     if !@annotation.review_status.nil?
       @status = @annotation.review_status.name
     end
@@ -42,7 +46,11 @@ class AnnotationsController < ApplicationController
     @sig = params[:sig]
     @ref = params[:ref]
     @hgvs = params[:hgvs]
-    @vcf_id = params[:vcf_id]
+    @p_vcf_id = params[:p_vcf_id]
+    p_vcf = PatientsVcfFile.find(@p_vcf_id)
+    unless p_vcf.nil?
+      @patient = p_vcf.patient
+    end
     @mut_pos_id = params[:mut_pos_id]
     @gene = params[:gene]
     gene = Gene.find(@gene)
@@ -144,7 +152,7 @@ class AnnotationsController < ApplicationController
       @annotation.comment = @comment
       @annotation.clinical_significance_id = @sig
       @mut_pos_id = params[:annotation][:mut_pos_id]
-      @vcf_id = params[:annotation][:vcf_id]
+      @p_vcf_id = params[:annotation][:p_vcf_id]
       @mut_pos = MutationsPosition.find(@mut_pos_id)
       @annotation.score = ClinicalSignificance.find(@sig).value
 

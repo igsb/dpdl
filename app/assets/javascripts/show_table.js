@@ -124,7 +124,7 @@ app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGrid
         $scope.getView = '/assets/sharp-visibility-24px.svg';
         $scope.show_rs = function(input) {
             rs=input.match(/^rs(\d+)/);
-            if ( rs ){
+            if (rs){
                 url = "http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs=" + rs[0];
             } else {
                 url = "http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs=";
@@ -136,7 +136,7 @@ app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGrid
             window.open(url, '_blank');
         }
         $scope.clicked = function(row){
-            url = '/review?chr=' + row.x + "&snp=" + row.i + "&hgvs=" + row.h + "&genotype=" + row.g + "&ref=" + row.r + "&mut=" + row.m + "&vcf=" + row.v + "&gene_id=" + row.gene_id + "&cadd=" + row.s;
+            url = '/review?chr=' + row.x + "&snp=" + row.i + "&hgvs=" + row.h + "&genotype=" + row.g + "&ref=" + row.r + "&mut=" + row.m + "&p_vcf=" + row.v + "&gene_id=" + row.gene_id + "&cadd=" + row.s;
             window.open(url, '_blank');
         }
         $scope.igv_clicked = function(pos){

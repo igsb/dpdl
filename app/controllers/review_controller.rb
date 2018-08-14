@@ -11,7 +11,7 @@ class ReviewController < ApplicationController
     @genotype = params[:genotype]
     @hgvs = params[:hgvs]
     @gene_id = params[:gene_id]
-    @vcf_id = params[:vcf]
+    @p_vcf_id = params[:p_vcf]
     @mut_pos_ids = params[:mut]
     mut_pos = @mut_pos_ids.split(',')
     puts mut_pos
@@ -31,7 +31,7 @@ class ReviewController < ApplicationController
     @genotype = params[:genotype]
     @hgvs = params[:hgvs]
     @gene_id = params[:gene_id]
-    @vcf_id = params[:vcf_id]
+    @p_vcf_id = params[:p_vcf_id]
     @mut_pos_id = params[:mut_pos_id]
     parse_dbsnp()
     parse_exac()
