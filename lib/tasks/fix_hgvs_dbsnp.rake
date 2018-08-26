@@ -67,37 +67,44 @@ namespace :vcf do
               ann = tmp[4..-1]
             end
           end
-          ann_array = ann.split(",").values_at(*gt_alt)
+          ann_array = ann.split(',').values_at(*gt_alt)
           
-          alt = alt.split(",")
-          
+          alt = alt.split(',')
+
           ann_array.each_with_index do |ann, index|
-            ann = ann.split("|")
+            ann = ann.split('|')
             mut = Mutation.find_by(ref: ref, alt: alt[gt_alt[index]])
-            mut_pos = MutationsPosition.find_by(mutation_id: mut.id, position_id: var_pos.id)
+            mut_pos = MutationsPosition.find_by(
+              mutation_id: mut.id,
+              position_id: var_pos.id
+            )
 
             hgvs = ann[ANN_FEATURE_ID] + ':' + ann[ANN_HGVS_C]
-            MutationsHgvsCode.find_or_create_by(hgvs_code: hgvs, mutations_position_id: mut_pos.id)
+            MutationsHgvsCode.find_or_create_by(
+              hgvs_code: hgvs,
+              mutations_position_id: mut_pos.id
+            )
 
-            hgvs_p = ann[ANN_HGVS_P] 
-            if (not hgvs_p.include?("%3D")) and (not hgvs_p.include?("p.?"))
-              MutationsHgvsCode.find_or_create_by(hgvs_code: hgvs_p, mutations_position_id: mut_pos.id)
+            hgvs_p = ann[ANN_HGVS_P]
+            if !hgvs_p.include?('%3D') && !hgvs_p.include?('p.?')
+              MutationsHgvsCode.find_or_create_by(
+                hgvs_code: hgvs_p,
+                mutations_position_id: mut_pos.id
+              )
             end
             snps = ident.split(',')
-            if snps[0] != '.'
-              snps.each do |snp_id|
-                snp = Dbsnp.find_or_create_by(snp_id:snp_id)
-                ann_dbsnp = MutationsDbsnp.find_or_create_by(dbsnp_id:snp.id, mutations_position_id:mut_pos.id)
-              end
+            next if snps[0] == '.'
+            snps.each do |snp_id|
+              snp = Dbsnp.find_or_create_by(snp_id: snp_id)
+              MutationsDbsnp.find_or_create_by(
+                dbsnp_id: snp.id,
+                mutations_position_id: mut_pos.id
+              )
             end
-
           end
         end
-        if line =~ /^#chrom/i
-           chrom, pos, ident, ref, alt, qual, filter, info, format, *gt = line.split("\t");
-           sample_name = gt.join("\t")
-           start_parsing = true
-        end
+        next unless line =~ /^#chrom/i
+        start_parsing = true
       end
     end
   end
