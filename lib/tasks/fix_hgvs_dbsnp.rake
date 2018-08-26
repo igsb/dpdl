@@ -36,43 +36,44 @@ namespace :vcf do
     return gt_alt, gt
   end
 
-  desc "Reset dbSnp ID"
-  task :store_dbsnp_hgvs => :environment do
+  desc 'Reset dbSnp ID'
+  task store_dbsnp_hgvs: :environment do
     Dir.foreach('Data/vcf/') do |item|
-      next if not item.end_with? 'vcf.gz' 
+      next unless item.end_with? 'vcf.gz'
       cp('Data/vcf/' + item, item)
       f = item
       e=%x@/bin/gzip -d -f "#{f}"@
-      f.sub!(/\.gz$/,'')
-      infile = File.open( f )
+      f.sub!(/\.gz$/, '')
+      infile = File.open(f)
 
       start_parsing = false
       infile.each do |line|
         line.chomp!
         if start_parsing == true
-          chrom, pos, ident, ref, alt, qual, filter, info, format, *gt = line.split("\t");
+          chrom, pos, ident, ref, alt, qual, filter, info, format, *gt = line.split("\t")
           chrom_num = VcfTools.chrom_to_i(chrom)
 
-          ##Skip the variant which is not in chr1-22 X,Y
-          next if chrom_num == 0
+          ## Skip the variant which is not in chr1-22 X,Y
+          next if chrom_num.zero?
 
-          var_pos = Position.find_by(chr: chrom_num, pos: pos.to_i, reference_genome_id: 0)
-          ## Pares GT 
+          var_pos = Position.find_by(
+            chr: chrom_num, pos: pos.to_i,
+            reference_genome_id: 0
+          )
+          ## Pares GT
           gt_alt, genotype = get_alt_genotype(format, gt)
 
-          info_array = info.split(";")
+          info_array = info.split(';')
           ann = ''
           info_array.each do |tmp|
-            if tmp.include? "ANN="
-              ann = tmp[4..-1]
-            end
+            ann = tmp[4..-1] if tmp.include? 'ANN='
           end
           ann_array = ann.split(',').values_at(*gt_alt)
-          
+
           alt = alt.split(',')
 
-          ann_array.each_with_index do |ann, index|
-            ann = ann.split('|')
+          ann_array.each_with_index do |anno, index|
+            ann = anno.split('|')
             mut = Mutation.find_by(ref: ref, alt: alt[gt_alt[index]])
             mut_pos = MutationsPosition.find_by(
               mutation_id: mut.id,
