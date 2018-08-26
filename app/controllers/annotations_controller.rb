@@ -160,7 +160,8 @@ class AnnotationsController < ApplicationController
         if @annotation.save
           @mut_pos.annotations << @annotation
           update_max(@mut_pos)
-          format.html { redirect_to @annotation, notice: 'Annotation was successfully updated.' }
+          msg = 'Annotation was successfully updated.'
+          format.html { redirect_to @annotation, notice: msg }
           format.json { render :show, status: :created, location: @annotation }
         else
           if gene_errors
@@ -182,7 +183,7 @@ class AnnotationsController < ApplicationController
     end
 
     @annotation.destroy
-    mut_pos_arrays.each do |mut_pos| 
+    mut_pos_arrays.each do |mut_pos|
       update_max(mut_pos)
     end
     respond_to do |format|

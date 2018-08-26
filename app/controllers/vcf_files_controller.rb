@@ -267,19 +267,19 @@ class VcfFilesController < ApplicationController
       end
       genotype = gt_array.join('/')
       a = {
-        :g  => genotype,
-        :x  => pos,
-        :i  => snp_id,
-        :ge => gene_name,
-        :gene_id => gene_id,
-        :r  => ref,
-        :e  => effect,
-        :s  => score,
-        :h  => hgvs_array.join(';'),
-        :p  => pedia_score,
-        :m  => mut_ids.join(','),
-        :cs_score => cs_score,
-        :v  => @p_vcf.id
+        g: genotype,
+        x: pos,
+        i: snp_id,
+        ge: gene_name,
+        gene_id: gene_id,
+        r: ref,
+        e: effect,
+        s: score,
+        h: hgvs_array.join(';'),
+        p: pedia_score,
+        m: mut_ids.join(','),
+        cs_score: cs_score,
+        v: @p_vcf.id
       }
       @var_count = @var_count + 1
       @outdata << a;
