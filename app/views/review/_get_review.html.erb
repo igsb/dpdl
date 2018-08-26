@@ -3,7 +3,7 @@
 <strong>
   dbSNP ID:
 </strong>
-<% if !@dbsnp_url.nil? %>
+<% if @dbsnp_valid %>
   <a href= <%= @dbsnp_url %> target="_blank"><%= @snp_id %></a>
   <br>
   <br>
