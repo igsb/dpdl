@@ -5,6 +5,10 @@ git_source(:github) do |repo_name|
   "https://github.com/#{repo_name}.git"
 end
 
+group :development, :test do
+  gem 'rspec-rails', '~> 3.7'
+end
+
 gem 'render_async'
 gem 'bootstrap-sass'
 group :assets do

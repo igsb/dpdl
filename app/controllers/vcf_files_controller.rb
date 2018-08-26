@@ -175,7 +175,7 @@ class VcfFilesController < ApplicationController
       redirect_to vcf_files_path and return
     end
 
-    session[ :anno_back ] = vcf_file_path( @vcf_id )
+    session[:anno_back] = vcf_file_path(@vcf_id)
 
     if !session[:warning].blank?
       flash[:warning] = session[:warning]
@@ -225,7 +225,7 @@ class VcfFilesController < ApplicationController
         mut_pos = line.mutations_position
         mut_ids << mut_pos.id
         position = mut_pos.position
-        max_score = mut_pos.annotations.maximum('score')
+        max_score = mut_pos.max_classification
         if max_score and max_score > cs_score
           cs_score = max_score
         end
@@ -241,8 +241,8 @@ class VcfFilesController < ApplicationController
         snp_id = ''
         effect = gene_mut.effect
         score = line.value.round(2)
-        mut_pos.hgvs_codes.each do |value|
-          hgvs_array.push(value.code)
+        mut_pos.mutations_hgvs_codes.each do |value|
+          hgvs_array.push(value.hgvs_code)
         end
         if !snp.nil?
           snp_id = snp.snp_id
@@ -267,19 +267,19 @@ class VcfFilesController < ApplicationController
       end
       genotype = gt_array.join('/')
       a = {
-        :g  => genotype,
-        :x  => pos,
-        :i  => snp_id,
-        :ge => gene_name,
-        :gene_id => gene_id,
-        :r  => ref,
-        :e  => effect,
-        :s  => score,
-        :h  => hgvs_array.join(';'),
-        :p  => pedia_score,
-        :m  => mut_ids.join(','),
-        :cs_score => cs_score,
-        :v  => vcf_id
+        g: genotype,
+        x: pos,
+        i: snp_id,
+        ge: gene_name,
+        gene_id: gene_id,
+        r: ref,
+        e: effect,
+        s: score,
+        h: hgvs_array.join(';'),
+        p: pedia_score,
+        m: mut_ids.join(','),
+        cs_score: cs_score,
+        v: @p_vcf.id
       }
       @var_count = @var_count + 1
       @outdata << a;

@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
+# AdminMailer is for sending registration email to user and admin
 class AdminMailer < ApplicationMailer
-  default from: 'contact@dpdl.org'
+  default from: 'contact@pedia-study.org'
 
   def welcome_email(user)
     @user = user
@@ -9,27 +12,28 @@ class AdminMailer < ApplicationMailer
 
   def new_user_waiting_for_approval(user)
     @user = user
-    @url  = 'http://dpdl.org/users/sign_in'
-    mail(to: @user.email, 
-         subject: "DPDL Registration Request  <#{user.email}>")
+    @url = 'https://pedia-study.org/users/sign_in'
+    mail(to: @user.email,
+         subject: "PEDIA-study Registration Request <#{user.email}>")
   end
 
   def new_registration(user)
     @user = user
-    mail(to: 'contact@dpdl.org', subject: "New registration <#{user.email} is waiting your approval>")
+    mail(to: 'contact@pedia-study.org',
+         subject: "New registration <#{user.email} is waiting your approval>")
   end
 
   def new_user_got_approval(user)
     @user = user
-    @url  = 'http://dpdl.org/users/sign_in'
-    mail(to: @user.email, 
-         subject: "DPDL account activated  <#{user.email}>")
+    @url = 'https://pedia-study.org/users/sign_in'
+    mail(to: @user.email,
+         subject: "PEDIA-study account activated <#{user.email}>")
   end
 
   def new_user_remove_approval(user)
     @user = user
-    @url  = 'http://dpdl.org/users/sign_in'
-    mail(to: @user.email, 
-         subject: "DPDL account deactivated  <#{user.email}>")
+    @url = 'https://pedia-study.org/users/sign_in'
+    mail(to: @user.email,
+         subject: "PEDIA-study account deactivated <#{user.email}>")
   end
 end

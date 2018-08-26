@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :documents
   resources :imprints
   resources :privacies
   resources :pedia_services, only: [:index, :new, :create, :destroy]
