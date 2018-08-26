@@ -6,7 +6,7 @@ class Annotation < ApplicationRecord
   belongs_to :gene, :optional => true
   belongs_to :user, :optional => true
   belongs_to :disorder, :optional => true
-  belongs_to :patients_vcf_file, :optional => true
+  belongs_to :patients_vcf_file, optional: true
 
   validates :gene_id, :genotype, :clinical_significance, presence: true
 
@@ -63,6 +63,5 @@ class Annotation < ApplicationRecord
     @p_vcf_id = params[:annotation][:p_vcf_id]
 
     return gene_errors
-
   end
 end
