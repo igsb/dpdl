@@ -160,8 +160,8 @@ class AnnotationsController < ApplicationController
         if @annotation.save
           @mut_pos.annotations << @annotation
           update_max(@mut_pos)
-          format.html { redirect_to @annotation,
-                        notice: 'Annotation was successfully updated.' }
+          msg = 'Annotation was successfully updated.'
+          format.html { redirect_to @annotation, notice: msg }
           format.json { render :show, status: :created, location: @annotation }
         else
           if gene_errors
