@@ -26,9 +26,8 @@ class AnnotationsController < ApplicationController
     @sig = @annotation.clinical_significance.name
     @updated_date = @annotation.updated_at
     p_vcf = @annotation.patients_vcf_file
-    unless p_vcf.nil?
-      @patient = p_vcf.patient
-    end
+    @patient = p_vcf.patient unless p_vcf.nil?
+
     if !@annotation.review_status.nil?
       @status = @annotation.review_status.name
     end
@@ -48,9 +47,7 @@ class AnnotationsController < ApplicationController
     @hgvs = params[:hgvs]
     @p_vcf_id = params[:p_vcf_id]
     p_vcf = PatientsVcfFile.find(@p_vcf_id)
-    unless p_vcf.nil?
-      @patient = p_vcf.patient
-    end
+    @patient = p_vcf.patient unless p_vcf.nil?
     @mut_pos_id = params[:mut_pos_id]
     @gene = params[:gene]
     gene = Gene.find(@gene)
@@ -70,7 +67,9 @@ class AnnotationsController < ApplicationController
     mut_pos = @annotation.mutations_positions.take
     @mut_pos_id = mut_pos.id
     @hgvs = @annotation.hgvs
-    @pos = 'chr' + VcfTools.chrom_to_s(mut_pos.position.chr) + ":" +  mut_pos.position.pos.to_s
+    @pos = 'chr' +
+           VcfTools.chrom_to_s(mut_pos.position.chr) +
+           ':' + mut_pos.position.pos.to_s
     @ref = mut_pos.mutation.ref
     @alt = mut_pos.mutation.alt
     @gene_name = @annotation.gene.name
@@ -78,20 +77,21 @@ class AnnotationsController < ApplicationController
     @genotype = @annotation.genotype
     @sig = @annotation.clinical_significance.name
     @updated_date = @annotation.updated_at
-    if !@annotation.review_status.nil?
-      @status = @annotation.review_status.name
-    end
-    if @annotation.user.username == 'Clinvar'
-      @comment = 'SCV: ' + @annotation.scv + ', ClinVar version: ' + @annotation.version
-    else
-      @comment = @annotation.comment
-    end
+    status = @annotation.review_status
+    @status = @annotation.review_status.name unless status.nil?
+    @comment = if @annotation.user.username == 'Clinvar'
+                 'SCV: ' +
+                   @annotation.scv +
+                   ', ClinVar version: ' +
+                   @annotation.version
+               else
+                 @comment = @annotation.comment
+               end
   end
 
   # POST /annotations
   # POST /annotations.json
   def create
-   
     ActiveRecord::Base.transaction do
       @annotation = Annotation.new
       @annotation.user_id = current_user.id
@@ -111,18 +111,17 @@ class AnnotationsController < ApplicationController
         if @annotation.save
           @mut_pos.annotations << @annotation
           update_max(@mut_pos)
-          format.html { redirect_to @annotation, notice: 'Annotation was successfully created.' }
+          msg = 'Annotation was successfully created.'
+          format.html { redirect_to @annotation, notice: msg }
           format.json { render :show, status: :created, location: @annotation }
         else
-          if errors.count > 0
-            @annotation.errors[:error] << errors.values
-          end
+          @annotation.errors[:error] << errors.values if errors.count.positive?
+          errs = @annotation.errors
           format.html { render :new }
-          format.json { render json: @annotation.errors, status: :unprocessable_entity }
+          format.json { render json: errs, status: :unprocessable_entity }
         end
-      end          
+      end
     end
-
   end
 
   # PATCH/PUT /annotations/1
