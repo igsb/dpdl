@@ -112,7 +112,7 @@ app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGrid
                     result = 'Pathogenic';
                     break;
                 default:
-                    result = ''
+                    result = '';
             }
 
             return result;
