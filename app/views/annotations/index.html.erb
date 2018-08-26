@@ -3,6 +3,7 @@
   <thead>
     <tr>
       <th>Submitter</th>
+      <th>Patient</th>
       <th>chr:Pos</th>
       <th>Ref</th>
       <th>Alt</th>
@@ -17,6 +18,7 @@
     <% @annotations.each do |ann| %>
       <tr>
         <td><%= [ann.user.title, ann.user.first_name, ann.user.last_name].join(' ') %></td>
+        <td><%= ann.patients_vcf_file.patient.case_id unless ann.patients_vcf_file.nil? %></td>
         <% mut_pos = ann.mutations_positions.take %>
         <td><%=  'chr' + VcfTools.chrom_to_s(mut_pos.position.chr) + ":" +  mut_pos.position.pos.to_s %></td>
         <td><%=  mut_pos.mutation.ref %></td>
@@ -26,6 +28,7 @@
         <td><%=  ann.updated_at.to_date %></td>
         <td><%= link_to 'View', ann %></td>
         <% if not @demo %>
+          <td><%= link_to 'Edit', edit_annotation_path(ann) %></td>
           <td><%= link_to 'Delete', ann, method: :delete, data: { confirm: 'Are you sure?' } %></td>
         <% end %>
       </tr>
@@ -36,6 +39,3 @@
 
 <%= paginate @annotations %>
 <br>
-<% if not @demo %>
-  <%= link_to 'New Annotation', new_annotation_path %>
-<% end %>

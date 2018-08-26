@@ -214,80 +214,83 @@ class VcfFile < ActiveRecord::Base
     infile = File.open(path)
     start_parsing = false
     infile.each do |line|
-       line.chomp!
-       if start_parsing == true
-          chrom, pos, ident, ref, alt, qual, filter, info, format, *gt = line.split("\t");
-          chrom_num = VcfTools.chrom_to_i(chrom)
+      line.chomp!
+      if start_parsing == true
+        chrom, pos, ident, ref, alt, qual, filter, info, format, *gt = line.split("\t");
+        chrom_num = VcfTools.chrom_to_i(chrom)
 
-          #Skip the variant which is not in chr1-22 X,Y
-          next if chrom_num == 0
+        #Skip the variant which is not in chr1-22 X,Y
+        next if chrom_num == 0
 
-          var_pos = Position.find_or_create_by(chr: chrom_num, pos: pos.to_i, reference_genome_id: 0)
-          # Pares GT 
-          gt_alt, genotype = get_alt_genotype(format, gt)
+        var_pos = Position.find_or_create_by(chr: chrom_num, pos: pos.to_i, reference_genome_id: 0)
+        # Pares GT 
+        gt_alt, genotype = get_alt_genotype(format, gt)
 
-          info_array = info.split(";")
-          ann = ''
-          cadd_str = ''
-          info_array.each do |tmp|
-            if tmp.include? "ANN="
-              ann = tmp[4..-1]
+        info_array = info.split(";")
+        ann = ''
+        cadd_str = ''
+        info_array.each do |tmp|
+          if tmp.include? "ANN="
+            ann = tmp[4..-1]
+          end
+          if tmp.include? "CADD_SNV_PHRED="
+            cadd_str = tmp[15..-1]
+          end
+          if tmp.include? "CADD_INDEL_PHRED="
+            cadd_str = tmp[17..-1]
+          end
+          if cadd_str == '' and tmp.include? "CADD_SNV_OVL_PHRED"
+            cadd_str = tmp[19..-1]
+          end
+        end
+        ann_array = ann.split(",").values_at(*gt_alt)
+
+        alt = alt.split(",")
+
+        score = Score.where(name: 'cadd_phred_score').take
+        patient_vcf = self.patients_vcf_files.take
+        cadd_score = get_cadd(cadd_str)
+
+        ann_array.each_with_index do |ann, index|
+          ann = ann.split("|")
+          mut = Mutation.find_or_create_by(ref: ref, alt: alt[gt_alt[index]])
+          mut_pos = MutationsPosition.find_or_create_by(mutation_id: mut.id, position_id: var_pos.id)
+
+          gene = Gene.find_or_create_by(name: ann[ANN_GENE_NAME], entrez_id: ann[ANN_GENE_ID])
+          effect = ann[ANN_ANNOTATION]
+          DisordersMutationsScore.find_or_create_by(patients_vcf_file_id: patient_vcf.id, score_id: score.id, mutations_position_id: mut_pos.id, value: cadd_score, genotype: genotype, position_id: var_pos.id, gene_id: gene.id)
+          if effect.include? '&'
+            effect_array = effect.split('&')
+            effect_array.each do |value|
+              gene_mut = GenesMutation.find_or_create_by(gene_id: gene.id, mutations_position_id:mut_pos.id, effect: value)
             end
-            if tmp.include? "CADD_SNV_PHRED="
-              cadd_str = tmp[15..-1]
-            end
-            if tmp.include? "CADD_INDEL_PHRED="
-              cadd_str = tmp[17..-1]
-            end
-            if cadd_str == '' and tmp.include? "CADD_SNV_OVL_PHRED"
-              cadd_str = tmp[19..-1]
+          else
+            gene_mut = GenesMutation.find_or_create_by(gene_id: gene.id, mutations_position_id:mut_pos.id, effect: effect)
+          end
+
+          hgvs = ann[ANN_FEATURE_ID] + ':' + ann[ANN_HGVS_C]
+          MutationsHgvsCode.find_or_create_by(hgvs_code: hgvs, mutations_position_id: mut_pos.id)
+
+          hgvs_p = ann[ANN_HGVS_P] 
+          if (not hgvs_p.include?("%3D")) and (not hgvs_p.include?("p.?"))
+            MutationsHgvsCode.find_or_create_by(hgvs_code: hgvs_p, mutations_position_id: mut_pos.id)
+          end
+
+          snps = ident.split(',')
+          if snps[0] != '.'
+            snps.each do |snp_id|
+              snp = Dbsnp.find_or_create_by(snp_id:snp_id)
+              ann_dbsnp = MutationsDbsnp.find_or_create_by(dbsnp_id:snp.id, mutations_position_id:mut_pos.id)
             end
           end
-          ann_array = ann.split(",").values_at(*gt_alt)
-          
-          alt = alt.split(",")
-          
-          score = Score.where(name: 'cadd_phred_score').take
-          patient_vcf = self.patients_vcf_files.take
-          cadd_score = get_cadd(cadd_str)
-
-          ann_array.each_with_index do |ann, index|
-            ann = ann.split("|")
-            mut = Mutation.find_or_create_by(ref: ref, alt: alt[gt_alt[index]])
-            mut_pos = MutationsPosition.find_or_create_by(mutation_id: mut.id, position_id: var_pos.id)
-
-            gene = Gene.find_or_create_by(name: ann[ANN_GENE_NAME], entrez_id: ann[ANN_GENE_ID])
-            effect = ann[ANN_ANNOTATION]
-            DisordersMutationsScore.find_or_create_by(patients_vcf_file_id: patient_vcf.id, score_id: score.id, mutations_position_id: mut_pos.id, value: cadd_score, genotype: genotype, position_id: var_pos.id, gene_id: gene.id)
-            if effect.include? '&'
-              effect_array = effect.split('&')
-              effect_array.each do |value|
-                gene_mut = GenesMutation.find_or_create_by(gene_id: gene.id, mutations_position_id:mut_pos.id, effect: value)
-              end
-            else
-              gene_mut = GenesMutation.find_or_create_by(gene_id: gene.id, mutations_position_id:mut_pos.id, effect: effect)
-            end
-            hgvs = ann[ANN_FEATURE_ID] + ':' + ann[ANN_HGVS_C]
-            hgvs_code = HgvsCode.find_or_create_by(code: hgvs)
-            ann_hgvs = MutationsHgvsCode.find_or_create_by(hgvs_code_id: hgvs_code.id, mutations_position_id:mut_pos.id)
-            snps = ident.split(',')
-            if snps[0] != '.'
-              snps.each do |snp_id|
-                snp = Dbsnp.find_or_create_by(snp_id:snp_id)
-                ann_dbsnp = MutationsDbsnp.find_or_create_by(dbsnp_id:snp.id, mutations_position_id:mut_pos.id)
-              end
-            end
-
-          end
-       end
-       if line =~ /^#chrom/i
-          chrom, pos, ident, ref, alt, qual, filter, info, format, *gt = line.split("\t");
-          sample_name = gt.join("\t")
-          start_parsing = true
-       end
+        end
+      end
+      if line =~ /^#chrom/i
+        chrom, pos, ident, ref, alt, qual, filter, info, format, *gt = line.split("\t");
+        sample_name = gt.join("\t")
+        start_parsing = true
+      end
     end
-
-    #self.save
   end
 
   ##---------------------------------------------------------------------

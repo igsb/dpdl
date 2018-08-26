@@ -11,6 +11,13 @@
 <%= @annotation.id %>
 </p>
 
+<% unless @patient.nil? %>
+  <p>
+  <strong>Patient ID:</strong>
+  <%= @patient.case_id %>
+  </p>
+<% end %>
+
 <p>
 <strong>Submitter:</strong>
 <%= [@annotation.user.title, @annotation.user.first_name, @annotation.user.last_name].join(' ') %>

@@ -11,40 +11,45 @@
     </div>
   <% end %>
 
+  <% unless @patient.nil? %>
+    <div>
+      <strong>Patient: <%= @patient.case_id %></strong>
+    </div>
+  <% end %>
 
   <div class="field">
     <%= form.label :chr_id, 'Position:' %>
-    <%= form.text_field :pos, :value => @pos%>
+    <%= form.text_field :pos, :value => @pos %>
   </div>
 
   <div class="field">
     <%= form.label :gene_name, 'Gene Name:' %>
-    <%= form.text_field :gene_name, :value => @gene_name%>
+    <%= form.text_field :gene_name, :value => @gene_name %>
   </div>
 
   <div class="field">
     <%= form.label :gene_id, 'Gene Entrez ID:' %>
-    <%= form.text_field :gene_id, :value => @gene_id%>
+    <%= form.text_field :gene_id, :value => @gene_id %>
   </div>
 
   <div class="field">
     <%= form.label :ref_id, 'Ref' %>
-    <%= form.text_field :ref, :value => @ref%>
+    <%= form.text_field :ref, :value => @ref %>
   </div>
 
   <div class="field">
     <%= form.label :alt_id, 'Alt' %>
-    <%= form.text_field :alt, :value => @alt%>
+    <%= form.text_field :alt, :value => @alt %>
   </div>
 
   <div class="field">
     <%= form.label :genotype_id, 'Genotype' %>
-    <%= form.text_field :genotype, :value => @genotype%>
+    <%= form.text_field :genotype, :value => @genotype %>
   </div>
 
   <div class="field">
     <%= form.label :hgvs_id, 'HGVS' %>
-    <%= form.text_field :hgvs, :value => @hgvs%>
+    <%= form.text_field :hgvs, :value => @hgvs %>
   </div>
 
   <div class="field">
@@ -56,10 +61,10 @@
   <div class="field">
     <%= form.label :stext_id, 'Comment' %>
     <br>
-    <%= form.text_area :comment, :cols => "30", :rows => "3"  %>
+    <%= form.text_area :comment, :cols => "30", :rows => "3" %>
   </div>
   <%= form.hidden_field 'mut_pos_id', :value => @mut_pos_id %>
-  <%= form.hidden_field 'vcf_id', :value => @vcf_id %>
+  <%= form.hidden_field 'p_vcf_id', :value => @p_vcf_id %>
   <div class="actions">
     <%= form.submit %>
   </div>
