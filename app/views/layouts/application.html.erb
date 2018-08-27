@@ -42,14 +42,18 @@
             <a class="nav-link" href="/annotations">Annotations</a>
             </li>
           <% end %>
+          <li class="nav-item <%= 'active' if params[:controller] == 'news' %>">
+          <a class="nav-link" href="/news">News</a>
+          </li>
           <li class="nav-item <%= 'active' if params[:controller] == 'documents' %>">
           <a class="nav-link" href="/documents">Consent form</a>
           </li>
-          <li class="nav-item dropdown <%= 'active' if ['about', 'contact'].include?(params[:controller]) %>">
+          <li class="nav-item dropdown <%= 'active' if ['about', 'contact', 'profile'].include?(params[:controller]) %>">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             About us
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <a class="dropdown-item" href="/profile">Profile</a>
             <a class="dropdown-item" href="/about">Team</a>
             <a class="dropdown-item" href="/contact">Contact</a>
           </div>
@@ -97,22 +101,30 @@
   <div class="row d-flex align-items-center">
     <!-- Grid column -->
     <div class="col-md-2 text-center">
-      <%= image_tag("fdna_logo.svg", :size => "120x60") %>
+      <a href="https://www.face2gene.com" target="_blank">
+        <%= image_tag("fdna_logo.png", :size => "190x40") %>
+      </a>
     </div>
     <div class="col-md-2 text-center">
-      <%= image_tag("uni_logo.png", :size => "120x60") %>
+      <a href="https://www.igsb.uni-bonn.de/en" target="_blank">
+        <%= image_tag("uni_logo.png", :size => "120x60") %>
+      </a>
     </div>
     <div class="col-md-2 text-center">
       <%= image_tag("logo_charite.png", :size => "120x40") %>
     </div>
     <div class="col-md-2 text-center">
-      <%= image_tag("namse.png", :size=> "160x85") %>
+      <a href="https://translate-namse.charite.de" target="_blank">
+        <%= image_tag("namse.png", :size=> "160x85") %>
+      </a>
     </div>
     <div class="col-md-2 text-center">
       <%= image_tag("UKB_logo.png", :size => "140x35") %>
     </div>
     <div class="col-md-2 text-center">
-      <%= image_tag("GeneTalkLogo.png", :size => "150x60") %>
+      <a href="https://www.gene-talk.de" target="_blank">
+        <%= image_tag("GeneTalkLogo.png", :size => "160x60") %>
+      </a>
     </div>
   </div>
 
@@ -147,6 +159,11 @@
           </li>
           <li class="list-inline-item">
           <a href="/contact">Contact</a>
+          </li>
+          <li class="list-inline-item">
+          <a href="https://twitter.com/Pedia_Team">
+            <%= image_tag("Twitter_Logo_Blue.svg", :size => "30x30") %>
+          </a>
           </li>
         </ul>
       </div>

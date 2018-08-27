@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  get 'news', to: 'news#index'
+  get 'profile', to: 'profile#index'
+
   resources :documents
   resources :imprints
   resources :privacies
