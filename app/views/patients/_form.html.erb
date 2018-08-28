@@ -11,59 +11,19 @@
     </div>
   <% end %>
 
-  <div class="field">
-    <%= label_tag :file %>
-    <%= file_field_tag :file %>
-  </div>
-  <div class="actions">
-    <%= submit_tag 'Submit' %>
-  </div>
-  <div class="field">
-    <%= form.label :last_name %>
-    <%= form.text_field :last_name, id: :patient_last_name %>
-  </div>
-
-  <div class="field">
-    <%= form.label :first_name %>
-    <%= form.text_field :first_name, id: :patient_first_name %>
-  </div>
-
-  <div class="field">
-    <%= form.label :case_id %>
-    <%= form.number_field :case_id, id: :patient_case_id %>
-  </div>
-
-  <div class="field">
-    <%= form.label :age %>
-    <%= form.number_field :age, id: :patient_age %>
-  </div>
-
-  <div class="field">
-    <%= form.label :submitter_id %>
-    <%= form.number_field :submitter_id, id: :patient_submitter_id %>
-  </div>
-
-  <div class="field">
-    <%= form.label :publication_id %>
-    <%= form.number_field :publication_id, id: :patient_publication_id %>
-  </div>
-
   <% usi = patient.usi_materialnrs.take %>
   <% if usi != nil %>
     <% usi_id = usi.usi_id %>
-    <% materialnr = usi.materialnr %>
   <% end %>
   <div class="field">
-    <strong>USI ID</strong>
+    <strong>Sample ID</strong>
     <%= form.text_field :usi_id, id: :patient_usi, :size=>"30", :value => usi_id  %>
   </div>
-  <% if nil %>
+  <br>
+
   <div class="field">
-    <strong>Materialnr</strong>
-    <%= form.text_field :materialnr, id: :patient_materialnr, :value => materialnr %>
+    <%= file_field_tag :file %>
   </div>
-  <% end %>
-  <div class="actions">
-    <%= form.submit %>
-  </div>
+  <br>
+  <button type="submit" class="btn btn-dark">Submit</button>
 <% end %>
