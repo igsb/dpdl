@@ -1,0 +1,2 @@
+class UploadedVcfFile < ApplicationRecord
+end
