@@ -27,14 +27,14 @@ class PatientsController < ApplicationController
   # GET /patients/1
   # GET /patients/1.json
   def show
-      @diagnosed_disorders = @patient.get_selected_disorders 
-      @detected_disorders = @patient.get_detected_disorders 
-      @gene = @patient.pedia.limit(10).order("pedia_score DESC") 
-      @causing_muts = @patient.disease_causing_mutations
-      result_link = @patient.result_figures.take
-      if !result_link.nil?
-        @result_link = result_link.link.split('/')[-1]
-      end
+    @diagnosed_disorders = @patient.get_selected_disorders
+    @detected_disorders = @patient.get_detected_disorders
+    @gene = @patient.pedia.limit(10).order("pedia_score DESC")
+    @causing_muts = @patient.disease_causing_mutations
+    result_link = @patient.result_figures.take
+    if !result_link.nil?
+      @result_link = result_link.link.split('/')[-1]
+    end
   end
 
   def get_img
@@ -116,20 +116,16 @@ class PatientsController < ApplicationController
   # PATCH/PUT /patients/1.json
   def update
     if params[:file]
-      file = params[:file].read
-      data = JSON.parse(file)
-      ActiveRecord::Base.transaction do
-        @patient = Patient.find_by(case_id: data['case_id'])
-        if @patient.valid?
-          @patient.update_json(data)
-          name = params[:file].original_filename
-          path = File.join("Data", "jsons", name)
-          File.open(path, "wb") { |f| f.write(file) }
-        end
+      name = params[:file].original_filename
+      dirname = File.join('Data/upload_vcf', @patient.case_id.to_s)
+      unless File.directory?(dirname)
+        FileUtils.mkdir_p(dirname)
       end
+      path = File.join(dirname, name)
+      File.open(path, "wb") { |f| f.write(params[:file].read) }
     end
     if usi_params
-      usi = UsiMaterialnr.find_or_create_by(patient_id:@patient.id)
+      usi = UsiMaterialnr.find_or_create_by(patient_id: @patient.id)
       usi.usi_id = usi_params[:usi_id]
       usi.materialnr = usi_params[:materialnr]
       usi.save

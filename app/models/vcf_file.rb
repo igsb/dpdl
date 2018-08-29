@@ -134,9 +134,9 @@ class VcfFile < ActiveRecord::Base
                             :user_id => login.id);
 
     FileUtils.cp(tempfile, path)
-    login.vcf_files << vcf_file;
-    login.uploaded_count += 1
-    login.save
+		login.vcf_files << vcf_file;
+		login.uploaded_count += 1
+		login.save
 
     vcf_file.save
     vcf_file.reload
@@ -200,6 +200,7 @@ class VcfFile < ActiveRecord::Base
       PatientsVcfFile.create(:patient_id  => patient.id,
                              :vcf_file_id => self.id,
                              :name => name)
+
       links << 1
     end
     self.sample_links = links.join(';')
