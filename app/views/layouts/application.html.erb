@@ -59,18 +59,23 @@
             <a class="nav-link" href="/annotations">Annotations</a>
             </li>
           <% end %>
-          <li class="nav-item <%= 'active' if params[:controller] == 'news' %>">
-          <a class="nav-link" href="/news">News</a>
+          <li class="nav-item dropdown <%= 'active' if ['news', 'profile'].include?(params[:controller]) %>">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            News
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+            <a class="dropdown-item" href="/news">Translate NAMSE</a>
+            <a class="dropdown-item" href="/profile">Profile</a>
+          </div>
           </li>
           <li class="nav-item <%= 'active' if params[:controller] == 'documents' %>">
           <a class="nav-link" href="/documents">Consent form</a>
           </li>
-          <li class="nav-item dropdown <%= 'active' if ['about', 'contact', 'profile'].include?(params[:controller]) %>">
+          <li class="nav-item dropdown <%= 'active' if ['about', 'contact'].include?(params[:controller]) %>">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             About us
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-            <a class="dropdown-item" href="/profile">Profile</a>
             <a class="dropdown-item" href="/about">Team</a>
             <a class="dropdown-item" href="/contact">Contact</a>
           </div>
