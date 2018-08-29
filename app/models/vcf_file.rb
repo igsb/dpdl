@@ -128,24 +128,16 @@ class VcfFile < ActiveRecord::Base
 
     # write the file
     # File.open(path, "wb") { |f| f.write( data ) }
-	
-	if login.nil? 
-		id = "null"
-	else
-		id = login.id
-	end
     vcf_file = VcfFile.new(:name => fname,
                             :filtered => false,
                             :sample_names => sample_names,
-                            :user_id => id);
+                            :user_id => login.id);
 
     FileUtils.cp(tempfile, path)
-	if !login.nil?
 		login.vcf_files << vcf_file;
 		login.uploaded_count += 1
 		login.save
-    end 
-	
+
     vcf_file.save
     vcf_file.reload
 

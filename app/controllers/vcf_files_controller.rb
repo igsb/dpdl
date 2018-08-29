@@ -30,36 +30,36 @@ class VcfFilesController < ApplicationController
     warnings = ""
     alerts = ""
     ActiveRecord::Base.transaction do
-      if fname =~ /zip$/  
+      if fname =~ /zip$/
         tdir = File.join( VcfFile::VCF_PATH, fname )
         zipfile = params[:upload]['datafile'].tempfile.path
-        FileUtils.rmtree( tdir )    
-        Dir.mkdir( tdir, 0700 )
-        %x@unzip -aa -j "#{zipfile}" -d "#{tdir}"@ 
+        FileUtils.rmtree(tdir)
+        Dir.mkdir(tdir, 0700)
+        %x@unzip -aa -j "#{zipfile}" -d "#{tdir}"@
 
-        files = Dir.glob( File.join(tdir, "**") )
+        files = Dir.glob(File.join(tdir, "**"))
         output = "#{tdir} \n\n"
-        files.each do |f|                                      
-          infile = File.open( f )
-          name = File::basename( f )
-          @vcf_file, w, a = VcfFile.add_file( infile, f, name, login )
+        files.each do |f|
+          infile = File.open(f)
+          name = File::basename(f)
+          @vcf_file, w, a = VcfFile.add_file(infile, f, name, login)
           warnings << w
           warnings << a
         end
-        FileUtils.rmtree( tdir )
-      elsif fname =~ /gz$/ || fname =~ /txt$/  
-        f = "#{Rails.root}/#{VcfFile::VCF_TEMP}#{fname}"
-        FileUtils.cp( params[:upload]['datafile'].tempfile.path, f )
+        FileUtils.rmtree(tdir)
+      elsif fname =~ /gz$/ || fname =~ /txt$/
+        f = "#{Rails.root}/#{VcfFile::VCF_TEMP}/#{fname}"
+        FileUtils.cp(params[:upload]['datafile'].tempfile.path, f)
         e=%x@gunzip -d -f "#{f}"@
-        f.sub!(/\.gz$/,'')
-        infile = File.open( f )
-        name = File::basename( f )
-        @vcf_file, warnings, alerts = VcfFile.add_file( infile, f, name, nil )
-        FileUtils.rm_f f       
+        f.sub!(/\.gz$/, '')
+        infile = File.open(f)
+        name = File::basename(f)
+        @vcf_file, warnings, alerts = VcfFile.add_file(infile, f, name, login)
+        FileUtils.rm_f f
       else
-        infile = params[:upload]['datafile'].open   
+        infile = params[:upload]['datafile'].open
         tempfile = params[:upload]['datafile'].tempfile.path
-        @vcf_file, warnings, alerts = VcfFile.add_file( infile, tempfile, fname, login )
+        @vcf_file, warnings, alerts = VcfFile.add_file(infile, tempfile, fname, login)
       end
 
       flash[:warning] = warnings unless warnings.blank?
@@ -68,7 +68,7 @@ class VcfFilesController < ApplicationController
         if remote
           render :text => alerts, :content_type => 'text/plain'
           return
-        else                               
+        else
           puts alerts
           flash[:alert] = alerts
           redirect_to new_vcf_file_path and return
@@ -86,7 +86,7 @@ class VcfFilesController < ApplicationController
       if remote
         render :text => "OK", :content_type => 'text/plain'
         return
-      end    
+      end
 
       @vcf_file.create_samples
       @vcf_file.parse_vcf
