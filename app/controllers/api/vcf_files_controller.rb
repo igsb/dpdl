@@ -1,6 +1,7 @@
 class Api::VcfFilesController < Api::BaseController
   before_action :authenticate_token
 
+  require 'open3'
   # POST /vcf_files
   # saves the uploaded vcf file in the /data/received_vcffiles folder
   def create
@@ -38,6 +39,7 @@ class Api::VcfFilesController < Api::BaseController
       vcf.updated_at = Time.now.to_datetime
     end
     vcf.save
+    activate_pedia(f, case_id)
     respond_to do |format|
       format.json { render plain: {msg: 'VCF file uploaded successfully. PEDIA workflow will be triggered' }.to_json,
 	                status: 200, content_type: 'application/json' }
@@ -75,5 +77,36 @@ class Api::VcfFilesController < Api::BaseController
         end
       end
     end
+  end
+
+  def activate_pedia(vcf_path, case_id)
+    # path for running PEDIA
+    case_id = case_id.to_s
+    if Rails.env.production?
+      activate_path = '/home/tzung/miniconda3/bin/activate'
+      snakemake_path = '/home/tzung/miniconda3/bin/snakemake'
+    else
+      activate_path = 'activate'
+      snakemake_path = 'snakemake'
+    end
+    service_path = 'Data/PEDIA_service/'
+
+    done_file = File.join(service_path, case_id, case_id + '_preproc.done')
+    cmd = ['.', activate_path, 'pedia;', snakemake_path, done_file].join ' '
+    log_path = File.join('log', 'pedia', case_id)
+    unless File.directory?(log_path)
+      FileUtils.mkdir_p(log_path)
+    end
+    out_log = File.join(log_path, case_id + '_pre.out')
+    err_log = File.join(log_path, case_id + '_pre.err')
+    pid = spawn(cmd, :out => out_log, :err => err_log)
+    Process.detach(pid)
+
+    result_path = File.join(service_path, case_id, case_id + '.csv')
+    cmd = ['.', activate_path, 'pedia;', snakemake_path, result_path].join ' '
+    out_log = File.join(log_path, case_id + '.out')
+    err_log = File.join(log_path, case_id + '.err')
+    pid = spawn(cmd, :out => out_log, :err => err_log)
+    Process.detach(pid)
   end
 end
