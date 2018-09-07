@@ -127,7 +127,7 @@ class Api::PatientsController < Api::BaseController
       return
     end
 
-    result_file_name = (File.join('Data/PEDIA_service/', case_id + '.csv', ))
+    result_file_name = (File.join('Data/PEDIA_service/', case_id, case_id + '.csv', ))
     json_file_name = (File.join('Data/tmp/', case_id + '.json', ))
 
     #check if the result files are availble, if not send 404

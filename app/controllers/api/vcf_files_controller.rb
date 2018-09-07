@@ -30,7 +30,7 @@ class Api::VcfFilesController < Api::BaseController
     FileUtils.mkdir(dir) unless File.directory?(dir)
 
     f = "#{dir}/#{fname}"
-    FileUtils.cp_r( params[:file].tempfile.path, f)
+    FileUtils.cp_r(params[:file].tempfile.path, f)
     vcf = UploadedVcfFile.find_by_file_name(fname)
     if vcf.nil?
       vcf = UploadedVcfFile.create(case_id: case_id, file_name: fname)
@@ -38,6 +38,14 @@ class Api::VcfFilesController < Api::BaseController
       vcf.updated_at = Time.now.to_datetime
     end
     vcf.save
+    json_path = File.join("Data", "Received_JsonFiles", case_id.to_s + '.json')
+    service = PediaService.create(username: 'FDNA',
+                                  email: 'lab@fdna.com',
+                                  json_file: json_path,
+                                  vcf_file: f,
+                                  case_id: case_id)
+    PediaServiceJob.perform_later(service)
+
     respond_to do |format|
       format.json { render plain: {msg: 'VCF file uploaded successfully. PEDIA workflow will be triggered' }.to_json,
 	                status: 200, content_type: 'application/json' }
