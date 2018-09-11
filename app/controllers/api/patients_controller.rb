@@ -156,6 +156,37 @@ class Api::PatientsController < Api::BaseController
     return !!(str =~ /^[-+]?[1-9]([0-9]*)?$/)
   end
 
+  #DELETE /patients/id
+  def destroy
+    case_id = params[:id]
+
+    p = Patient.find_by_case_id(case_id)
+    if p.nil?
+      respond_to do |format|
+        format.json { render plain: {msg: 'case does not exist' }.to_json, status: 400,
+                      content_type: 'application/json' }
+      end
+      return
+    else
+      path_json_file = "#{Rails.root}/Data/Received_JsonFiles/#{case_id}.json"
+      File.delete(path_json_file) if File.exist?(path_json_file)
+      p.destroy
+
+      vcf = UploadedVcfFile.find_by_case_id(case_id)
+      if !vcf.nil?
+        path_vcf_file = "#{Rails.root}/Data/Received_VcfFiles/#{vcf.file_name}"
+        File.delete(path_vcf_file) if File.exist?(path_vcf_file)
+        vcf.destroy
+      end
+
+      respond_to do |format|
+        format.json { render plain: {msg: 'Patient information deleted' }.to_json,
+                      status: 200, content_type: 'application/json' }
+      end
+    end
+
+  end
+
   def authenticate_token
     api_token, options = ActionController::HttpAuthentication::Token.token_and_options(request)
     token = ApiKey.where(access_token: api_token).first
