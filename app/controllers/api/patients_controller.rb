@@ -14,8 +14,10 @@ class Api::PatientsController < Api::BaseController
     p = Patient.find_by_case_id(patient_id)
     if !p.nil?
       respond_to do |format|
-        format.json { render plain: { msg: 'DPDL case already exists' }.to_json, status: 400,
-                      content_type: 'application/json' }
+        format.json { render plain: { msg: 'DPDL case already exists' }.to_json,
+                      status: 400,
+                      content_type: 'application/json'
+                    }
       end
       return
     end
@@ -95,10 +97,14 @@ class Api::PatientsController < Api::BaseController
     respond_to do |format|
       if patient.save
         format.json { render plain: { msg: 'DPDL case created successfully' }.to_json,
-                      status: 200, content_type: 'application/json' }
+                      status: 200,
+                      content_type: 'application/json'
+                    }
       else
         format.json { render plain: { error: 'Unable to save patient information. Please check the data'}.to_json,
-                      status: 400, content_type: 'application/json' }
+                      status: 400,
+                      content_type: 'application/json'
+                    }
       end
     end
   end
@@ -122,7 +128,9 @@ class Api::PatientsController < Api::BaseController
     if p.nil?
       respond_to do |format|
         format.json { render plain: { msg: 'Case does not exist. Please create a case first to get PEDIA results' }.to_json,
-                      status: 400, content_type: 'application/json' }
+                      status: 400,
+                      content_type: 'application/json'
+                    }
       end
       return
     end
@@ -134,7 +142,9 @@ class Api::PatientsController < Api::BaseController
     if !(File.exist?(result_file_name))
       respond_to do |format|
         format.json { render plain: { error: 'Results are not available yet, please check later'}.to_json,
-                      status: 404, content_type: 'application/json' }
+                      status: 404,
+                      content_type: 'application/json'
+                    }
       end
       return
     end
@@ -159,32 +169,32 @@ class Api::PatientsController < Api::BaseController
   #DELETE /patients/id
   def destroy
     case_id = params[:id]
-
     p = Patient.find_by_case_id(case_id)
     if p.nil?
       respond_to do |format|
-        format.json { render plain: {msg: 'case does not exist' }.to_json, status: 400,
-                      content_type: 'application/json' }
+        format.json { render plain: { msg: 'case does not exist' }.to_json,
+                      status: 400,
+                      content_type: 'application/json'
+                    }
       end
       return
     else
       path_json_file = "#{Rails.root}/Data/Received_JsonFiles/#{case_id}.json"
       File.delete(path_json_file) if File.exist?(path_json_file)
       p.destroy
-
       vcf = UploadedVcfFile.find_by_case_id(case_id)
       if !vcf.nil?
         path_vcf_file = "#{Rails.root}/Data/Received_VcfFiles/#{vcf.file_name}"
         File.delete(path_vcf_file) if File.exist?(path_vcf_file)
         vcf.destroy
       end
-
       respond_to do |format|
-        format.json { render plain: {msg: 'Patient information deleted' }.to_json,
-                      status: 200, content_type: 'application/json' }
+        format.json { render plain: { msg: 'Patient information deleted' }.to_json,
+                      status: 200,
+                      content_type: 'application/json'
+                    }
       end
     end
-
   end
 
   def authenticate_token
@@ -195,13 +205,17 @@ class Api::PatientsController < Api::BaseController
     else
       if token.expired?
         respond_to do |format|
-          format.json { render plain: { error: 'Token expired' }.to_json, status: 401,
-                        content_type: 'application/json' }
+          format.json { render plain: { error: 'Token expired' }.to_json,
+                        status: 401,
+                        content_type: 'application/json'
+                      }
         end
       else
         respond_to do |format|
-          format.json { render plain: { error: 'Invalid token' }.to_json, status: 401,
-                        content_type: 'application/json' }
+          format.json { render plain: { error: 'Invalid token' }.to_json,
+                        status: 401,
+                        content_type: 'application/json'
+                      }
         end
       end
     end
