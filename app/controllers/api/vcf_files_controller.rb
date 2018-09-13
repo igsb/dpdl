@@ -30,20 +30,26 @@ class Api::VcfFilesController < Api::BaseController
       return
     end
 
-    dirname = File.join("Data", "Received_VcfFiles")
+    # Data/Received_VcfFiles/case_id/
+    dirname = File.join('Data', 'Received_VcfFiles', case_id.to_s)
     dir = "#{Rails.root}/#{dirname}"
     FileUtils.mkdir(dir) unless File.directory?(dir)
+    json_path = File.join('Data', 'Received_JsonFiles', case_id.to_s + '.json')
 
     f = "#{dir}/#{fname}"
-    FileUtils.cp_r(params[:file].tempfile.path, f)
     vcf = UploadedVcfFile.find_by_file_name(fname)
     if vcf.nil?
+      FileUtils.cp_r(params[:file].tempfile.path, f)
       vcf = UploadedVcfFile.create(case_id: case_id, file_name: fname)
     else
-      vcf.updated_at = Time.now.to_datetime
+      # check if VCF file is different from the original one
+      unless FileUtils.compare_file(f, params[:file].tempfile.path)
+        vcf.updated_at = Time.now.to_datetime
+        FileUtils.cp_r(params[:file].tempfile.path, f)
+      end
     end
     vcf.save
-    json_path = File.join("Data", "Received_JsonFiles", case_id.to_s + '.json')
+    add_vcf_to_json(json_path, f)
     service = PediaService.create(username: 'FDNA',
                                   email: 'lab@fdna.com',
                                   json_file: json_path,
@@ -56,6 +62,15 @@ class Api::VcfFilesController < Api::BaseController
                     status: 200,
                     content_type: 'application/json'
                   }
+    end
+  end
+
+  def add_vcf_to_json(json_path, vcf_name)
+    content = JSON.parse(File.read(json_path))
+    content['documents'] = [{ document_name: vcf_name,
+                              is_vcf: 1 }]
+    File.open(json_path, 'w') do |f|
+      f.puts JSON.pretty_generate(content)
     end
   end
 
@@ -80,7 +95,7 @@ class Api::VcfFilesController < Api::BaseController
     vcf = UploadedVcfFile.find_by_case_id(case_id)
     if !vcf.nil?
       vcf.destroy
-      path_vcf_file = "#{Rails.root}/Data/Received_VcfFiles/#{vcf.file_name}"
+      path_vcf_file = "#{Rails.root}/Data/Received_VcfFiles/#{case_id}/#{vcf.file_name}"
       File.delete(path_vcf_file) if File.exist?(path_vcf_file)
       respond_to do |format|
         format.json { render plain: { msg: 'Vcf file deleted' }.to_json,

@@ -17,7 +17,7 @@ class PediaService < ApplicationRecord
     end
     service_path = 'Data/PEDIA_service/'
 
-    done_file = File.join(service_path, case_id, case_id + '_preproc.done')
+    done_file = File.join(service_path, case_id, 'preproc.done')
     cmd = ['.', activate_path, 'pedia;', snakemake_path, done_file].join ' '
     log_path = File.join("#{Rails.root}", 'log', 'pedia', case_id)
     unless File.directory?(log_path)
@@ -27,6 +27,9 @@ class PediaService < ApplicationRecord
     # Run preprocessing to generate phenomized json
     # Todo:
     # connect following two preocess into one
+    # First cmd is:
+    # . activate pedia; snakemake --nolock
+    # Data/PEDIA_service/case_id/preproc.done
     out_log = File.join(log_path, case_id + '_pre.out')
     logger = Logger.new(out_log)
     Open3.popen3(cmd) do |stdin, stdout, stderr, thread|
@@ -34,7 +37,7 @@ class PediaService < ApplicationRecord
       { out: stdout, err: stderr }.each do |key, stream|
         Thread.new do
           until (raw_line = stream.gets).nil? do
-            logger.info("#{raw_line}")
+            logger.info("#{raw_line.delete!("\n")}")
           end
         end
       end
@@ -51,7 +54,7 @@ class PediaService < ApplicationRecord
       { out: stdout, err: stderr }.each do |key, stream|
         Thread.new do
           until (raw_line = stream.gets).nil? do
-            logger.info("#{raw_line}")
+            logger.info("#{raw_line.delete!("\n")}")
           end
         end
       end

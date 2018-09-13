@@ -98,6 +98,9 @@
             <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <%= current_user.email %>
+              <% if true_user.admin? and true_user != current_user %>
+                <%= link_to 'Stop impersonating', stop_impersonating_users_path, method: :post, data: { confirm: 'Switch back to your account?' } %>
+              <% end %>
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
               <%= link_to 'Edit profile', edit_user_registration_path, :class => 'dropdown-item' %>

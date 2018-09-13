@@ -184,7 +184,7 @@ class Api::PatientsController < Api::BaseController
       p.destroy
       vcf = UploadedVcfFile.find_by_case_id(case_id)
       if !vcf.nil?
-        path_vcf_file = "#{Rails.root}/Data/Received_VcfFiles/#{vcf.file_name}"
+        path_vcf_file = "#{Rails.root}/Data/Received_VcfFiles/#{case_id}/#{vcf.file_name}"
         File.delete(path_vcf_file) if File.exist?(path_vcf_file)
         vcf.destroy
       end
