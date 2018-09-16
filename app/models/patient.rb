@@ -19,6 +19,7 @@ class Patient < ApplicationRecord
 
   PHENOTYPE_DIAGNOSED = 2
   MOLECULAR_DIAGNOSED = 3
+  CLINICALLY_DIAGNOSED = 4
 
   def parse_json(data)
     @@log = Logger.new('log/patient.log')
@@ -226,7 +227,7 @@ class Patient < ApplicationRecord
   end
 
   def get_selected_disorders
-    return self.patients_disorders.where("diagnose_type_id = ? OR diagnose_type_id = ?", PHENOTYPE_DIAGNOSED, MOLECULAR_DIAGNOSED)
+    return self.patients_disorders.where("diagnose_type_id = ? OR diagnose_type_id = ? OR diagnose_type_id = ?", PHENOTYPE_DIAGNOSED, MOLECULAR_DIAGNOSED, CLINICALLY_DIAGNOSED)
   end
 
   def get_detected_disorders
