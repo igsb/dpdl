@@ -2,8 +2,11 @@ class Disorder < ApplicationRecord
   has_many :patients_disorders
   has_many :patients, :through => :patients_disorders, :dependent => :restrict_with_error
 
-  has_many :phenotypic_series_disorders
-  has_many :phenotypic_series, :through => :phenotypic_series_disorders
+  has_many :phenotypic_series_child_disorders, foreign_key: :disorder_id, class_name: 'PhenotypicSeriesDisorder'
+  has_many :phenotypic_series, through: :phenotypic_series_child_disorders, source: :phenotypic_series
+
+  has_many :child_disorders_phenotypic_series, foreign_key: :phenotypic_series_id, class_name: 'PhenotypicSeriesDisorder'
+  has_many :child_disorders, through: :child_disorders_phenotypic_series, source: :child_disorder
 
   has_many :disorders_scores
   has_many :scores, :through => :disorders_scores, :dependent => :destroy

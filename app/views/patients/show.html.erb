@@ -54,7 +54,7 @@
     <tbody>
       <% @diagnosed_disorders.each do |disorder| %>
         <tr>
-          <td><%= disorder.disorder.disorder_id %></td>
+          <td><%= disorder.disorder.omim_id %></td>
           <td><%= disorder.disorder.disorder_name %></td>
           <td><%= disorder.diagnose_type.name %></td>
         </tr>
