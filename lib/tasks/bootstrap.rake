@@ -35,13 +35,60 @@ namespace :bootstrap do
 
   desc "Add phenotypic series"
   task :default_phenotypic_series => :environment do
+    @@log = Logger.new('log/PS.log')
     count = 0
-    CSV.foreach("public/Phenotypic-Series-Titles-all.csv", {:col_sep => ","}) do |row|
-      if count > 4
-        title = row[0]
-        number = row[1].split("PS")[1]
-        PhenotypicSeries.create!(phenotypic_series_id:number, title:title)
-        Disorder.create!(disorder_id:number, disorder_name:title, is_phenotypic_series: true)
+    CSV.foreach("public/phenotypicSeries.txt", {:col_sep => "\t"}) do |row|
+      if count > 2
+        if row.count == 2
+          # Phenotypic series
+          title = row[1]
+          number = row[0].split("PS")[1]
+          Disorder.find_or_create_by(omim_id: number,
+                                     disorder_name: title,
+                                     is_phenotypic_series: true,
+                                     omim: true)
+        else
+          # Disorder
+          title = row[2]
+          number = row[1]
+          #ps = row[0].split("PS")[1]
+          Disorder.find_or_create_by(omim_id: number,
+                                     disorder_name: title,
+                                     is_phenotypic_series: false,
+                                     omim: true)
+          #Disorder.find_by(omim_id:ps,
+          #                 is_phenotypic_series: true)
+        end
+      end
+      count += 1
+    end
+    @@log.info "Add phenotypic series complete"
+  end
+
+  desc "Add phenotypic series"
+  task :rename_ps_name => :environment do
+    @@log = Logger.new('log/PS.log')
+    count = 0
+    CSV.foreach("public/phenotypicSeries.txt", {:col_sep => "\t"}) do |row|
+      if count > 2
+        if row.count == 2
+          # Phenotypic series
+          title = row[1]
+          number = row[0].split("PS")[1]
+          disorder = Disorder.find_by(omim_id: number,
+                                      is_phenotypic_series: true)
+          unless disorder.nil?
+            old_name = disorder.disorder_name
+            disorder.disorder_name = title
+            disorder.save
+            @@log.debug "Rename #{number.to_s} #{old_name} to #{title}"
+          else
+            Disorder.create(omim_id: number,
+                            disorder_name: title,
+                            is_phenotypic_series: true)
+            @@log.fatal "#{number.to_s} #{title} not found"
+          end
+        end
       end
       count += 1
     end
@@ -54,24 +101,28 @@ namespace :bootstrap do
     @@log = Logger.new('log/bootstrap_disorder_gene.log')
     CSV.foreach("public/genemap2.txt", {:col_sep => "\t"}) do |row|
       if count > 3
-        if !row[12].nil?
+        # check if there is omim ID row[12]
+        unless row[12].nil?
           entrez_id = row[9]
           name = row[6].split(",")[0]
-          gene = Gene.find_or_create_by(entrez_id: entrez_id, name: name)
+          gene = Gene.find_by(entrez_id: entrez_id)
+          if gene.nil?
+            gene = Gene.find_or_create_by(entrez_id: entrez_id, name: name)
+          end
           omim_str = row[12].split(",")
           omim_array = Array.new
           key_array = Array.new
           omim_str.each do |omim|
             if omim.include? "(" and omim.include? ")"
-              omim_tmp = omim.split(" ")   
+              omim_tmp = omim.split(" ")
               if omim_tmp.length > 1
                 for i in 0...omim_tmp.length
                   if omim_tmp[i].include? "(" and omim_tmp[i].include? ")"
                     mapping_key_str = omim_tmp[i].split("(")[1].split(")")[0]
                     if mapping_key_str.scan(/\D/).empty? and mapping_key_str.to_i < 6 and mapping_key_str.to_i > 0
-                      # mapping key is number   
+                      # mapping key is number
                       mapping_key = mapping_key_str.to_i
-                      if omim_tmp[i - 1].scan(/\D/).empty? 
+                      if omim_tmp[i - 1].scan(/\D/).empty?
                         # found omim id in the i-1 position
                         omim_array.push(omim_tmp[i - 1].to_i)
                         key_array.push(mapping_key)
@@ -85,7 +136,7 @@ namespace :bootstrap do
             end
           end
           omim_array.zip(key_array).each do |omim, key|
-            disorder = Disorder.where(disorder_id: omim, is_phenotypic_series: false).take
+            disorder = Disorder.where(omim_id: omim, is_phenotypic_series: false).take
             if disorder.nil?
               @@log.debug "omim not found: #{omim.to_s} #{row[12]}"
             else
