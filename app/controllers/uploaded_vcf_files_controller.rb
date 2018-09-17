@@ -25,7 +25,7 @@ class UploadedVcfFilesController < ApplicationController
     access = false
     if not current_user.admin
       user = current_user
-      if user.patients.exists?(@patient.id)
+      if user.uploaded_vcf_files.exists?(params[:id])
         access = true
       end
     else
