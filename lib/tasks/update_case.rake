@@ -138,10 +138,10 @@ namespace :patient do
       syns.each do |selected_syn|
         syn = selected_syn['syndrome']
         diagnosis = selected_syn['diagnosis']
-        if syn['omim_id'].nil?
+        if syn['omim_id'].nil? and syn['omim_ids'].nil?
           puts "Syndrome has no omim: #{syn['syndrome_name']}"
         else
-          unless syn['omim_id'].nil?
+          unless syn['omim_ps_id'].nil?
             ps_id = syn['omim_ps_id'].split('PS')[1]
             disorder = Disorder.find_by(omim_id: ps_id,
                                         is_phenotypic_series: true)
