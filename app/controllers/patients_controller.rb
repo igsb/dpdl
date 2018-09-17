@@ -1,8 +1,8 @@
 class PatientsController < ApplicationController
   before_action :set_patient, only: [:show, :edit, :update, :destroy]
-  before_action :check_access, only: [:show, :edit, :update, :destroy] 
-  before_action :check_read_only, only: [:edit, :update, :destroy] 
-  before_action :check_demo, only: [:index, :show, :edit, :update, :destroy] 
+  before_action :check_access, only: [:show, :edit, :update, :destroy]
+  before_action :check_read_only, only: [:edit, :update, :destroy]
+  before_action :check_demo, only: [:index, :show, :edit, :update, :destroy]
 
   # GET /patients
   # GET /patients.json
@@ -107,22 +107,30 @@ class PatientsController < ApplicationController
         format.html { render :new }
         format.json { render json: @patient.errors, status: :unprocessable_entity }
       end
-    end          
-
-    #end
+    end
   end
 
   # PATCH/PUT /patients/1
   # PATCH/PUT /patients/1.json
   def update
     if params[:file]
-      name = params[:file].original_filename
-      dirname = File.join('Data/upload_vcf', @patient.case_id.to_s)
-      unless File.directory?(dirname)
-        FileUtils.mkdir_p(dirname)
+      dirname = File.join('Data', 'Received_VcfFiles', @patient.case_id.to_s)
+      dir = "#{Rails.root}/#{dirname}"
+      FileUtils.mkdir(dir) unless File.directory?(dir)
+      fname = params[:file].original_filename
+      f = "#{dir}/#{fname}"
+      vcf = UploadedVcfFile.find_by(patient_id: @patient.id, file_name: fname)
+      if vcf.nil?
+        FileUtils.cp_r(params[:file].tempfile.path, f)
+        vcf = UploadedVcfFile.create(patient_id: @patient.id, file_name: fname, user_id: current_user.id)
+      else
+        # check if VCF file is different from the original one
+        unless FileUtils.compare_file(f, params[:file].tempfile.path)
+          vcf.updated_at = Time.now.to_datetime
+          FileUtils.cp_r(params[:file].tempfile.path, f)
+        end
       end
-      path = File.join(dirname, name)
-      File.open(path, "wb") { |f| f.write(params[:file].read) }
+      vcf.save
     end
     if usi_params
       usi = UsiMaterialnr.find_or_create_by(patient_id: @patient.id)
@@ -176,7 +184,7 @@ class PatientsController < ApplicationController
     else
       access = true
     end
-    if not access 
+    if not access
       flash[:alert] = 'You do not have permissions to enter this case!'
       redirect_back(fallback_location: root_path)
     end

@@ -4,6 +4,7 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
     :recoverable, :rememberable, :trackable, :validatable
   has_many :vcf_files
+  has_many :uploaded_vcf_files
   has_many :users_patients
   has_many :patients, :through => :users_patients
   has_many :annotations

@@ -181,8 +181,8 @@ class Api::PatientsController < Api::BaseController
     else
       path_json_file = "#{Rails.root}/Data/Received_JsonFiles/#{case_id}.json"
       File.delete(path_json_file) if File.exist?(path_json_file)
+      vcf = UploadedVcfFile.find_by(patient_id: p.id)
       p.destroy
-      vcf = UploadedVcfFile.find_by_case_id(case_id)
       if !vcf.nil?
         path_vcf_file = "#{Rails.root}/Data/Received_VcfFiles/#{case_id}/#{vcf.file_name}"
         File.delete(path_vcf_file) if File.exist?(path_vcf_file)

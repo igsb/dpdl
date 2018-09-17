@@ -37,10 +37,13 @@ class Api::VcfFilesController < Api::BaseController
     json_path = File.join('Data', 'Received_JsonFiles', case_id.to_s + '.json')
 
     f = "#{dir}/#{fname}"
-    vcf = UploadedVcfFile.find_by_file_name(fname)
+    vcf = UploadedVcfFile.find_by(patient_id: p.id, file_name: fname)
     if vcf.nil?
       FileUtils.cp_r(params[:file].tempfile.path, f)
-      vcf = UploadedVcfFile.create(case_id: case_id, file_name: fname)
+      user = User.find_by_username('admin')
+      vcf = UploadedVcfFile.create(patient_id: p.id,
+                                   file_name: fname,
+                                   user_id: user.id)
     else
       # check if VCF file is different from the original one
       unless FileUtils.compare_file(f, params[:file].tempfile.path)
@@ -92,7 +95,8 @@ class Api::VcfFilesController < Api::BaseController
   # DELETE /vcf_files/id
   def destroy
     case_id = params[:id]
-    vcf = UploadedVcfFile.find_by_case_id(case_id)
+    p = Patient.find_by_case_id(case_id)
+    vcf = UploadedVcfFile.find_by(patient_id: p.id)
     if !vcf.nil?
       vcf.destroy
       path_vcf_file = "#{Rails.root}/Data/Received_VcfFiles/#{case_id}/#{vcf.file_name}"
