@@ -80,11 +80,6 @@ class Api::VcfFilesController < Api::BaseController
   def validate_filename
     valid = true
     fname = File.basename(params[:file].original_filename)
-    case_id = fname.split('.')[0]
-    caseid = params[:case_id]
-    if case_id != caseid
-      valid = false
-    end
     if !(fname =~ /zip$/ || fname =~ /gz$/ || fname =~ /vcf$/)
       valid = false
     end
