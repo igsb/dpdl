@@ -254,6 +254,8 @@ class VcfFilesController < ApplicationController
       gt.each do |value|
         if value == '0'
           gt_array.push(mut.ref)
+        elsif value == '2'
+          gt_array.push(mut.ref)
         else
           gt_array.push(mut.alt)
         end
