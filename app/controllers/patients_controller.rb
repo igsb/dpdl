@@ -1,19 +1,37 @@
 class PatientsController < ApplicationController
   before_action :set_patient, only: [:show, :edit, :update, :destroy]
-  before_action :check_access, only: [:show, :edit, :update, :destroy] 
-  before_action :check_read_only, only: [:edit, :update, :destroy] 
-  before_action :check_demo, only: [:index, :show, :edit, :update, :destroy] 
+  before_action :check_access, only: [:show, :edit, :update, :destroy]
+  before_action :check_read_only, only: [:edit, :update, :destroy]
+  before_action :check_demo, only: [:index, :show, :edit, :update, :destroy]
 
   # GET /patients
   # GET /patients.json
   def index
     user = current_user
+    group = user.groups
     sub_ids = []
+    @patients = []
     if not current_user.admin
       if params[:result] == "true"
-        @patients = user.patients.where(result: true).order(:case_id).page(params[:page]).per(25)
+        if not group.empty?
+          group.each do |g|
+            @patients += g.patients.where(result: true).order(:case_id)
+          end
+        else
+          @patients = user.patients.where(result: true).order(:case_id)
+        end
+        @patients = @patients.uniq
+        @patients = Kaminari.paginate_array(@patients).page(params[:page]).per(25)
       else
-        @patients = user.patients.order(:case_id).page(params[:page]).per(25)
+        if not group.empty?
+          group.each do |g|
+            @patients += g.patients.order(:case_id)
+          end
+        else
+          @patients = user.patients.order(:case_id)
+        end
+        @patients = @patients.uniq
+        @patients = Kaminari.paginate_array(@patients).page(params[:page]).per(25)
       end
     else
       if params[:result] == "true"
@@ -87,8 +105,16 @@ class PatientsController < ApplicationController
       @patient = Patient.create(case_id: data['case_id'], age: data['age'], submitter: submitter, last_name:data['last_name'], first_name:data['first_name'])
       user = User.find_by_email(submitter.email)
       if not user.nil?
+        usergrp = user.groups
         if not user.patients.exists?(@patient.id)
           user.patients << @patient
+        end
+        if not usergrp.nil?
+          usergrp.each do |g|
+            if not g.patients.exists?(@patient.id)
+              g.patients << @patient
+            end
+          end
         end
       end
       if @patient.valid?
@@ -107,7 +133,7 @@ class PatientsController < ApplicationController
         format.html { render :new }
         format.json { render json: @patient.errors, status: :unprocessable_entity }
       end
-    end          
+    end
 
     #end
   end
@@ -170,23 +196,31 @@ class PatientsController < ApplicationController
     access = false
     if not current_user.admin
       user = current_user
+      group = user.groups
       if user.patients.exists?(@patient.id)
         access = true
+      end
+      group.each do |g|
+        if g.patients.exists?(@patient.id)
+          access = true
+        end
       end
     else
       access = true
     end
-    if not access 
+    if not access
       flash[:alert] = 'You do not have permissions to enter this case!'
       redirect_back(fallback_location: root_path)
     end
   end
+
   def check_read_only
     if current_user.username == "demo"
       flash[:alert] = 'You do not have permissions to modify this case!'
       redirect_back(fallback_location: root_path)
     end
   end
+
   def check_demo
     @demo = false
     if current_user.username == "demo"

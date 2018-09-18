@@ -6,6 +6,8 @@ class User < ApplicationRecord
   has_many :vcf_files
   has_many :users_patients
   has_many :patients, :through => :users_patients
+  has_many :members
+  has_many :groups, :through => :members
   has_many :annotations
   after_create :send_admin_mail
   validates :institute, :presence => true
@@ -22,23 +24,23 @@ class User < ApplicationRecord
   validate :validate_username
   after_create :assign_default_patients
 
- 
+
   def validate_username
     if User.where(email: username).exists?
       errors.add(:username, :invalid)
     end
   end
 
-  def active_for_authentication? 
-    super && approved? 
-  end 
+  def active_for_authentication?
+    super && approved?
+  end
 
-  def inactive_message 
-    if !approved? 
-      :not_approved 
-    else 
-      super # Use whatever other message 
-    end 
+  def inactive_message
+    if !approved?
+      :not_approved
+    else
+      super # Use whatever other message
+    end
   end
 
   def send_admin_mail
@@ -60,7 +62,7 @@ class User < ApplicationRecord
   end
 
   private
- 
+
   def assign_default_patients
     # This automatically creates the UserGroup record
     email = self.email
