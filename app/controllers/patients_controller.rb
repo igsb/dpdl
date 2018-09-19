@@ -20,8 +20,6 @@ class PatientsController < ApplicationController
         else
           @patients = user.patients.where(result: true).order(:case_id)
         end
-        @patients = @patients.uniq
-        @patients = Kaminari.paginate_array(@patients).page(params[:page]).per(25)
       else
         if not group.empty?
           group.each do |g|
@@ -30,9 +28,9 @@ class PatientsController < ApplicationController
         else
           @patients = user.patients.order(:case_id)
         end
-        @patients = @patients.uniq
-        @patients = Kaminari.paginate_array(@patients).page(params[:page]).per(25)
       end
+      @patients = @patients.uniq
+      @patients = Kaminari.paginate_array(@patients).page(params[:page]).per(25)
     else
       if params[:result] == "true"
         @patients = Patient.where(result: true).order(:case_id).page(params[:page]).per(25)

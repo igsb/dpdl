@@ -1,7 +1,7 @@
 class GroupsController < ApplicationController
   before_action :check_access
   before_action :set_group, only: [:show, :edit, :update, :destroy]
-  after_action :assign_group_patients ,only: [:create, :update]
+  after_action :assign_group_patients, only: [:create]
 
   def index
     @groups = Group.order(:id).page(params[:page]).per(25)
@@ -17,20 +17,21 @@ class GroupsController < ApplicationController
       @group.name = new_grp_name
       if new_members
         new_members.each do |m|
-          user = User.where(id:m).first
+          user = User.where(id: m).first
           Member.create(user_id: user.id, group_id: @group.id)
+          assign_group_patients
         end
       end
 
       if remove_members
         remove_members.each do |mem|
-          user = User.where(id:mem).first
+          user = User.where(id: mem).first
           Member.where(user_id: user.id).where(group_id: @group.id).destroy_all
           email = user.email
           submitter = Submitter.find_by_email(email)
           if submitter != nil
             submitter.patient.each do |patient|
-              @group.patients.destroy_all
+              GroupsPatient.where(group_id: @group.id).where(patient_id: patient.id).destroy_all
             end
           end
         end
@@ -59,7 +60,7 @@ class GroupsController < ApplicationController
     ActiveRecord::Base.transaction do
       @group = Group.create(name: grp_name)
       members.each do |m|
-        user = User.where(id:m).first
+        user = User.where(id: m).first
         Member.create(user_id: user.id, group_id: @group.id)
       end
     end
@@ -75,15 +76,13 @@ class GroupsController < ApplicationController
   end
 
   def show
-
   end
 
-    # GET /patients/1/edit
+  # GET /patients/1/edit
   def edit
     @users = User.all
     @members = @group.users
   end
-
 
   def destroy
     @group.destroy
@@ -93,16 +92,14 @@ class GroupsController < ApplicationController
     end
   end
 
-
   private
 
   def set_group
     @group = Group.find(params[:id])
   end
 
-
   def check_access
-   (current_user.nil?) ? redirect_to(root_path) : (redirect_to(root_path) unless current_user.admin?)
+    (current_user.nil?) ? redirect_to(root_path) : (redirect_to(root_path) unless current_user.admin?)
   end
 
   def assign_group_patients
