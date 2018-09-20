@@ -48,7 +48,7 @@ class PediaService < ApplicationRecord
     # First cmd is:
     # . activate pedia; snakemake --nolock
     # Data/PEDIA_service/case_id/preproc.done
-    out_log = File.join(log_path, case_id + '_pre.out')
+    out_log = File.join(log_path, 'preprocess.log')
     logger = Logger.new(out_log)
     Thread.abort_on_exception = true
     Open3.popen3(cmd) do |stdin, stdout, stderr, thread|
@@ -72,7 +72,7 @@ class PediaService < ApplicationRecord
     self.save
     result_path = File.join(service_path, case_id, case_id + '.csv')
     cmd = ['.', activate_path, 'pedia;', snakemake_path, result_path].join ' '
-    out_log = File.join(log_path, case_id + '.out')
+    out_log = File.join(log_path, 'workflow.log')
     logger = Logger.new(out_log)
     Open3.popen3(cmd) do |stdin, stdout, stderr, thread|
       # read each stream from a new thread
