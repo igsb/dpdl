@@ -224,7 +224,7 @@ class VcfFilesController < ApplicationController
       mut_ids << mut_pos.id
       position = mut_pos.position
       max_score = mut_pos.max_classification
-      if max_score and max_score > cs_score
+      if max_score && max_score > cs_score
         cs_score = max_score
       end
 

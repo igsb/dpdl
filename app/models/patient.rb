@@ -33,7 +33,7 @@ class Patient < ApplicationRecord
     end
     #parse_pedia(data['geneList'])
     if data.key? "genomicData"
-      if data['genomicData'].length > 0
+      if data['genomicData'].length.positive?
         parse_genomic(data['genomicData'])
       end
     end
@@ -219,7 +219,7 @@ class Patient < ApplicationRecord
 
   def get_selected_disorders
     unknow_id = DiagnosisType.find_by(name: DiagnosisType::UNKNOWN)
-    return self.patients_disorders.where("diagnosis_type_id != ?", unknow_id)
+    return self.patients_disorders.where('diagnosis_type_id != ?', unknow_id)
   end
 
   def get_detected_disorders

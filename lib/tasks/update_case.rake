@@ -156,9 +156,7 @@ namespace :patient do
           end
         end
       end
-
       patient.save
     end
   end
-
 end
