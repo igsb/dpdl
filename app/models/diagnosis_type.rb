@@ -1,10 +1,10 @@
 class DiagnosisType < ApplicationRecord
   has_many :patients_disorders
 
-  UNKNOWN = 'Unknown'
-  DIFFERENTIAL_DIAGNOSIS = 'Differential diagnosis'
-  MOLECULARLY_DIAGNOSED = 'Molecularly diagnosed'
-  CLINICALLY_DIAGNOSED = 'Clinically diagnosed'
+  UNKNOWN = 'Unknown'.freeze
+  DIFFERENTIAL_DIAGNOSIS = 'Differential diagnosis'.freeze
+  MOLECULARLY_DIAGNOSED = 'Molecularly diagnosed'.freeze
+  CLINICALLY_DIAGNOSED = 'Clinically diagnosed'.freeze
 
   def self.diag_type(diag)
     code = 1
