@@ -29,6 +29,7 @@ Rails.application.routes.draw do
   resources :patients
   resources :review
   resources :annotations
+  resources :uploaded_vcf_files
   post '/annotations/new' => 'annotations#new', as: :annotations_new 
 
   namespace :api do

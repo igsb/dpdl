@@ -15,7 +15,7 @@ PEDIA_PHENO_DIR = os.path.join(PEDIA_DIR, "data/PEDIA/jsons/phenomized")
 PEDIA_VCF_DIR = os.path.join(PEDIA_DIR, "data/PEDIA/vcfs/original")
 
 subworkflow classifier_workflow:
-	workdir: PEDIA_DIR + "classifier/scripts"
+	workdir: PEDIA_DIR + "classifier"
 	snakefile: PEDIA_DIR + "classifier/Snakefile"
 
 def get_process_vcf(wc):
@@ -72,7 +72,7 @@ rule preprocess:
 
 rule pedia:
 	input:
-		out = classifier_workflow("../output/test/1KG/{case}/run.out")
+		out = classifier_workflow("output/test/1KG/{case}/run.out")
 	output:
 		result = "Data/PEDIA_service/{case}/{case}.csv"
 	params:
