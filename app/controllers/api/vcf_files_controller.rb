@@ -61,7 +61,7 @@ class Api::VcfFilesController < Api::BaseController
     p_services = p.pedia_services
     unless p_services.empty?
       p_service = p_services.last
-      p_status = p_service.pedia_status.status
+      p_status = p_service.pedia_status
       if p_status.running?
         msg = { msg: 'There is another PEDIA service for this case running. Please try it later.' }
         respond_to do |format|

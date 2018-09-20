@@ -130,7 +130,7 @@ class Api::PatientsController < Api::BaseController
     # first check if the case exists, if not do not continue processing
     # Check the status of the pedia results
     patient = Patient.find_by_case_id(case_id)
-    unless patient.nil?
+    if patient
       services = patient.pedia_services
       if services.empty?
         msg = { msg: 'No PEDIA service found' }
