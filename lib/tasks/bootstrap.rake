@@ -17,13 +17,14 @@ namespace :bootstrap do
     @@log.info "Add search type complete"
   end
 
-  desc "Add the diagnosed types"
-  task :default_diagnosed_type => :environment do
-    DiagnoseType.find_or_create_by(name: 'Unknown')
-    DiagnoseType.find_or_create_by(name: 'Differential diagnosis')
-    DiagnoseType.find_or_create_by(name: 'Molecular diagnosed')
-    DiagnoseType.find_or_create_by(name: 'Clinically diagnosed')
-    @@log.info "Add diagnosed type complete"
+  desc 'Add the diagnosis types'
+  task :default_diagnosis_type => :environment do
+    @@log = Logger.new('log/bootstrap.log')
+    DiagnosisType.find_or_create_by(name: DiagnosisType::UNKNOWN)
+    DiagnosisType.find_or_create_by(name: DiagnosisType::DIFFERENTIAL_DIAGNOSIS)
+    DiagnosisType.find_or_create_by(name: DiagnosisType::MOLECULARLY_DIAGNOSED)
+    DiagnosisType.find_or_create_by(name: DiagnosisType::CLINICALLY_DIAGNOSED)
+    @@log.info 'Add diagnosed type complete'
   end
 
   desc "Add omim"
@@ -78,7 +79,7 @@ namespace :bootstrap do
           number = row[0].split("PS")[1]
           disorder = Disorder.find_by(omim_id: number,
                                       is_phenotypic_series: true)
-          unless disorder.nil?
+          if disorder
             old_name = disorder.disorder_name
             disorder.disorder_name = title
             disorder.save
@@ -184,7 +185,7 @@ namespace :bootstrap do
   end
   desc "Run all bootstrapping tasks"
   task :all => [:default_type,
-                :default_diagnosed_type,
+                :default_diagnosis_type,
                 :default_omim,
                 :default_hpo,
                 :default_phenotypic_series,

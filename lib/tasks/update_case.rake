@@ -5,20 +5,6 @@ require 'mime/types'
 
 
 namespace :patient do
-  PHENOTYPE_DIAGNOSED = 2
-  MOLECULAR_DIAGNOSED = 3
-
-  def diag_type(diag)
-    code = 1
-    if diag == 'DIFFERENTIAL_DIAGNOSIS'
-      code = 2
-    elsif diag == 'MOLECULARLY_DIAGNOSED'
-      code = 3
-    elsif diag == 'CLINICALLY_DIAGNOSED'
-      code = 4
-    end
-    return code
-  end
 
   desc "Update case"
   task :update_case, [:filename] => :environment do |task, args|
@@ -51,12 +37,12 @@ namespace :patient do
                                        is_phenotypic_series: true)
             patient_disorder = PatientsDisorder.find_or_create_by(patient_id: patient.id,
                                                                   disorder_id: disorder.id)
-            patient_disorder.diagnose_type_id = diag_type(diagnosis)
+            patient_disorder.diagnosis_type_id = DiagnosisType.diag_type(diagnosis)
             patient_disorder.save
           else
             patient_disorder = PatientsDisorder.find_or_create_by(patient_id: patient.id,
                                                                   disorder_id: disorder.id)
-            patient_disorder.diagnose_type_id = diag_type(diagnosis)
+            patient_disorder.diagnosis_type_id = DiagnosisType.diag_type(diagnosis)
             patient_disorder.save
           end
         else
@@ -64,7 +50,7 @@ namespace :patient do
                                       is_phenotypic_series: false)
           patient_disorder = PatientsDisorder.find_or_create_by(patient_id: patient.id,
                                                                 disorder_id: disorder.id)
-          patient_disorder.diagnose_type_id = diag_type(diagnosis)
+          patient_disorder.diagnosis_type_id = DiagnosisType.diag_type(diagnosis)
           patient_disorder.save
         end
       end
@@ -152,12 +138,12 @@ namespace :patient do
                                           is_phenotypic_series: true)
               patient_disorder = PatientsDisorder.find_or_create_by(patient_id: patient.id,
                                                                     disorder_id: disorder.id)
-              patient_disorder.diagnose_type_id = diag_type(diagnosis)
+              patient_disorder.diagnosis_type_id = DiagnosisType.diag_type(diagnosis)
               patient_disorder.save
             else
               patient_disorder = PatientsDisorder.find_or_create_by(patient_id: patient.id,
                                                                     disorder_id: disorder.id)
-              patient_disorder.diagnose_type_id = diag_type(diagnosis)
+              patient_disorder.diagnosis_type_id = DiagnosisType.diag_type(diagnosis)
               patient_disorder.save
             end
           else
@@ -165,7 +151,7 @@ namespace :patient do
                                         is_phenotypic_series: false)
             patient_disorder = PatientsDisorder.find_or_create_by(patient_id: patient.id,
                                                                   disorder_id: disorder.id)
-            patient_disorder.diagnose_type_id = diag_type(diagnosis)
+            patient_disorder.diagnosis_type_id = DiagnosisType.diag_type(diagnosis)
             patient_disorder.save
           end
         end
