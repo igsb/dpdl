@@ -112,8 +112,9 @@ class Api::PatientsController < Api::BaseController
   #get /get_results
   #get the results, for the specified case id and send it as a response
   def get_results
-    data = File.read('Data/tmp/' + params[:case_id] + '.json')
-    send_data( data,
+    case_id = params[:case_id]
+    data = File.read('Data/tmp/' + case_id + '.json')
+    send_data(data,
               disposition: 'inline',
               type: 'application/json')
 
@@ -123,26 +124,42 @@ class Api::PatientsController < Api::BaseController
   def create_json
     case_id = params[:case_id]
 
-    # first check if the case exists, if not do not continue processing
-    p = Patient.find_by_case_id(case_id)
-    if p.nil?
-      respond_to do |format|
-        format.json { render plain: { msg: 'Case does not exist. Please create a case first to get PEDIA results' }.to_json,
-                      status: 400,
-                      content_type: 'application/json'
-                    }
-      end
-      return
-    end
-
     result_file_name = (File.join('Data/PEDIA_service/', case_id, case_id + '.csv', ))
     json_file_name = (File.join('Data/tmp/', case_id + '.json', ))
 
-    #check if the result files are availble, if not send 404
-    if !(File.exist?(result_file_name))
+    # first check if the case exists, if not do not continue processing
+    # Check the status of the pedia results
+    patient = Patient.find_by_case_id(case_id)
+    unless patient.nil?
+      services = patient.pedia_services
+      if services.empty?
+        msg = { msg: 'No PEDIA service found' }
+        status = 400
+      else
+        service = services.last
+        if service.pedia_status.status.include? 'failed'
+          msg = { msg: service.pedia_status.status }
+          status = 500
+        elsif service.pedia_status.status.include? 'running' or
+              service.pedia_status.status.include? 'Initiate'
+          msg = { msg: service.pedia_status.status }
+          status = 404
+        elsif service.pedia_status.status.include? 'Complete'
+          unless File.exist?(result_file_name)
+            msg = { msg: 'Can not find results' }
+            status = 500
+          end
+        end
+      end
+    else
+      msg = { msg: 'Case does not exist. Please create a case first to get PEDIA results' }
+      status = 400
+    end
+
+    unless msg.nil?
       respond_to do |format|
-        format.json { render plain: { error: 'Results are not available yet, please check later'}.to_json,
-                      status: 404,
+        format.json { render plain: msg.to_json,
+                      status: status,
                       content_type: 'application/json'
                     }
       end

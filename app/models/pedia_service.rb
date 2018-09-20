@@ -1,10 +1,30 @@
 class PediaService < ApplicationRecord
+  belongs_to :patient, optional: true
+  belongs_to :user, optional: true
+  belongs_to :pedia_status, optional: true
+
+  validates :pedia_status_id, presence: true
   require 'open3'
 
+  # perform and error are functios for delayed job
+  def perform()
+    self.run_pedia
+  end
+
+  def error(job, exception)
+    unless self.pedia_status.status.include?('failed')
+      status = PediaStatus.find_by(status: 'PEDIA failed. Unknown issue.')
+      self.pedia_status_id = status.id
+      self.save
+    end
+  end
+
   def run_pedia
-    Rails.logger.info 'Activate PEDIA pipeline'
+    self.pedia_status_id = PediaStatus.find_by(status: 'Preprocessing running').id
+    self.save
     # path for running PEDIA
-    case_id = self.case_id.to_s
+    case_id = self.patient.case_id.to_s
+    Delayed::Worker.logger.info('Start PEDIA for case: ' + case_id)
     if Rails.env.production?
       # this is for running on server
       # there are some issues for environment
@@ -25,13 +45,12 @@ class PediaService < ApplicationRecord
     end
 
     # Run preprocessing to generate phenomized json
-    # Todo:
-    # connect following two preocess into one
     # First cmd is:
     # . activate pedia; snakemake --nolock
     # Data/PEDIA_service/case_id/preproc.done
     out_log = File.join(log_path, case_id + '_pre.out')
     logger = Logger.new(out_log)
+    Thread.abort_on_exception = true
     Open3.popen3(cmd) do |stdin, stdout, stderr, thread|
       # read each stream from a new thread
       { out: stdout, err: stderr }.each do |key, stream|
@@ -41,10 +60,16 @@ class PediaService < ApplicationRecord
           end
         end
       end
-      raise "Preprocess failed" unless thread.value.success?
+      unless thread.value.success?
+        self.pedia_status_id = PediaStatus.find_by(status: 'Preprocessing failed').id
+        self.save
+        raise 'Preprocess failed, case: ' + case_id
+      end
       thread.join
     end
 
+    self.pedia_status_id = PediaStatus.find_by(status: 'Workflow running').id
+    self.save
     result_path = File.join(service_path, case_id, case_id + '.csv')
     cmd = ['.', activate_path, 'pedia;', snakemake_path, result_path].join ' '
     out_log = File.join(log_path, case_id + '.out')
@@ -58,8 +83,14 @@ class PediaService < ApplicationRecord
           end
         end
       end
-      raise 'Workflow failed' unless thread.value.success?
+      unless thread.value.success?
+        self.pedia_status_id = PediaStatus.find_by(status: 'Workflow failed').id
+        self.save
+        raise 'Workflow failed, case: ' + case_id
+      end
       thread.join
     end
+    self.pedia_status_id = PediaStatus.find_by(status: 'Complete').id
+    self.save
   end
 end

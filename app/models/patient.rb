@@ -16,6 +16,7 @@ class Patient < ApplicationRecord
   has_many :users, :through => :users_patients
 
   has_many :uploaded_vcf_files
+  has_many :pedia_services
   validates :case_id, :submitter_id, presence: true
   validates :case_id, uniqueness: true
 

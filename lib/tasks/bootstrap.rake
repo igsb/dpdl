@@ -3,25 +3,26 @@ namespace :bootstrap do
   desc "Add the default figure types"
   task :default_figure_type => :environment do
     @@log = Logger.new('log/bootstrap.log')
-    FigureType.create( :name => 'manhattan' )
+    FigureType.find_or_create_by(name: 'manhattan')
     @@log.info "Add figure type complete"
   end
 
   desc "Add the default types"
   task :default_type => :environment do
     @@log = Logger.new('log/bootstrap.log')
-    SearchType.create( :type_name => 'HPO' )
-    SearchType.create( :type_name => 'OMIM' )
-    SearchType.create( :type_name => 'Case ID' )
-    SearchType.create( :type_name => 'Submitter' )
+    SearchType.find_or_create_by(type_name: 'HPO')
+    SearchType.find_or_create_by(type_name: 'OMIM')
+    SearchType.find_or_create_by(type_name: 'Case ID')
+    SearchType.find_or_create_by(type_name: 'Submitter')
     @@log.info "Add search type complete"
   end
 
   desc "Add the diagnosed types"
   task :default_diagnosed_type => :environment do
-    DiagnoseType.create( :name => 'Unknown' )
-    DiagnoseType.create( :name => 'Phenotypic diagnosed' )
-    DiagnoseType.create( :name => 'Molecular diagnosed' )
+    DiagnoseType.find_or_create_by(name: 'Unknown')
+    DiagnoseType.find_or_create_by(name: 'Differential diagnosis')
+    DiagnoseType.find_or_create_by(name: 'Molecular diagnosed')
+    DiagnoseType.find_or_create_by(name: 'Clinically diagnosed')
     @@log.info "Add diagnosed type complete"
   end
 
@@ -143,7 +144,7 @@ namespace :bootstrap do
               DisordersGene.find_or_create_by(disorder_id: disorder.id, gene_id: gene.id, mapping_key_id: key)
             end
           end
-        end 
+        end
       end
       count += 1
     end
@@ -170,8 +171,27 @@ namespace :bootstrap do
     @@log.info "Add HPO complete"
   end
 
+
+  desc "Add default pedia status"
+  task :default_pedia_status => :environment do
+    PediaStatus.find_or_create_by(status: 'Initiate PEDIA service')
+    PediaStatus.find_or_create_by(status: 'Preprocessing running')
+    PediaStatus.find_or_create_by(status: 'Preprocessing failed')
+    PediaStatus.find_or_create_by(status: 'Workflow running')
+    PediaStatus.find_or_create_by(status: 'Workflow failed')
+    PediaStatus.find_or_create_by(status: 'Complete')
+    PediaStatus.find_or_create_by(status: 'PEDIA failed. Unknown issue.')
+  end
   desc "Run all bootstrapping tasks"
-  task :all => [:default_type, :default_diagnosed_type, :default_omim, :default_hpo, :default_phenotypic_series, :default_disorder_gene, :default_figure_type, :default_cli_sig]
+  task :all => [:default_type,
+                :default_diagnosed_type,
+                :default_omim,
+                :default_hpo,
+                :default_phenotypic_series,
+                :default_disorder_gene,
+                :default_figure_type,
+                :default_cli_sig,
+                :default_pedia_status]
 
   desc "Run hpo tasks"
   task :hpo => [:default_hpo]
