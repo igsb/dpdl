@@ -62,7 +62,7 @@ class Api::VcfFilesController < Api::BaseController
     unless p_services.empty?
       p_service = p_services.last
       p_status = p_service.pedia_status.status
-      if p_status.include?('Initiate') || p_status.include?('running')
+      if p_status.running?
         msg = { msg: 'There is another PEDIA service for this case running. Please try it later.' }
         respond_to do |format|
           format.json { render plain: msg.to_json,
@@ -73,7 +73,7 @@ class Api::VcfFilesController < Api::BaseController
         return
       end
     end
-    status = PediaStatus.find_by(status: 'Initiate PEDIA service')
+    status = PediaStatus.find_by(status: PediaStatus::INIT)
     service = PediaService.create(user_id: user.id,
                                   json_file: json_path,
                                   vcf_file: f,

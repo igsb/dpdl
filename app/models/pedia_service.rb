@@ -12,15 +12,15 @@ class PediaService < ApplicationRecord
   end
 
   def error(job, exception)
-    unless self.pedia_status.status.include?('failed')
-      status = PediaStatus.find_by(status: 'PEDIA failed. Unknown issue.')
+    unless self.pedia_status.normal_failed?
+      status = PediaStatus.find_by(status: PediaStatus::UNKNOWN_FAILED)
       self.pedia_status_id = status.id
       self.save
     end
   end
 
   def run_pedia
-    self.pedia_status_id = PediaStatus.find_by(status: 'Preprocessing running').id
+    self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::PRE_RUNNING).id
     self.save
     # path for running PEDIA
     case_id = self.patient.case_id.to_s
@@ -61,14 +61,14 @@ class PediaService < ApplicationRecord
         end
       end
       unless thread.value.success?
-        self.pedia_status_id = PediaStatus.find_by(status: 'Preprocessing failed').id
+        self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::PRE_FAILED).id
         self.save
         raise 'Preprocess failed, case: ' + case_id
       end
       thread.join
     end
 
-    self.pedia_status_id = PediaStatus.find_by(status: 'Workflow running').id
+    self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::WORKFLOW_RUNNING).id
     self.save
     result_path = File.join(service_path, case_id, case_id + '.csv')
     cmd = ['.', activate_path, 'pedia;', snakemake_path, result_path].join ' '
@@ -84,13 +84,13 @@ class PediaService < ApplicationRecord
         end
       end
       unless thread.value.success?
-        self.pedia_status_id = PediaStatus.find_by(status: 'Workflow failed').id
+        self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::WORKFLOW_FAILED).id
         self.save
         raise 'Workflow failed, case: ' + case_id
       end
       thread.join
     end
-    self.pedia_status_id = PediaStatus.find_by(status: 'Complete').id
+    self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::COMPLETE).id
     self.save
   end
 end

@@ -175,13 +175,13 @@ namespace :bootstrap do
 
   desc "Add default pedia status"
   task :default_pedia_status => :environment do
-    PediaStatus.find_or_create_by(status: 'Initiate PEDIA service')
-    PediaStatus.find_or_create_by(status: 'Preprocessing running')
-    PediaStatus.find_or_create_by(status: 'Preprocessing failed')
-    PediaStatus.find_or_create_by(status: 'Workflow running')
-    PediaStatus.find_or_create_by(status: 'Workflow failed')
-    PediaStatus.find_or_create_by(status: 'Complete')
-    PediaStatus.find_or_create_by(status: 'PEDIA failed. Unknown issue.')
+    PediaStatus.find_or_create_by(status: PediaStatus::INIT)
+    PediaStatus.find_or_create_by(status: PediaStatus::PRE_RUNNING)
+    PediaStatus.find_or_create_by(status: PediaStatus::PRE_FAILED)
+    PediaStatus.find_or_create_by(status: PediaStatus::WORKFLOW_RUNNING)
+    PediaStatus.find_or_create_by(status: PediaStatus::WORKFLOW_FAILED)
+    PediaStatus.find_or_create_by(status: PediaStatus::COMPLETE)
+    PediaStatus.find_or_create_by(status: PediaStatus::UNKNOWN_FAILED)
   end
   desc "Run all bootstrapping tasks"
   task :all => [:default_type,
