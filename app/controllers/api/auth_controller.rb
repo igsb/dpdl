@@ -15,7 +15,7 @@ class Api::AuthController < Api::BaseController
       end
     else
       respond_to do |format|
-        msg = { message: MSG_TOKEN_UNAUTHORIZED }
+        msg = { msg: MSG_TOKEN_UNAUTHORIZED }
         format.json { render plain: msg.to_json,
                       status: 400,
                       content_type: 'application/json'

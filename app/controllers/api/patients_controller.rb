@@ -14,7 +14,7 @@ class Api::PatientsController < Api::BaseController
     p = Patient.find_by_case_id(patient_id)
     if !p.nil?
       respond_to do |format|
-        msg = { message: MSG_CASE_EXISTS }
+        msg = { msg: MSG_CASE_EXISTS }
         format.json { render plain: msg.to_json,
                       status: 400,
                       content_type: 'application/json'
@@ -31,8 +31,8 @@ class Api::PatientsController < Api::BaseController
       user_institute = user['userInstitution']
       user_team = nil
     else
-      user_name = "Ms. FDNA"
-      user_email = "fdna@bla.com"
+      user_name = "Mr. FDNA LAB"
+      user_email = "fdna@fdna.com"
       user_institute = "F2G"
       user_team = nil
     end
@@ -97,13 +97,13 @@ class Api::PatientsController < Api::BaseController
 
     respond_to do |format|
       if patient.save
-        msg = { message: MSG_CASE_CREATED }
+        msg = { msg: MSG_CASE_CREATED }
         format.json { render plain: msg.to_json,
                       status: 200,
                       content_type: 'application/json'
                     }
       else
-        msg = { message: MSG_CASE_ERROR }
+        msg = { msg: MSG_CASE_ERROR }
         format.json { render plain: msg.to_json,
                       status: 400,
                       content_type: 'application/json'
@@ -136,26 +136,26 @@ class Api::PatientsController < Api::BaseController
     if patient
       services = patient.pedia_services
       if services.empty?
-        msg = { message: MSG_NO_PEDIA }
+        msg = { msg: MSG_NO_PEDIA }
         status = 400
       else
         service = services.last
         if service.pedia_status.status.include? 'failed'
-          msg = { message: service.pedia_status.status }
+          msg = { msg: service.pedia_status.status }
           status = 500
         elsif service.pedia_status.status.include? 'running' or
               service.pedia_status.status.include? 'Initiate'
-          msg = { message: service.pedia_status.status }
+          msg = { msg: service.pedia_status.status }
           status = 404
         elsif service.pedia_status.status.include? 'Complete'
           unless File.exist?(result_file_name)
-            msg = { message: PEDIA_NO_PEDIA_RESULTS }
+            msg = { msg: PEDIA_NO_PEDIA_RESULTS }
             status = 500
           end
         end
       end
     else
-      msg = { message: MSG_NO_PEDIA_CASE }
+      msg = { msg: MSG_NO_PEDIA_CASE }
       status = 400
     end
 
@@ -192,7 +192,7 @@ class Api::PatientsController < Api::BaseController
     p = Patient.find_by_case_id(case_id)
     if p.nil?
       respond_to do |format|
-        msg = { message: MSG_CASE_NOT_EXISTS }
+        msg = { msg: MSG_CASE_NOT_EXISTS }
         format.json { render plain: msg.to_json,
                       status: 400,
                       content_type: 'application/json'
@@ -210,7 +210,7 @@ class Api::PatientsController < Api::BaseController
         vcf.destroy
       end
       respond_to do |format|
-        msg = { message: MSG_CASE_DELETED }
+        msg = { msg: MSG_CASE_DELETED }
         format.json { render plain: msg.to_json,
                       status: 200,
                       content_type: 'application/json'
@@ -225,7 +225,7 @@ class Api::PatientsController < Api::BaseController
     if token
       if token.expired?
         respond_to do |format|
-          msg = { message: MSG_TOKEN_EXPIRED }
+          msg = { msg: MSG_TOKEN_EXPIRED }
           format.json { render plain: msg.to_json,
                         status: 401,
                         content_type: 'application/json'
@@ -234,7 +234,7 @@ class Api::PatientsController < Api::BaseController
       end
     else
       respond_to do |format|
-        msg = { message: MSG_TOKEN_INVALID }
+        msg = { msg: MSG_TOKEN_INVALID }
         format.json { render plain: msg.to_json,
                       status: 401,
                       content_type: 'application/json'

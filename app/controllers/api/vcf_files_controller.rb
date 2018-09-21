@@ -6,7 +6,7 @@ class Api::VcfFilesController < Api::BaseController
   def create
     # validate file extension and that the file belongs to the correponding case_id
     if not validate_filename
-      msg = { message: MSG_VCF_INVALID }
+      msg = { msg: MSG_VCF_INVALID }
       respond_to do |format|
         format.json { render plain: msg.to_json,
                       status: 400,
@@ -22,7 +22,7 @@ class Api::VcfFilesController < Api::BaseController
     # check if the corresponding case is alredy created
     p = Patient.find_by_case_id(case_id)
     if p.nil?
-      msg = { message: MSG_VCF_NO_CASE }
+      msg = { msg: MSG_VCF_NO_CASE }
       respond_to do |format|
         format.json { render plain: msg.to_json,
                       status: 400,
@@ -63,7 +63,7 @@ class Api::VcfFilesController < Api::BaseController
       p_service = p_services.last
       p_status = p_service.pedia_status
       if p_status.running?
-        msg = { message: MSG_PEDIA_RUNNING_TRY_LATER }
+        msg = { msg: MSG_PEDIA_RUNNING_TRY_LATER }
         respond_to do |format|
           format.json { render plain: msg.to_json,
                         status: 400,
@@ -83,7 +83,7 @@ class Api::VcfFilesController < Api::BaseController
     service.job_id = job.id
     service.save
     respond_to do |format|
-      msg = { message: MSG_VCF_SUCCESS_PEDIA_RUNNING }
+      msg = { msg: MSG_VCF_SUCCESS_PEDIA_RUNNING }
       format.json { render plain: msg.to_json,
                     status: 200,
                     content_type: 'application/json'
@@ -120,7 +120,7 @@ class Api::VcfFilesController < Api::BaseController
       path_vcf_file = "#{Rails.root}/Data/Received_VcfFiles/#{case_id}/#{vcf.file_name}"
       File.delete(path_vcf_file) if File.exist?(path_vcf_file)
       respond_to do |format|
-        msg = { message: MSG_VCF_DELETED }
+        msg = { msg: MSG_VCF_DELETED }
         format.json { render plain: msg.to_json,
                       status: 200,
                       content_type: 'application/json'
@@ -128,7 +128,7 @@ class Api::VcfFilesController < Api::BaseController
       end
     else
       respond_to do |format|
-        msg = { message: MSG_VCF_NOT_EXIST }
+        msg = { msg: MSG_VCF_NOT_EXIST }
         format.json { render plain: msg.to_json,
                       status: 400,
                       content_type: 'application/json'
@@ -143,7 +143,7 @@ class Api::VcfFilesController < Api::BaseController
     if token
       if token.expired?
         respond_to do |format|
-          msg = { message: MSG_TOKEN_EXPIRED }
+          msg = { msg: MSG_TOKEN_EXPIRED }
           format.json { render plain: msg.to_json,
                         status: 401,
                         content_type: 'application/json'
@@ -152,7 +152,7 @@ class Api::VcfFilesController < Api::BaseController
       end
     else
       respond_to do |format|
-        msg = { message: MSG_TOKEN_INVALID }
+        msg = { msg: MSG_TOKEN_INVALID }
         format.json { render plain: msg.to_json,
                       status: 401,
                       content_type: 'application/json'
