@@ -14,7 +14,8 @@ class Api::PatientsController < Api::BaseController
     p = Patient.find_by_case_id(patient_id)
     if !p.nil?
       respond_to do |format|
-        format.json { render plain: { msg: 'DPDL case already exists' }.to_json,
+        msg = { message: MSG_CASE_EXISTS }
+        format.json { render plain: msg.to_json,
                       status: 400,
                       content_type: 'application/json'
                     }
@@ -96,12 +97,14 @@ class Api::PatientsController < Api::BaseController
 
     respond_to do |format|
       if patient.save
-        format.json { render plain: { msg: 'DPDL case created successfully' }.to_json,
+        msg = { message: MSG_CASE_CREATED }
+        format.json { render plain: msg.to_json,
                       status: 200,
                       content_type: 'application/json'
                     }
       else
-        format.json { render plain: { error: 'Unable to save patient information. Please check the data'}.to_json,
+        msg = { message: MSG_CASE_ERROR }
+        format.json { render plain: msg.to_json,
                       status: 400,
                       content_type: 'application/json'
                     }
@@ -133,26 +136,26 @@ class Api::PatientsController < Api::BaseController
     if patient
       services = patient.pedia_services
       if services.empty?
-        msg = { msg: 'No PEDIA service found' }
+        msg = { message: MSG_NO_PEDIA }
         status = 400
       else
         service = services.last
         if service.pedia_status.status.include? 'failed'
-          msg = { msg: service.pedia_status.status }
+          msg = { message: service.pedia_status.status }
           status = 500
         elsif service.pedia_status.status.include? 'running' or
               service.pedia_status.status.include? 'Initiate'
-          msg = { msg: service.pedia_status.status }
+          msg = { message: service.pedia_status.status }
           status = 404
         elsif service.pedia_status.status.include? 'Complete'
           unless File.exist?(result_file_name)
-            msg = { msg: 'Can not find results' }
+            msg = { message: PEDIA_NO_PEDIA_RESULTS }
             status = 500
           end
         end
       end
     else
-      msg = { msg: 'Case does not exist. Please create a case first to get PEDIA results' }
+      msg = { message: MSG_NO_PEDIA_CASE }
       status = 400
     end
 
@@ -189,7 +192,8 @@ class Api::PatientsController < Api::BaseController
     p = Patient.find_by_case_id(case_id)
     if p.nil?
       respond_to do |format|
-        format.json { render plain: { msg: 'case does not exist' }.to_json,
+        msg = { message: MSG_CASE_NOT_EXISTS }
+        format.json { render plain: msg.to_json,
                       status: 400,
                       content_type: 'application/json'
                     }
@@ -206,7 +210,8 @@ class Api::PatientsController < Api::BaseController
         vcf.destroy
       end
       respond_to do |format|
-        format.json { render plain: { msg: 'Patient information deleted' }.to_json,
+        msg = { message: MSG_CASE_DELETED }
+        format.json { render plain: msg.to_json,
                       status: 200,
                       content_type: 'application/json'
                     }
@@ -217,23 +222,23 @@ class Api::PatientsController < Api::BaseController
   def authenticate_token
     api_token, options = ActionController::HttpAuthentication::Token.token_and_options(request)
     token = ApiKey.where(access_token: api_token).first
-    if token && !token.expired?
-
-    else
+    if token
       if token.expired?
         respond_to do |format|
-          format.json { render plain: { error: 'Token expired' }.to_json,
+          msg = { message: MSG_TOKEN_EXPIRED }
+          format.json { render plain: msg.to_json,
                         status: 401,
                         content_type: 'application/json'
                       }
         end
-      else
-        respond_to do |format|
-          format.json { render plain: { error: 'Invalid token' }.to_json,
-                        status: 401,
-                        content_type: 'application/json'
-                      }
-        end
+      end
+    else
+      respond_to do |format|
+        msg = { message: MSG_TOKEN_INVALID }
+        format.json { render plain: msg.to_json,
+                      status: 401,
+                      content_type: 'application/json'
+                    }
       end
     end
   end

@@ -6,7 +6,7 @@ class Api::VcfFilesController < Api::BaseController
   def create
     # validate file extension and that the file belongs to the correponding case_id
     if not validate_filename
-      msg = { msg: 'Invalid file' }
+      msg = { message: MSG_VCF_INVALID }
       respond_to do |format|
         format.json { render plain: msg.to_json,
                       status: 400,
@@ -22,7 +22,7 @@ class Api::VcfFilesController < Api::BaseController
     # check if the corresponding case is alredy created
     p = Patient.find_by_case_id(case_id)
     if p.nil?
-      msg = { msg: 'Corresponding case does not exist. Please create the case first' }
+      msg = { message: MSG_VCF_NO_CASE }
       respond_to do |format|
         format.json { render plain: msg.to_json,
                       status: 400,
@@ -63,7 +63,7 @@ class Api::VcfFilesController < Api::BaseController
       p_service = p_services.last
       p_status = p_service.pedia_status
       if p_status.running?
-        msg = { msg: 'There is another PEDIA service for this case running. Please try it later.' }
+        msg = { message: MSG_PEDIA_RUNNING_TRY_LATER }
         respond_to do |format|
           format.json { render plain: msg.to_json,
                         status: 400,
@@ -81,7 +81,8 @@ class Api::VcfFilesController < Api::BaseController
                                   pedia_status_id: status.id)
     job = Delayed::Job.enqueue(service)
     respond_to do |format|
-      format.json { render plain: { msg: 'VCF file uploaded successfully. PEDIA workflow will be triggered' }.to_json,
+      msg = { message: MSG_VCF_SUCCESS_PEDIA_RUNNING }
+      format.json { render plain: msg.to_json,
                     status: 200,
                     content_type: 'application/json'
                   }
@@ -117,14 +118,16 @@ class Api::VcfFilesController < Api::BaseController
       path_vcf_file = "#{Rails.root}/Data/Received_VcfFiles/#{case_id}/#{vcf.file_name}"
       File.delete(path_vcf_file) if File.exist?(path_vcf_file)
       respond_to do |format|
-        format.json { render plain: { msg: 'Vcf file deleted' }.to_json,
+        msg = { message: MSG_VCF_DELETED }
+        format.json { render plain: msg.to_json,
                       status: 200,
                       content_type: 'application/json'
                     }
       end
     else
       respond_to do |format|
-        format.json { render plain: { msg: 'File does not exist' }.to_json,
+        msg = { message: MSG_VCF_NOT_EXIST }
+        format.json { render plain: msg.to_json,
                       status: 400,
                       content_type: 'application/json'
                     }
@@ -135,23 +138,23 @@ class Api::VcfFilesController < Api::BaseController
   def authenticate_token
     api_token, options = ActionController::HttpAuthentication::Token.token_and_options(request)
     token = ApiKey.where(access_token: api_token).first
-    if token && !token.expired?
-
-    else
+    if token
       if token.expired?
         respond_to do |format|
-          format.json { render plain: { error: 'Token expired' }.to_json,
+          msg = { message: MSG_TOKEN_EXPIRED }
+          format.json { render plain: msg.to_json,
                         status: 401,
                         content_type: 'application/json'
                       }
         end
-      else
-        respond_to do |format|
-          format.json { render plain: { error: 'Invalid token' }.to_json,
-                        status: 401,
-                        content_type: 'application/json'
-                      }
-        end
+      end
+    else
+      respond_to do |format|
+        msg = { message: MSG_TOKEN_INVALID }
+        format.json { render plain: msg.to_json,
+                      status: 401,
+                      content_type: 'application/json'
+                    }
       end
     end
   end
