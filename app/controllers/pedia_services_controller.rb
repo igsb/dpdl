@@ -1,12 +1,13 @@
 class PediaServicesController < ApplicationController
   skip_before_action :authenticate_user!
   before_action :set_pedia_service, only: [:show, :edit, :update, :destroy]
+  before_action :check_access, only: [:show, :index, :edit, :update, :destroy]
   require 'fileutils'
 
   # GET /pedia_services
   # GET /pedia_services.json
   def index
-    @pedia_services = PediaService.all
+    @pedia_services = PediaService.all.order('job_id DESC')
   end
 
   # GET /pedia_services/1
@@ -103,5 +104,13 @@ class PediaServicesController < ApplicationController
   # Never trust parameters from the scary internet, only allow the white list through.
   def pedia_service_params
     params.fetch(:pedia_service, {})
+  end
+
+  def check_access
+    access = current_user.username == 'FDNA' || current_user.admin
+    if not access
+      flash[:alert] = 'You do not have permissions to enter this case!'
+      redirect_back(fallback_location: root_path)
+    end
   end
 end

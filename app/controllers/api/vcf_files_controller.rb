@@ -80,6 +80,8 @@ class Api::VcfFilesController < Api::BaseController
                                   patient_id: p.id,
                                   pedia_status_id: status.id)
     job = Delayed::Job.enqueue(service)
+    service.job_id = job.id
+    service.save
     respond_to do |format|
       msg = { message: MSG_VCF_SUCCESS_PEDIA_RUNNING }
       format.json { render plain: msg.to_json,

@@ -4,6 +4,7 @@ class PediaService < ApplicationRecord
   belongs_to :pedia_status, optional: true
 
   validates :pedia_status_id, presence: true
+  validates :job_id, uniqueness: true, allow_nil: true
   require 'open3'
 
   # perform and error are functios for delayed job
