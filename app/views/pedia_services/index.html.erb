@@ -18,7 +18,7 @@
     <% @pedia_services.each do |service| %>
       <tr>
         <td><%= service.job_id unless service.job_id.nil? %></td>
-        <td><%= service.patient.case_id %></td>
+        <td><%= service.patient.case_id unless service.patient.nil? %></td>
         <td><%= service.user.first_name + ' ' + service.user.last_name %></td>
         <td><%= File.basename(service.vcf_file)  %></td>
         <td><%= service.pedia_status.status %></td>
