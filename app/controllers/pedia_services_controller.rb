@@ -1,13 +1,20 @@
 class PediaServicesController < ApplicationController
-  skip_before_action :authenticate_user!
+  skip_before_action :authenticate_user!, only: [:index]
   before_action :set_pedia_service, only: [:show, :edit, :update, :destroy]
-  before_action :check_access, only: [:show, :index, :edit, :update, :destroy]
+  before_action :check_access, only: [:show, :edit, :update, :destroy]
   require 'fileutils'
 
   # GET /pedia_services
   # GET /pedia_services.json
   def index
     @pedia_services = PediaService.all.order('job_id DESC')
+  end
+
+  def monitor
+    @pedia_services = PediaService.all.order('job_id DESC')
+  end
+
+  def download
   end
 
   # GET /pedia_services/1
