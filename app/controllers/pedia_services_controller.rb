@@ -17,6 +17,16 @@ class PediaServicesController < ApplicationController
   def download
   end
 
+  def download_file
+    filename = "pedia_jsons_v1.tar.gz"
+    Download.create(filename: filename, user_id: current_user.id)
+    send_file(
+      "#{Rails.root}/public/" + filename,
+      filename: filename,
+      type: "application/x-compressed"
+    )
+  end
+
   # GET /pedia_services/1
   # GET /pedia_services/1.json
   def show
@@ -51,7 +61,7 @@ class PediaServicesController < ApplicationController
     patient_id = data['case_id']
     dir_path = File.join("Data", "PEDIA_service", patient_id)
     unless File.directory?(dir_path)
-        FileUtils.mkdir_p(dir_path)
+      FileUtils.mkdir_p(dir_path)
     end
     json_path = File.join(dir_path, patient_id + '.json')
     File.open(json_path, "wb") { |f| f.write(json_file) }

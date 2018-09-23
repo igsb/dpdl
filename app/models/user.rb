@@ -9,6 +9,7 @@ class User < ApplicationRecord
   has_many :patients, :through => :users_patients
   has_many :annotations
   has_many :pedia_services
+  has_many :downloads
   after_create :send_admin_mail
   validates :institute, :presence => true
   validates :last_name, :presence => true
