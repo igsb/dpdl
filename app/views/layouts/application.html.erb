@@ -71,6 +71,9 @@
           <li class="nav-item <%= 'active' if params[:controller] == 'documents' %>">
           <a class="nav-link" href="/documents">Consent form</a>
           </li>
+          <li class="nav-item <%= 'active' if params[:controller] == 'pedia_services' %>">
+          <a class="nav-link" href="/pedia_services">PEDIA service</a>
+          </li>
           <li class="nav-item dropdown <%= 'active' if ['about', 'contact'].include?(params[:controller]) %>">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             About us
