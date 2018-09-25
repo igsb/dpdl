@@ -17,9 +17,6 @@
     <% @patients.each do |patient| %>
 
       <% @diagnosed_disorders = patient.get_selected_disorders %>
-      <% if @diagnosed_disorders.empty? %>
-        <% @diagnosed_disorders = patient.get_detected_disorders %>
-      <% end %>
       <% @diagnosed = @diagnosed_disorders.take %>
       <tr>
         <td><%= patient.case_id %></td>

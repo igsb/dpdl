@@ -92,7 +92,7 @@ the process is completed.
    * copy and compress VCF file to data/PEDIA/vcfs/original/12345.vcf.gz (in PEDIA folder)
    ```
    snakemake --nolock Data/PEDIA_service/12345/preproc.done
-   # log file in log/pedia/12345/12345_pre.out
+   # log file in log/pedia/12345/preprocess.log
    ```
    
 1. PEDIA main workflow
@@ -106,5 +106,5 @@ the process is completed.
    * Copy the classifier/output/test/12345/12345.csv back to Data/PEDIA_service/12345/12345.csv
    ```
    snakemake --nolock Data/PEDIA_service/12345/12345.csv
-   # log file in log/pedia/12345/12345.out
+   # log file in log/pedia/12345/workflow.log
    ```

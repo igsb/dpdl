@@ -78,3 +78,4 @@ gem 'pretender'
 
 gem 'delayed_job_active_record'
 gem 'daemons'
+gem 'mysql_rake_tasks', '~> 0.1.0'

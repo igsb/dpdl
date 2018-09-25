@@ -1,10 +1,31 @@
 class PediaService < ApplicationRecord
+  belongs_to :patient, optional: true
+  belongs_to :user, optional: true
+  belongs_to :pedia_status, optional: true
+
+  validates :pedia_status_id, presence: true
+  validates :job_id, uniqueness: true, allow_nil: true
   require 'open3'
 
+  # perform and error are functios for delayed job
+  def perform()
+    self.run_pedia
+  end
+
+  def error(job, exception)
+    unless self.pedia_status.normal_failed?
+      status = PediaStatus.find_by(status: PediaStatus::UNKNOWN_FAILED)
+      self.pedia_status_id = status.id
+      self.save
+    end
+  end
+
   def run_pedia
-    Rails.logger.info 'Activate PEDIA pipeline'
+    self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::PRE_RUNNING).id
+    self.save
     # path for running PEDIA
-    case_id = self.case_id.to_s
+    case_id = self.patient.case_id.to_s
+    Delayed::Worker.logger.info('Start PEDIA for case: ' + case_id)
     if Rails.env.production?
       # this is for running on server
       # there are some issues for environment
@@ -25,13 +46,12 @@ class PediaService < ApplicationRecord
     end
 
     # Run preprocessing to generate phenomized json
-    # Todo:
-    # connect following two preocess into one
     # First cmd is:
     # . activate pedia; snakemake --nolock
     # Data/PEDIA_service/case_id/preproc.done
-    out_log = File.join(log_path, case_id + '_pre.out')
+    out_log = File.join(log_path, 'preprocess.log')
     logger = Logger.new(out_log)
+    Thread.abort_on_exception = true
     Open3.popen3(cmd) do |stdin, stdout, stderr, thread|
       # read each stream from a new thread
       { out: stdout, err: stderr }.each do |key, stream|
@@ -41,13 +61,19 @@ class PediaService < ApplicationRecord
           end
         end
       end
-      raise "Preprocess failed" unless thread.value.success?
+      unless thread.value.success?
+        self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::PRE_FAILED).id
+        self.save
+        raise 'Preprocess failed, case: ' + case_id
+      end
       thread.join
     end
 
+    self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::WORKFLOW_RUNNING).id
+    self.save
     result_path = File.join(service_path, case_id, case_id + '.csv')
     cmd = ['.', activate_path, 'pedia;', snakemake_path, result_path].join ' '
-    out_log = File.join(log_path, case_id + '.out')
+    out_log = File.join(log_path, 'workflow.log')
     logger = Logger.new(out_log)
     Open3.popen3(cmd) do |stdin, stdout, stderr, thread|
       # read each stream from a new thread
@@ -58,8 +84,14 @@ class PediaService < ApplicationRecord
           end
         end
       end
-      raise 'Workflow failed' unless thread.value.success?
+      unless thread.value.success?
+        self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::WORKFLOW_FAILED).id
+        self.save
+        raise 'Workflow failed, case: ' + case_id
+      end
       thread.join
     end
+    self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::COMPLETE).id
+    self.save
   end
 end

@@ -1,0 +1,44 @@
+<h1>PEDIA dataset</h1>
+
+<p>
+The PEDIA datasets contains the following data for different evluation.
+<ul>
+  <li>Cross-Validation</li>
+  <li>Deep-Gestalt publication test set</li>
+</ul>
+</p>
+
+<p>
+<b>1. Cross-Validation</b><br>
+In jsons folder, there are 1KG and IRAN folder which contains
+the json files simulated by 1KG and IRAN dataset for cross-validation.
+<pre>
+<code class="codeblock">
+  # 1KG
+  jsons/1KG/CV_gestalt/*.json
+  # IRAN
+  jsons/IRAN/CV_gestalt/*.json
+</code>
+</pre>
+</p>
+<p>
+<b>2. Deep-Gestalt publication test set</b><br>
+In publication_simulation folder, there are 10 folder with REP prefix and number as suffix
+which contains the deep gestalt publication data set simulated by the PEDIA cohort.
+We simulated the cases randomly, so we ran the experiments for ten times. The suffix indicates
+the number of run. In this experiment, we train on the PEDIA cohort, then test the model with 
+the simulated deep gestalt cases.
+<pre>
+<code class="codeblock">
+  # 1KG
+  REP_0/json_simulation/1KG/train/
+  REP_0/json_simulation/1KG/test/
+  # IRAN
+  REP_0/json_simulation/IRAN/train/
+  REP_0/json_simulation/IRAN/test/
+</code>
+</pre>
+
+</p>
+Please download the PEDIA dataset by the following link
+<%= link_to 'Download JSON files', pedia_services_download_file_url %>.

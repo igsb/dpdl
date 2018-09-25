@@ -6,6 +6,9 @@ Rails.application.routes.draw do
   resources :imprints
   resources :privacies
   resources :pedia_services, only: [:index, :new, :create, :destroy]
+  get 'pedia_services/monitor', to: 'pedia_services#monitor', as: :pedia_services_monitor
+  get 'pedia_services/download', to: 'pedia_services#download', as: :pedia_services_download
+  get 'pedia_services/download_file', to: 'pedia_services#download_file', as: :pedia_services_download_file
   resources :result_figures
   devise_for :users, controllers: { registrations: 'users/registrations' }
   resources :users
@@ -15,7 +18,7 @@ Rails.application.routes.draw do
   end
   put 'activate/:id', to: 'users#activate', as: :activate_user
   put 'deactivate/:id', to: 'users#deactivate', as: :deactivate_user
-  get 'vcf_files/get_var/:id', to: 'vcf_files#get_var', as: :vcf_files_get_var 
+  get 'vcf_files/get_var/:id', to: 'vcf_files#get_var', as: :vcf_files_get_var
   get :get_review, :controller => :review
   get '/get_img/:filename' => 'patients#get_img', :constraints => { :filename => /.*/ }
   resources :vcf_files
@@ -29,6 +32,7 @@ Rails.application.routes.draw do
   resources :patients
   resources :review
   resources :annotations
+  resources :uploaded_vcf_files
   post '/annotations/new' => 'annotations#new', as: :annotations_new 
 
   namespace :api do

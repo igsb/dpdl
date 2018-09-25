@@ -7,12 +7,20 @@ class Api::AuthController < Api::BaseController
     if (user && user.key == key)
       key = ApiKey.create(api_consumer_id: user.id)
       respond_to do |format|
-        format.json { render plain: {token: key.access_token}.to_json, status: 200, content_type: 'application/json'}
+        msg = { token: key.access_token }
+        format.json { render plain: msg.to_json,
+                      status: 200,
+                      content_type: 'application/json'
+                    }
       end
     else
       respond_to do |format|
-        format.json { render plain: {error: 'Unauthorized'}.to_json, status: 400, content_type: 'application/json'}
+        msg = { msg: MSG_TOKEN_UNAUTHORIZED }
+        format.json { render plain: msg.to_json,
+                      status: 400,
+                      content_type: 'application/json'
+                    }
       end
-    end 
+    end
   end
 end

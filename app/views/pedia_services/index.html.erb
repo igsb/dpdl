@@ -2,28 +2,28 @@
 
 <p>PEDIA Service is a website which provides user with the service of performing PEDIA scoring approach.
 By submitting the JSON file of your case which your receive from Face2Gene and a
-VCF from exome sequencing experiment, we will calculate the Phenomizer and Boqa 
+VCF from exome sequencing experiment, we will calculate the Phenomizer and Boqa
 score based on the HPO term and annotate the CADD score of the variants in VCF.
 After obtain all the scores, we then run the PEDIA classifier to calculate the PEDIA
-score for each gene. For more detail about the software, please refer our project 
+score for each gene. For more detail about the software, please refer our project
 GitHub repository (<a href="https://github.com/PEDIA-Charite/classifier">PEDIA</a>)
 </p>
 
+<p>You can access the 697 JSON files of the cohort in our study by pressing the link below.
+<b>Please register an account before you download the dataset.</b></p>
+<%= link_to '<button type="button" class="btn btn-dark">Download</button>'.html_safe, pedia_services_download_path %>
+<br>
+<br>
 <p>This service is only for the user who already has a JSON file from Face2Gene
-and an annotated VCF file. By submitting json file and VCF file, user will get 
-the prioritization result from PEDIA approach. After submit your case, you 
-will receive a confirmation email from us. Once your result is ready, we 
+and an annotated VCF file. By submitting json file and VCF file, user will get
+the prioritization result from PEDIA approach. After submit your case, you
+will receive a confirmation email from us. Once your result is ready, we
 will send an email to inform you the result.</p>
 
-<p>To submit your case, please press the button below to start your submission. 
-If you have any question, please contact our service account 
-<a href="mailto:contact@dpdl.org">contact@dpdl.org</a>.</p>
+<p>To submit your case, please press the button below to start your submission.
+If you have any question, please contact our service account
+<a href="mailto:contact@pedia-study.org">contact@pedia-study.org</a>.</p>
 
 <%= link_to '<button type="button" class="btn btn-dark">Submit my case</button>'.html_safe, new_pedia_service_path %>
 <br>
 <br>
-<br>
-<%= image_tag("uni_logo.png", :size => "240x120") %>    
-<%= image_tag("logo_charite.png", :size => "320x120",  :style => 'border-left: 30px solid #FFFFFF;') %>
-<br>
-
