@@ -23,4 +23,16 @@ class PediaStatus < ApplicationRecord
                  status == INIT
     return is_running
   end
+
+  def pedia_failed?
+    is_failed = status == PRE_FAILED ||
+                status == WORKFLOW_FAILED ||
+                status == UNKNOWN_FAILED
+    return is_failed
+  end
+
+  def pedia_complete?
+    is_complete = status == COMPLETE
+    return is_complete
+  end
 end

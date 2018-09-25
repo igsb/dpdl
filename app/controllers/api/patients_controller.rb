@@ -9,95 +9,89 @@ class Api::PatientsController < Api::BaseController
   def create
     content = JSON.parse request.body.read
     patient_id = content['case_data']['case_id']
-
-    # first check if a case already exists, if so do not continue processing
-    p = Patient.find_by_case_id(patient_id)
-    if !p.nil?
-      respond_to do |format|
-        msg = { msg: MSG_CASE_EXISTS }
-        format.json { render plain: msg.to_json,
-                      status: 400,
-                      content_type: 'application/json'
-                    }
-      end
-      return
+    time = Time.now.strftime('%d_%m_%Y_%H_%M_%S')
+    log_dir = File.join(API_LOG, patient_id.to_s)
+    unless File.directory?(log_dir)
+      FileUtils.mkdir_p(log_dir)
     end
+    log_path = File.join(log_dir, time + '.log')
 
     # if a case doesnt exist, process the request and create a new case
-    if content['case_data'].has_key? 'posting_user'
-      user = content['case_data']['posting_user']
-      user_name = user['userDisplayName']
-      user_email = user['userEmail']
-      user_institute = user['userInstitution']
-      user_team = nil
-    else
-      user_name = "Mr. FDNA LAB"
-      user_email = "fdna@fdna.com"
-      user_institute = "F2G"
-      user_team = nil
+    patient_save = true
+    msg = {}
+    begin
+      ActiveRecord::Base.transaction do
+        if content['case_data'].has_key? 'posting_user'
+          user = content['case_data']['posting_user']
+          user_name = user['userDisplayName']
+          user_email = user['userEmail']
+          user_institute = user['userInstitution']
+          user_team = nil
+        else
+          user_name = "Mr. FDNA LAB"
+          user_email = "fdna@fdna.com"
+          user_institute = "F2G"
+          user_team = nil
+        end
+
+        user_array = user_name.split('.', 2)
+        title = ''
+        name = ''
+        if user_array.length > 1
+          title = user_array[0] + '.'
+          name = user_array[1][1..-1]
+          name_array = name.split(' ')
+          first_name = name_array[0]
+          last_name = name_array[-1]
+          if name_array.length > 2
+            first_name = name_array[0..-2].join(' ')
+          end
+        else
+          name = user_array[0]
+          name_array = name.split(' ')
+          first_name = name_array[0]
+          last_name = name_array[-1]
+          if name_array.length > 2
+            first_name = name_array[0..-2].join(' ')
+          end
+        end
+
+        submitter = Submitter.find_or_create_by(first_name: first_name, last_name: last_name, email: user_email, team: user_team, title: title)
+        patient = Patient.find_by_case_id(patient_id)
+        if patient.nil?
+          patient = Patient.find_or_create_by(case_id: patient_id, submitter: submitter)
+          patient.parse_json(content['case_data'])
+          # ToDo: Parse suggested syndrome
+          user = User.find_by_email(submitter.email)
+          if not user.nil?
+            if not user.patients.exists?(patient.id)
+              user.patients << patient
+            end
+          end
+          patient_save = patient.save
+          msg = { msg: MSG_CASE_CREATED } if patient_save
+        else
+          patient.update_json(content['case_data'])
+          msg = { msg: MSG_CASE_UPDATE }
+        end
+
+        dirname = File.join("Data", "Received_JsonFiles")
+        dir = "#{Rails.root}/#{dirname}"
+        FileUtils.mkdir(dir) unless File.directory?(dir)
+
+        f = "#{dir}/#{patient_id}.json"
+        File.open(f, "wb") { |f| f.write(JSON.pretty_generate(content)) }
+      end
+    rescue Exception => e
+      logger = Logger.new(log_path)
+      logger.error e.message
+      e.backtrace.each { |line| logger.error line }
+      patient_save = false
+      msg = { msg: MSG_CASE_ERROR }
     end
-
-    user_array = user_name.split('.', 2)
-    title = ''
-    name = ''
-    if user_array.length > 1
-      title = user_array[0] + '.'
-      name = user_array[1][1..-1]
-      name_array = name.split(' ')
-      first_name = name_array[0]
-      last_name = name_array[-1]
-      if name_array.length > 2
-        first_name = name_array[0..-2].join(' ')
-      end
-    else
-      name = user_array[0]
-      name_array = name.split(' ')
-      first_name = name_array[0]
-      last_name = name_array[-1]
-      if name_array.length > 2
-        first_name = name_array[0..-2].join(' ')
-      end
-    end
-
-    submitter = Submitter.find_or_create_by(first_name: first_name, last_name: last_name, email: user_email, team: user_team, title: title)
-    patient = Patient.create(case_id: patient_id, submitter: submitter)
-
-    # Parse Features
-    if content['case_data'].has_key? 'selected_features'
-      features = content['case_data']['selected_features']
-      hpo_array = []
-      features.each do |feature|
-        hpo_array << feature['feature']['hpo_full_id']
-      end
-
-      feature_array = []
-      for hpo in hpo_array do
-        hpo_result = Feature.find_or_create_by(hpo_term: hpo)
-        feature_array.push(hpo_result)
-      end
-      patient.features << feature_array
-      patient.save
-    end
-
-    # ToDo: Parse suggested syndrome
-
-    user = User.find_by_email(submitter.email)
-    if not user.nil?
-      if not user.patients.exists?(patient.id)
-        user.patients << patient
-      end
-    end
-
-    dirname = File.join("Data", "Received_JsonFiles")
-    dir = "#{Rails.root}/#{dirname}"
-    FileUtils.mkdir(dir) unless File.directory?(dir)
-
-    f = "#{dir}/#{patient_id}.json"
-    File.open(f, "wb") { |f| f.write(JSON.pretty_generate(content)) }
 
     respond_to do |format|
-      if patient.save
-        msg = { msg: MSG_CASE_CREATED }
+      if patient_save
         format.json { render plain: msg.to_json,
                       status: 200,
                       content_type: 'application/json'
@@ -140,14 +134,13 @@ class Api::PatientsController < Api::BaseController
         status = 400
       else
         service = services.last
-        if service.pedia_status.status.include? 'failed'
+        if service.pedia_status.pedia_failed?
           msg = { msg: service.pedia_status.status }
           status = 500
-        elsif service.pedia_status.status.include? 'running' or
-              service.pedia_status.status.include? 'Initiate'
+        elsif service.pedia_status.running?
           msg = { msg: service.pedia_status.status }
           status = 404
-        elsif service.pedia_status.status.include? 'Complete'
+        elsif service.pedia_status.pedia_complete?
           unless File.exist?(result_file_name)
             msg = { msg: PEDIA_NO_PEDIA_RESULTS }
             status = 500
@@ -164,7 +157,7 @@ class Api::PatientsController < Api::BaseController
         format.json { render plain: msg.to_json,
                       status: status,
                       content_type: 'application/json'
-                    }
+        }
       end
       return
     end

@@ -23,10 +23,12 @@ class Patient < ApplicationRecord
   def parse_json(data)
     @@log = Logger.new('log/patient.log')
     @@log.info "Patient: #{data['case_id']}"
-    @algo_version = data['algo_deploy_version']
-    features = parse_features(data['features'])
-    self.features << features
-    parse_detected(data['detected_syndromes'])
+    @algo_version = data['algo_version']
+    #parse_detected(data['detected_syndromes'])
+
+    if data.has_key? 'selected_features'
+      update_features(data['selected_features'])
+    end
 
     if data.key? "selected_syndromes"
       parse_selected(data['selected_syndromes'])
@@ -43,10 +45,20 @@ class Patient < ApplicationRecord
     @@log = Logger.new('log/patient.log')
     @@log.info "Patient: #{data['case_id']}"
     @algo_version = data['algo_deploy_version']
-    if data.key? "selected_syndromes"
+    # features
+    if data.has_key? 'selected_features'
+      update_features(data['selected_features'])
+    end
+
+    # selected syndrome
+    if data.key? 'selected_syndromes'
       parse_selected(data['selected_syndromes'])
     end
-    parse_pedia(data['geneList'])
+
+    # pedia score
+    parse_pedia(data['geneList']) if data.key? 'geneList'
+
+    # genomic data
     if data.key? "genomicData"
       if data['genomicData'].length > 0
         parse_genomic(data['genomicData'])
@@ -55,9 +67,22 @@ class Patient < ApplicationRecord
     self.result = true
   end
 
-  def parse_features(data)
+  def update_features(data)
+    features = parse_features(data)
+    new_features = features - self.features
+    remove_features = self.features - features
+    # Add new features
+    self.features << new_features
+    # Remove features
+    remove_features.each do |feature|
+      self.features.delete(feature.id)
+    end
+  end
+
+  def parse_features(features)
     feature_array = Array.new
-    for hpo in data do
+    features.each do |feature|
+      hpo = feature['feature']['hpo_full_id']
       hpo_result = Feature.find_or_create_by(hpo_term: hpo)
       feature_array.push(hpo_result)
     end
@@ -103,37 +128,46 @@ class Patient < ApplicationRecord
   end
 
   def parse_selected(disorders)
-    disorders.each do |syn|
-      diagnosis = syn['diagnosis']
-      if syn['omim_id'].nil?
+    omim_array = Array.new
+    disorders.each do |selected_syn|
+      syn = selected_syn['syndrome']
+      diagnosis = selected_syn['diagnosis']
+      if syn['omim_id'].nil? and syn['omim_ids'].nil?
         puts "Syndrome has no omim: #{syn['syndrome_name']}"
       else
-        if syn['omim_id'].kind_of?(Array)
-          disorder = Disorder.find_by(disorder_name: syn['syndrome_name'],
+        if syn['omim_ps_id'].nil?
+          disorder = Disorder.find_by(omim_id: syn['omim_id'],
+                                      is_phenotypic_series: false)
+          if disorder.nil?
+            puts "Syndrome has no disorder: #{syn['syndrome_name']}"
+            disorder = Disorder.create(omim_id: syn['omim_id'],
+                                        disorder_name: syn['syndrome_name'],
+                                        is_phenotypic_series: false)
+          end
+          omim_array << syn['omim_id']
+        else
+          ps_id = syn['omim_ps_id'].split('PS')[1]
+          disorder = Disorder.find_by(omim_id: ps_id,
                                       is_phenotypic_series: true)
           if disorder.nil?
             puts "Syndrome has no PS: #{syn['syndrome_name']}"
-            disorder = Disorder.create(omim_id: syn['omim_id'][0],
-                                       disorder_name: syn['syndrome_name'],
-                                       is_phenotypic_series: true)
-            patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id,
-                                                                  disorder_id: disorder.id)
-            patient_disorder.diagnosis_type_id = DiagnosisType.diag_type(diagnosis)
-            patient_disorder.save
-          else
-            patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id,
-                                                                  disorder_id: disorder.id)
-            patient_disorder.diagnosis_type_id = DiagnosisType.diag_type(diagnosis)
-            patient_disorder.save
+            disorder = Disorder.create(omim_id: ps_id,
+                                        disorder_name: syn['syndrome_name'],
+                                        is_phenotypic_series: true)
           end
-        else
-          disorder = Disorder.find_by(omim_id: syn['omim_id'],
-                                      is_phenotypic_series: false)
-          patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id,
-                                                                disorder_id: disorder.id)
-          patient_disorder.diagnosis_type_id = DiagnosisType.diag_type(diagnosis)
-          patient_disorder.save
+          omim_array << ps_id
         end
+        patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id,
+                                                              disorder_id: disorder.id)
+        patient_disorder.diagnosis_type_id = DiagnosisType.diag_type(diagnosis)
+        patient_disorder.save
+      end
+    end
+    dia_disorders = get_selected_disorders
+    dia_disorders.each do |diag|
+      unless omim_array.include? diag.disorder.omim_id
+        puts diag.id
+        PatientsDisorder.delete(diag.id)
       end
     end
   end

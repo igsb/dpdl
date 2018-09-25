@@ -12,14 +12,15 @@
 ### create patient
 200
 ```
+# Create new case
 {msg: PEDIA case created successfully.}
+# Update exsited case
+{msg: Update PEDIA case successfully.}
 ```
 400
 ```
-# case already exists
-{msg: PEDIA case already exists.}
-
-# Some problems with parsing and daving patinet data
+# Some problems with parsing and saving patinet data
+# Perhaps check the format
 {msg: Unable to save patient information. Please check the data.}
 ```
 401

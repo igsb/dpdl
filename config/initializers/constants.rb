@@ -6,10 +6,10 @@ MSG_TOKEN_UNAUTHORIZED = 'Unauthorized.'
 
 # Case
 MSG_CASE_EXISTS = 'PEDIA case already exists.'
-MSG_CASE_UPDATE = 'PEDIA case is updated.'
+MSG_CASE_UPDATE = 'Update PEDIA case successfully.'
 MSG_CASE_CREATED = 'PEDIA case created successfully.'
 MSG_CASE_ERROR = 'Unable to save patient information. Please check the data.'
-MSG_CASE_NOT_EXISTS = 'Case dos not exist.'
+MSG_CASE_NOT_EXISTS = 'Case does not exist.'
 MSG_CASE_DELETED = 'Patient information deleted.'
 
 # VCF
@@ -24,3 +24,6 @@ MSG_VCF_SUCCESS_PEDIA_RUNNING = 'VCF file uploaded successfully. PEDIA workflow 
 MSG_NO_PEDIA = 'No PEDIA service found.'
 MSG_NO_PEDIA_RESULTS = 'Can not find results.'
 MSG_NO_PEDIA_CASE = 'Case does not exist. Please create a case first to get PEDIA results.'
+
+# Log
+API_LOG = File.join("#{Rails.root}", 'log', 'api')
