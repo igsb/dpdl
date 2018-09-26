@@ -256,8 +256,10 @@ class VcfFile < ActiveRecord::Base
           ann = ann.split("|")
           mut = Mutation.find_or_create_by(ref: ref, alt: alt[gt_alt[index]])
           mut_pos = MutationsPosition.find_or_create_by(mutation_id: mut.id, position_id: var_pos.id)
-
-          gene = Gene.find_or_create_by(name: ann[ANN_GENE_NAME], entrez_id: ann[ANN_GENE_ID])
+          gene_name = ann[ANN_GENE_NAME]
+          entrez_id = ann[ANN_GENE_ID]
+          gene = Gene.find_by(entrez_id: entrez_id)
+          gene = Gene.create(name: gene_name, entrez_id: entrez_id) unless gene.nil?
           effect = ann[ANN_ANNOTATION]
           DisordersMutationsScore.find_or_create_by(patients_vcf_file_id: patient_vcf.id, score_id: score.id, mutations_position_id: mut_pos.id, value: cadd_score, genotype: genotype, position_id: var_pos.id, gene_id: gene.id)
           if effect.include? '&'
