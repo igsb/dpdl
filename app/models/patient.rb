@@ -176,7 +176,12 @@ class Patient < ApplicationRecord
     for gene in gene_list
       if gene.key?("pedia_score")
         gene_id = gene['gene_id']
-        entrez_gene = Gene.where(entrez_id: gene_id).take
+        gene_name = gene['gene_name']
+        entrez_gene = Gene.find_by(entrez_id: gene_id)
+        if gene_name != entrez_gene.name
+          entrez_gene.name = gene_name
+          entrez_gene.save
+        end
 
         score = Score.find_or_create_by(name: 'pedia_score')
         pedia = gene['pedia_score']
