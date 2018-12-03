@@ -139,6 +139,8 @@
 <p>
 <% omim_prefix = "https://www.omim.org/search/?index=entry&start=1&limit=10&sort=score+desc%2C+prefix_sort+desc&search=" %>
 <% gene_prefix = "http://www.genecards.org/cgi-bin/carddisp.pl?gene=" %>
+<div style="height:550px;overflow:auto;">
+
 <table class='table'>
   <thead>
     <tr>
@@ -151,6 +153,7 @@
 
   <tbody>
     <% @gene.each_with_index do |g, index| %>
+      <% next if g.gene.name.nil? %>
       <tr>
         <td><%= index + 1 %></td>
         <td><a href= <%= omim_prefix + g.gene.name %> target="_blank" ><%= g.gene.name %></a></td>
@@ -160,6 +163,7 @@
     <% end %>
   </tbody>
 </table>
+</div>
 </p>
 <% if false %>
   <p>
