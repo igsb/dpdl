@@ -29,7 +29,7 @@ class PatientsController < ApplicationController
   def show
     @diagnosed_disorders = @patient.get_selected_disorders
     @detected_disorders = @patient.get_detected_disorders
-    @gene = @patient.pedia.limit(10).order("pedia_score DESC")
+    @gene = @patient.pedia.order("pedia_score DESC")
     @causing_muts = @patient.disease_causing_mutations
     result_link = @patient.result_figures.take
     if !result_link.nil?
