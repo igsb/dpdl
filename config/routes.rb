@@ -21,6 +21,7 @@ Rails.application.routes.draw do
   get 'vcf_files/get_var/:id', to: 'vcf_files#get_var', as: :vcf_files_get_var
   get :get_review, :controller => :review
   get '/get_img/:filename' => 'patients#get_img', :constraints => { :filename => /.*/ }
+  get 'patients/download_vcf'
   resources :vcf_files
   root :to => "home#index"
   resources :home
