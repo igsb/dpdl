@@ -159,6 +159,16 @@ class PatientsController < ApplicationController
     end
   end
 
+  def download_vcf
+    name = File.basename(params[:name])
+    ext = File.extname(params[:name])
+    send_file(
+      File.join("#{Rails.root}/", params[:name]),
+      filename: name,
+      type: "application/" + ext
+    )
+  end
+
   private
   # Use callbacks to share common setup or constraints between actions.
   def set_patient

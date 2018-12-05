@@ -106,7 +106,8 @@
 <h3>VCF files</h3>
 <%= link_to '<button type="button" class="btn btn-dark">Upload VCF</button>'.html_safe, edit_patient_path(@patient) %>
 <p>
-<% if @patient.uploaded_vcf_files.count > 0 %>
+
+<% if @patient.uploaded_vcf_files.count + @patient.vcf_files.count > 0 %>
 <table class='table'>
   <thead>
     <tr>
@@ -121,6 +122,15 @@
       <tr>
         <td><%= vcf.file_name %></td>
         <td><%= vcf.user.username %></td>
+        <td><%= link_to 'Download VCF', patients_download_vcf_url(:name => vcf.full_path) %></td>
+        <td><%= link_to 'Delete', vcf, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+    <% @patient.vcf_files.each do |vcf| %>
+      <tr>
+        <td><%= vcf.name %></td>
+        <td><%= vcf.user.username %></td>
+        <td><%= link_to 'Download VCF', patients_download_vcf_url(:name => vcf.full_path) %></td>
         <td><%= link_to 'Delete', vcf, method: :delete, data: { confirm: 'Are you sure?' } %></td>
       </tr>
     <% end %>
