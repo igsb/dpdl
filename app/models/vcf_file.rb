@@ -128,10 +128,11 @@ class VcfFile < ActiveRecord::Base
 
     # write the file
     # File.open(path, "wb") { |f| f.write( data ) }
-    vcf_file = VcfFile.new(:name => fname,
-                            :filtered => false,
-                            :sample_names => sample_names,
-                            :user_id => login.id);
+    vcf_file = VcfFile.new(name: fname,
+                           filtered: false,
+                           sample_names: sample_names,
+                           user_id: login.id,
+                           full_path: path)
 
     FileUtils.cp(tempfile, path)
 		login.vcf_files << vcf_file;

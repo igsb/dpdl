@@ -44,9 +44,11 @@ class Api::VcfFilesController < Api::BaseController
     if vcf.nil?
       FileUtils.cp_r(params[:file].tempfile.path, f)
       user = User.find_by_username('admin')
+      vcf_full_path = File.join(dirname, fname)
       vcf = UploadedVcfFile.create(patient_id: p.id,
                                    file_name: fname,
-                                   user_id: user.id)
+                                   user_id: user.id,
+                                   full_path: vcf_full_path)
     else
       # check if VCF file is different from the original one
       unless FileUtils.compare_file(f, params[:file].tempfile.path)
