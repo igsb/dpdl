@@ -73,13 +73,13 @@ rule preprocess:
 
 rule pedia:
 	input:
-		out = classifier_workflow("output/test/1KG/{case}/{case}.vcf.gz"),
-		ann_vcf = os.path.join(PEDIA_ANN_VCF_DIR, "{case}_annotated.vcf.gz")
+		out = classifier_workflow("output/test/1KG/{case}/{case}.vcf.gz")
 	output:
 		result = "Data/PEDIA_service/{case}/{pedia_id}/{case}.csv",
 		vcf = "Data/PEDIA_service/{case}/{pedia_id}/{case}_pedia.vcf.gz",
 		ann_vcf = "Data/PEDIA_service/{case}/{pedia_id}/{case}_annotated.vcf.gz"
 	params:
+		ann_vcf = os.path.join(PEDIA_ANN_VCF_DIR, "{case}_annotated.vcf.gz"),
 		dir = "Data/PEDIA_service/{case}/{pedia_id}/",
 		result = PEDIA_DIR + "classifier/output/test/1KG/{case}/{case}.csv",
 		vcf = PEDIA_DIR + "classifier/output/test/1KG/{case}/{case}.vcf.gz"
@@ -88,5 +88,5 @@ rule pedia:
 		mkdir -p {params.dir}
 		cp {params.result} {output.result}
 		cp {params.vcf} {output.vcf}
-		cp {input.ann_vcf} {output.ann_vcf}
+		cp {params.ann_vcf} {output.ann_vcf}
 		"""
