@@ -101,7 +101,7 @@ namespace :bootstrap do
   task :default_disorder_gene => :environment do
     count = 0
     @@log = Logger.new('log/bootstrap_disorder_gene.log')
-    CSV.foreach("public/genemap2.txt", {:col_sep => "\t"}) do |row|
+    CSV.foreach("public/genemap2.txt", {:col_sep => "\t", liberal_parsing: true}) do |row|
       if count > 3
         # check if there is omim ID row[12]
         unless row[12].nil?
@@ -111,6 +111,11 @@ namespace :bootstrap do
           if gene.nil?
             gene = Gene.find_or_create_by(entrez_id: entrez_id, name: name)
           end
+          pos = row[1]
+          chr = VcfTools.chrom_to_i(row[0])
+          gene.pos = pos
+          gene.chr = chr
+          gene.save
           omim_str = row[12].split(",")
           omim_array = Array.new
           key_array = Array.new
