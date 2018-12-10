@@ -13,6 +13,7 @@ RECEIVED_JSON_DIR = "Data/Received_JsonFiles"
 PEDIA_PROCESS_DIR = os.path.join(PEDIA_DIR, "process/dpdl")
 PEDIA_PHENO_DIR = os.path.join(PEDIA_DIR, "data/PEDIA/jsons/phenomized")
 PEDIA_VCF_DIR = os.path.join(PEDIA_DIR, "data/PEDIA/vcfs/original")
+PEDIA_ANN_VCF_DIR = os.path.join(PEDIA_DIR, "data/PEDIA/vcfs/annotated_vcfs")
 
 subworkflow classifier_workflow:
 	workdir: PEDIA_DIR + "classifier"
@@ -72,14 +73,20 @@ rule preprocess:
 
 rule pedia:
 	input:
-		out = classifier_workflow("output/test/1KG/{case}/{case}.csv")
+		out = classifier_workflow("output/test/1KG/{case}/{case}.vcf.gz"),
+		ann_vcf = os.path.join(PEDIA_ANN_VCF_DIR, "{case}_annotated.vcf.gz")
 	output:
-		result = "Data/PEDIA_service/{case}/{pedia_id}/{case}.csv"
+		result = "Data/PEDIA_service/{case}/{pedia_id}/{case}.csv",
+		vcf = "Data/PEDIA_service/{case}/{pedia_id}/{case}_pedia.vcf.gz",
+		ann_vcf = "Data/PEDIA_service/{case}/{pedia_id}/{case}_annotated.vcf.gz"
 	params:
 		dir = "Data/PEDIA_service/{case}/{pedia_id}/",
-		result = PEDIA_DIR + "classifier/output/test/1KG/{case}/{case}.csv"
+		result = PEDIA_DIR + "classifier/output/test/1KG/{case}/{case}.csv",
+		vcf = PEDIA_DIR + "classifier/output/test/1KG/{case}/{case}.vcf.gz"
 	shell:
 		"""
 		mkdir -p {params.dir}
 		cp {params.result} {output.result}
+		cp {params.vcf} {output.vcf}
+		cp {input.ann_vcf} {output.ann_vcf}
 		"""
