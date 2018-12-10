@@ -54,16 +54,16 @@ rule phenomize:
 	shell:
 		"""
 		cd {params.work_dir}
-		python {params.script} -s {input.json} -o {params.dir}
+		python {params.script} --aws-format -s {input.json} -o {params.dir}
 		"""
 
 rule preprocess:
 	input:
 		json = os.path.join(PEDIA_PHENO_DIR, "{case}.json")
 	output:
-		"Data/PEDIA_service/{case}/preproc.done"
+		"Data/PEDIA_service/{case}/{pedia_id}/preproc.done"
 	params:
-		dir = "Data/PEDIA_service/{case}/"
+		dir = "Data/PEDIA_service/{case}/{pedia_id}/"
 	shell:
 		"""
 		mkdir -p {params.dir}
@@ -72,11 +72,11 @@ rule preprocess:
 
 rule pedia:
 	input:
-		out = classifier_workflow("output/test/1KG/{case}/run.out")
+		out = classifier_workflow("output/test/1KG/{case}/{case}.csv")
 	output:
-		result = "Data/PEDIA_service/{case}/{case}.csv"
+		result = "Data/PEDIA_service/{case}/{pedia_id}/{case}.csv"
 	params:
-		dir = "Data/PEDIA_service/{case}/",
+		dir = "Data/PEDIA_service/{case}/{pedia_id}/",
 		result = PEDIA_DIR + "classifier/output/test/1KG/{case}/{case}.csv"
 	shell:
 		"""

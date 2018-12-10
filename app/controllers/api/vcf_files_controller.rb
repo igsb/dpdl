@@ -78,9 +78,13 @@ class Api::VcfFilesController < Api::BaseController
     status = PediaStatus.find_by(status: PediaStatus::INIT)
     service = PediaService.create(user_id: user.id,
                                   json_file: json_path,
-                                  vcf_file: f,
+                                  uploaded_vcf_file_id: vcf.id,
                                   patient_id: p.id,
                                   pedia_status_id: status.id)
+    # Create pedia service folder
+    service_folder = File.join('Data/PEDIA_service/', case_id.to_s, service.id.to_s)
+    FileUtils.mkdir_p service_folder
+
     job = Delayed::Job.enqueue(service)
     service.job_id = job.id
     service.save
