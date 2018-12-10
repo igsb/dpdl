@@ -1,8 +1,8 @@
 function chtoi(x){
     switch(x){
-        case 'x':case 'X': return 24;
-        case 'y':case 'Y': return 25;
-        case 'm':case 'M': return 26;
+        case 'x':case 'X': return 23;
+        case 'y':case 'Y': return 24;
+        case 'm':case 'M': return 25;
         default: return parseInt(x, 10);
     }
 }
