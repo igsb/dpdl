@@ -29,12 +29,29 @@ class PatientsController < ApplicationController
   def show
     @diagnosed_disorders = @patient.get_selected_disorders
     @detected_disorders = @patient.get_detected_disorders
+    #@gene = @patient.pedia.order("pedia_score DESC")
     @gene = @patient.pedia.order("pedia_score DESC")
     @causing_muts = @patient.disease_causing_mutations
     result_link = @patient.result_figures.take
     if !result_link.nil?
       @result_link = result_link.link.split('/')[-1]
     end
+    gon.results = get_pedia_json(@gene)
+  end
+
+  def get_pedia_json(results)
+    pedia = []
+    results.each do |result|
+      gene = result.gene
+      tmp = {entrez_id: gene.entrez_id,
+             pedia_score: result.pedia_score,
+             gene_symbol: gene.name,
+             pos: gene.pos,
+             chr: gene.chr
+            }
+      pedia.push(tmp)
+    end
+    return pedia
   end
 
   def get_img
