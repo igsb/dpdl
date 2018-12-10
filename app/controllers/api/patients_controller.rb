@@ -121,7 +121,6 @@ class Api::PatientsController < Api::BaseController
   def create_json
     case_id = params[:case_id]
 
-    result_file_name = (File.join('Data/PEDIA_service/', case_id, case_id + '.csv', ))
     json_file_name = (File.join('Data/tmp/', case_id + '.json', ))
 
     # first check if the case exists, if not do not continue processing
@@ -141,8 +140,10 @@ class Api::PatientsController < Api::BaseController
           msg = { msg: service.pedia_status.status }
           status = 404
         elsif service.pedia_status.pedia_complete?
-          unless File.exist?(result_file_name)
-            msg = { msg: PEDIA_NO_PEDIA_RESULTS }
+          result_file_name = (File.join('Data/PEDIA_service/', case_id, service.id.to_s, case_id + '.csv', ))
+          result_file_name_old = (File.join('Data/PEDIA_service/', case_id, case_id + '.csv', ))
+          unless File.exist?(result_file_name) or File.exist?(result_file_name_old)
+            msg = { msg: MSG_NO_PEDIA_RESULTS }
             status = 500
           end
         end
@@ -161,7 +162,11 @@ class Api::PatientsController < Api::BaseController
       end
       return
     end
-
+    if File.exist?(result_file_name)
+      result_file_name = (File.join('Data/PEDIA_service/', case_id, service.id.to_s, case_id + '.csv', ))
+    else
+      result_file_name = (File.join('Data/PEDIA_service/', case_id, case_id + '.csv', ))
+    end
     lines = CSV.open(result_file_name).readlines
     keys = lines.delete lines.first
 

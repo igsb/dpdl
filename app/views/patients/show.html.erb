@@ -4,7 +4,9 @@
       border: none !important;
     }
   </style>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
+<%= javascript_include_tag  "pedia_manhattan" %>
 <h3>Patient Information</h3>
 <p>
 <strong>Case:</strong>
@@ -112,8 +114,9 @@
   <thead>
     <tr>
       <th>File name</th>
-      <th>User</th>
-      <th colspan="1"></th>
+      <th>Uploaded by</th>
+      <th>Uploaded date</th>
+      <th colspan="2"></th>
     </tr>
   </thead>
 
@@ -122,6 +125,7 @@
       <tr>
         <td><%= vcf.file_name %></td>
         <td><%= vcf.user.username %></td>
+        <td><%= vcf.updated_at %></td>
         <td><%= link_to 'Download VCF', patients_download_vcf_url(:name => vcf.full_path) %></td>
         <td><%= link_to 'Delete', vcf, method: :delete, data: { confirm: 'Are you sure?' } %></td>
       </tr>
@@ -130,6 +134,7 @@
       <tr>
         <td><%= vcf.name %></td>
         <td><%= vcf.user.username %></td>
+        <td><%= vcf.updated_at %></td>
         <td><%= link_to 'Download VCF', patients_download_vcf_url(:name => vcf.full_path) %></td>
         <td><%= link_to 'Delete', vcf, method: :delete, data: { confirm: 'Are you sure?' } %></td>
       </tr>
@@ -139,12 +144,12 @@
 <% else %>
   No uploaded Vcf file!
 <% end %>
+<h3>PEDIA result</h3>
 <p>
 <% if @patient.vcf_files.count > 0 %>
   <%= link_to '<button type="button" class="btn btn-dark">VCF Viewer</button>'.html_safe, @patient.vcf_files.first %>
 <% end %>
 </p>
-<h3>PEDIA result</h3>
 <% if @patient.result %>
 <p>
 <% omim_prefix = "https://www.omim.org/search/?index=entry&start=1&limit=10&sort=score+desc%2C+prefix_sort+desc&search=" %>
@@ -211,6 +216,12 @@
   No PEDIA results!
   </p>
 <% end %>
+
+<div id="manhattan"><!-- Plotly chart will be drawn inside this DIV --></div>
+<script>
+  Plotly.newPlot('manhattan', data, layout);
+</script>
+
 
 <% if false %>
   <div class="field">

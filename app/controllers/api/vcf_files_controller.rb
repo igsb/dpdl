@@ -44,9 +44,11 @@ class Api::VcfFilesController < Api::BaseController
     if vcf.nil?
       FileUtils.cp_r(params[:file].tempfile.path, f)
       user = User.find_by_username('admin')
+      vcf_full_path = File.join(dirname, fname)
       vcf = UploadedVcfFile.create(patient_id: p.id,
                                    file_name: fname,
-                                   user_id: user.id)
+                                   user_id: user.id,
+                                   full_path: vcf_full_path)
     else
       # check if VCF file is different from the original one
       unless FileUtils.compare_file(f, params[:file].tempfile.path)
@@ -76,9 +78,13 @@ class Api::VcfFilesController < Api::BaseController
     status = PediaStatus.find_by(status: PediaStatus::INIT)
     service = PediaService.create(user_id: user.id,
                                   json_file: json_path,
-                                  vcf_file: f,
+                                  uploaded_vcf_file_id: vcf.id,
                                   patient_id: p.id,
                                   pedia_status_id: status.id)
+    # Create pedia service folder
+    service_folder = File.join('Data/PEDIA_service/', case_id.to_s, service.id.to_s)
+    FileUtils.mkdir_p service_folder
+
     job = Delayed::Job.enqueue(service)
     service.job_id = job.id
     service.save

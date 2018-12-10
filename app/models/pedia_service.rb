@@ -24,6 +24,7 @@ class PediaService < ApplicationRecord
     self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::PRE_RUNNING).id
     self.save
     # path for running PEDIA
+    pedia_id = self.id
     case_id = self.patient.case_id.to_s
     Delayed::Worker.logger.info('Start PEDIA for case: ' + case_id)
     if Rails.env.production?
@@ -38,9 +39,9 @@ class PediaService < ApplicationRecord
     end
     service_path = 'Data/PEDIA_service/'
 
-    done_file = File.join(service_path, case_id, 'preproc.done')
+    done_file = File.join(service_path, case_id, pedia_id.to_s, 'preproc.done')
     cmd = ['.', activate_path, 'pedia;', snakemake_path, done_file].join ' '
-    log_path = File.join("#{Rails.root}", 'log', 'pedia', case_id)
+    log_path = File.join("#{Rails.root}", 'log', 'pedia', case_id, pedia_id.to_s)
     unless File.directory?(log_path)
       FileUtils.mkdir_p(log_path)
     end
@@ -71,7 +72,7 @@ class PediaService < ApplicationRecord
 
     self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::WORKFLOW_RUNNING).id
     self.save
-    result_path = File.join(service_path, case_id, case_id + '.csv')
+    result_path = File.join(service_path, case_id, pedia_id.to_s, case_id + '.csv')
     cmd = ['.', activate_path, 'pedia;', snakemake_path, result_path].join ' '
     out_log = File.join(log_path, 'workflow.log')
     logger = Logger.new(out_log)

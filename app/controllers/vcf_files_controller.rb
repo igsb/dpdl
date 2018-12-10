@@ -31,7 +31,7 @@ class VcfFilesController < ApplicationController
     alerts = ""
     ActiveRecord::Base.transaction do
       if fname =~ /zip$/
-        tdir = File.join( VcfFile::VCF_PATH, fname )
+        tdir = File.join(VcfFile::VCF_PATH, fname)
         zipfile = params[:upload]['datafile'].tempfile.path
         FileUtils.rmtree(tdir)
         Dir.mkdir(tdir, 0700)

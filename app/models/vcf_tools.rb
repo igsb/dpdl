@@ -344,21 +344,21 @@
     chrom =~ /^(\d+|X|Y|MT|M)$/i
     raise "Invalid VCF file #{chrom} " if Regexp.last_match == nil
     chrom = Regexp.last_match[1]
-    chrom.sub!(/X/i, '24')
-    chrom.sub!(/Y/i, '25')
-    chrom.sub!(/M/i, '26')
+    chrom.sub!(/X/i, '23')
+    chrom.sub!(/Y/i, '24')
+    chrom.sub!(/M/i, '25')
     return chrom.to_i
   end
  
   #######################################################################
   def self.chrom_to_s( chrom )
     case chrom
-      when 24 then 'X';
-      when 25 then 'Y';
-      when 26 then 'M'
-      when '24' then 'X';
-      when '25' then 'Y';
-      when '26' then 'M'
+      when 23 then 'X';
+      when 24 then 'Y';
+      when 25 then 'M'
+      when '23' then 'X';
+      when '24' then 'Y';
+      when '25' then 'M'
       else chrom.to_s;
     end
   end
