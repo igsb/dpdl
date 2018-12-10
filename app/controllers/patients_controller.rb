@@ -189,7 +189,7 @@ class PatientsController < ApplicationController
     name = File.basename(params[:name])
     ext = File.extname(params[:name])
     send_file(
-      File.join("#{Rails.root}/", params[:name]),
+      File.join(params[:name]),
       filename: name,
       type: "application/" + ext
     )

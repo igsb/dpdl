@@ -167,6 +167,7 @@ class VcfFilesController < ApplicationController
     @user = current_user
     @vcf_id = params[:id]
     @vcf = VcfFile.find(@vcf_id)
+    puts @vcf.id
 
     gon.vcf_id = @vcf_id
     @name_indiv = @name_indiv_file
@@ -191,9 +192,13 @@ class VcfFilesController < ApplicationController
 
   def get_pshow_var(vcf_id)
     @vcf_file = VcfFile.find_by_id(vcf_id)
-    @p_vcf = @vcf_file.patients_vcf_files.take
+    @p_vcf = @vcf_file.patients_vcf_files.last
     @patient = @vcf_file.patients.take
-    @pedia = @patient.pedia.limit(10).order("pedia_score DESC")
+    if @patient.pedia_services.count > 0
+      @pedia = @patient.pedia_services.last.pedia.limit(10).order("pedia_score DESC")
+    else
+      @pedia = @patient.pedia.limit(10).order("pedia_score DESC")
+    end
     flash[:alert] = "VCF File not found" and redirect_to vcf_select_path and return if @p_vcf.blank?
 
     @var_count = 0

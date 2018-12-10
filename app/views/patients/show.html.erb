@@ -147,7 +147,7 @@
 <h3>PEDIA result</h3>
 <p>
 <% if @patient.vcf_files.count > 0 %>
-  <%= link_to '<button type="button" class="btn btn-dark">VCF Viewer</button>'.html_safe, @patient.vcf_files.first %>
+  <%= link_to '<button type="button" class="btn btn-dark">VCF Viewer</button>'.html_safe, @patient.vcf_files.last %>
 <% end %>
 </p>
 <% if @gene.count > 0 %>

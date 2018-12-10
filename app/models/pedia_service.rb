@@ -2,6 +2,8 @@ class PediaService < ApplicationRecord
   belongs_to :patient, optional: true
   belongs_to :user, optional: true
   belongs_to :pedia_status, optional: true
+  belongs_to :vcf_file, optional: true
+  belongs_to :uploaded_vcf_file, optional: true
 
   has_many :pedia
   validates :pedia_status_id, presence: true
@@ -95,10 +97,35 @@ class PediaService < ApplicationRecord
       thread.join
     end
     parse_pedia(result_path)
+    upload_vcf
     self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::COMPLETE).id
     self.save
   end
 
+  def upload_vcf
+    case_id = self.patient.case_id.to_s
+    f_ann_name = case_id + '_annotated.vcf.gz'
+    f_name = case_id + '_pedia.vcf.gz'
+    f = File.join("#{Rails.root}", 'Data/PEDIA_service', case_id, self.id.to_s, f_name)
+    f_ann_full_name = File.join("#{Rails.root}", 'Data/PEDIA_service', case_id, self.id.to_s, f_ann_name)
+    tmp = File.join("#{Rails.root}", 'Data/PEDIA_service', case_id, self.id.to_s, 'tmp.vcf.gz')
+    FileUtils.cp(f, tmp)
+    e=%x@gunzip -d -f "#{tmp}"@
+    tmp.sub!(/\.gz$/, '')
+    infile = File.open(tmp)
+    login = User.find_by_username('admin')
+    vcf_file, warnings, alerts = VcfFile.add_file(infile, f, f_name, login, self.id)
+    vcf_file.create_samples
+    vcf_file.parse_vcf(infile)
+    #vcf_file.create_tabix
+    vcf_file.name = f_ann_name
+    vcf_file.full_path = f_ann_full_name
+    vcf_file.save
+    FileUtils.rm(tmp)
+    self.vcf_file_id = vcf_file.id
+    self.save
+
+  end
   def parse_pedia(pedia_file)
 
     lines = CSV.open(pedia_file).readlines
