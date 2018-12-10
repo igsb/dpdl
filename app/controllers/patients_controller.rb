@@ -30,22 +30,31 @@ class PatientsController < ApplicationController
     @diagnosed_disorders = @patient.get_selected_disorders
     @detected_disorders = @patient.get_detected_disorders
     #@gene = @patient.pedia.order("pedia_score DESC")
-    @gene = @patient.pedia.order("pedia_score DESC")
-    @causing_muts = @patient.disease_causing_mutations
-    result_link = @patient.result_figures.take
-    if !result_link.nil?
-      @result_link = result_link.link.split('/')[-1]
+    pedia_service = @patient.pedia_services.last
+    if pedia_service.nil?
+      @gene = @patient.pedia.order("pedia_score DESC")
+      if @gene.count > 0
+        gon.results = get_pedia_json(@gene)
+      end
+    else
+      @gene = pedia_service.pedia.order("pedia_score DESC")
+      gon.results = get_pedia_json(@gene)
     end
-    gon.results = get_pedia_json(@gene)
+    @causing_muts = @patient.disease_causing_mutations
   end
 
   def get_pedia_json(results)
     pedia = []
     results.each do |result|
       gene = result.gene
+      label = result.label
+      if label.nil?
+        label = 0
+      end
       tmp = {entrez_id: gene.entrez_id,
              pedia_score: result.pedia_score,
              gene_symbol: gene.name,
+             label: label,
              pos: gene.pos,
              chr: gene.chr
             }

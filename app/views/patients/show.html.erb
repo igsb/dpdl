@@ -150,7 +150,11 @@
   <%= link_to '<button type="button" class="btn btn-dark">VCF Viewer</button>'.html_safe, @patient.vcf_files.first %>
 <% end %>
 </p>
-<% if @patient.result %>
+<% if @gene.count > 0 %>
+<div id="manhattan"><!-- Plotly chart will be drawn inside this DIV --></div>
+<script>
+  Plotly.newPlot('manhattan', data, layout);
+</script>
 <p>
 <% omim_prefix = "https://www.omim.org/search/?index=entry&start=1&limit=10&sort=score+desc%2C+prefix_sort+desc&search=" %>
 <% gene_prefix = "http://www.genecards.org/cgi-bin/carddisp.pl?gene=" %>
@@ -204,23 +208,12 @@
 <% end %>
 </p>
 <% end %>
-<% if !@result_link.nil? %>
-  <p>
-  <strong>PEDIA-Manhattan plot:</strong>
-  <% img_path = '/get_img/' + @result_link %>
-  <img src= <%= img_path %> style="width: 100%; height: 100%">
-  </p>
-<% end %>
+
 <% else%>
   <p>
   No PEDIA results!
   </p>
 <% end %>
-
-<div id="manhattan"><!-- Plotly chart will be drawn inside this DIV --></div>
-<script>
-  Plotly.newPlot('manhattan', data, layout);
-</script>
 
 
 <% if false %>

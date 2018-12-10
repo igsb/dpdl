@@ -23,26 +23,20 @@ function generateData(results, loweringFactor, chromosomeStartingPoint) {
     dataSets = [
         {
             label: 'NEUTRALS',
-            data: results.filter(function(result) {return ((result.chr % 2) == 1)}),
-            //data: filter(results , (result) => {return result.label === "0" && ((result.chromosome % 2) == 1)}),
+            data: results.filter(function(result) {return result.label == 0 && ((result.chr % 2) == 1)}),
             backgroundColor: '#C0C0C0',
         },
         {
             label: 'NEUTRALS',
-            data: results.filter(function(result) {return ((result.chr % 2) == 0)}),
-            //data: filter(results , (result) => {return result.label === "0" && ((result.chromosome % 2) == 0)}),
+            data: results.filter(function(result) {return result.label == 0 && ((result.chr % 2) == 0)}),
             backgroundColor: '#696969',
         },
+        {
+            label: 'PATHOGENIC',
+            data: results.filter(function(result) {return result.label == 1}),
+            backgroundColor: '#FF0000',
+        },
     ];
-
-    //let pathogenic = filter(results , (result) => {return result.label === "1"});
-    //if(!isEmpty(pathogenic)) {
-    //    dataSets.push({
-    //        label: 'PATHOGENIC',
-    //        data: pathogenic,
-    //        backgroundColor: 'rgb(255,127,59)',
-    //    });
-    //}
 
     for(i = 0; i < dataSets.length; i++){
         var x = []
@@ -51,6 +45,7 @@ function generateData(results, loweringFactor, chromosomeStartingPoint) {
         var gene_id = []
         var gene_symbol = []
         var color = []
+        var name = dataSets[i].label
         for(j = 0; j < dataSets[i].data.length; j++){
             data_point = dataSets[i].data[j];
             x.push(data_point.location);
@@ -64,7 +59,7 @@ function generateData(results, loweringFactor, chromosomeStartingPoint) {
             y: y,
             mode: 'markers',
             type: 'scatter',
-            name: 'NEUTRALS',
+            name: name,
             text: gene_symbol,
             textposition: 'bottom center',
             hoverinfo: "text+y",
@@ -91,7 +86,7 @@ for(i = 1 ; i < chromosomeSizes.length ; i++){
 }
 output =  generateData(gon.results, loweringFactor, chromosomeStartingPoint);
 
-var data = [output.datasets[0].points, output.datasets[1].points];
+var data = [output.datasets[0].points, output.datasets[1].points, output.datasets[2].points];
 
 var layout = {
     hovermode:'closest',
