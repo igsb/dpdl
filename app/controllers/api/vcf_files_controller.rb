@@ -93,12 +93,12 @@ class Api::VcfFilesController < Api::BaseController
     service.save
     respond_to do |format|
       if passed
-        msg = {msg: MSG_VCF_PASSED_QC }
+        msg = { msg: MSG_VCF_PASSED_QC }
       else
         if output == nil
-          msg = {msg: MSG_VCF_TOO_SHORT }
+          msg = { msg: MSG_VCF_TOO_SHORT }
         else
-          msg = {msg: MSG_VCF_FAILED_QC }
+          msg = { msg: MSG_VCF_FAILED_QC }
         end
       end
       #msg = { msg: MSG_VCF_SUCCESS_PEDIA_RUNNING }
@@ -133,9 +133,9 @@ class Api::VcfFilesController < Api::BaseController
     vcf = params[:vcf]
     pdf_report = "#{Rails.root}/Data/Received_VcfFiles/#{vcf}/#{vcf}"+ ".vcf_QualityReport.pdf"
     send_file( pdf_report,
-              :disposition => 'inline',
-              :type => 'application/pdf',
-              :xsend_file => true )
+               disposition: 'inline',
+               type: 'application/pdf',
+               xsend_file: true )
   end
 
   # DELETE /vcf_files/id
