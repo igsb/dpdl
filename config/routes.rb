@@ -41,6 +41,7 @@ Rails.application.routes.draw do
     resources :auth ,only: [:create]
     resources :vcf_files, only: [:create, :destroy]
     get '/get_results/' => 'patients#get_results'
+    get '/get_QCreport/' => 'vcf_files#get_QCreport'
   end
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 end
