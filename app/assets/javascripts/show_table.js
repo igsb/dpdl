@@ -18,7 +18,6 @@ app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGrid
             headerRowHeight: 200,
             showGridFooter: false,
             showColumnFooter: false,
-            rowIdentity: function(row) { return row.id; },
             getRowIdentity: function(row) { return row.id; },
             onRegisterApi: function( gridApi ) {
                 $scope.gridApi = gridApi;
@@ -73,7 +72,7 @@ app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGrid
                 },
                 {
                     displayName: 'HGVS',
-                    name: 'h', 
+                    name: 'h',
                     width:150,
                     cellTemplate: '<div class="ui-grid-cell-contents" title="{{row.entity.h}}"><span>{{COL_FIELD}}</span></div>'
                 },
@@ -149,11 +148,20 @@ app.controller('MainCtrl',  ['$scope', '$http', '$timeout', '$interval', 'uiGrid
             url = 'http://localhost:60151/goto?locus=chr' + pos;
             window.open(url, '_blank');
         }
-
-        url = '/vcf_files/get_var/' + gon.vcf_id 
+        $scope.loadMore = function() {
+            url = '/vcf_files/get_var?id=' + gon.vcf_id +'&all=true'
+            $http.get(url).success(function(data) {
+                $scope.gridOptions.data = data['variants'];
+                $scope.count = data['var_num'];
+                $scope.pediaVar = 'The number of variants in genes with PEDIA score.';
+            });
+            $("#load_button").prop('disabled', true);;
+        };
+        url = '/vcf_files/get_var?id=' + gon.vcf_id
         $http.get(url).success(function(data) {
             $scope.gridOptions.data = data['variants'];
-            $("#var_num").append(data['var_num'])
+            $scope.count = data['var_num'];
+            $scope.pediaVar = 'The number of variants in top 20 PEDIA score genes.';
         });
     }])
 
