@@ -1,19 +1,5 @@
 class SimilarityJob
-
-  JAVA           = '/usr/bin/java'
-  BED_DIR        = '/usr/bin/'
-  RSCRIPT        = '/usr/bin/Rscript'
-  SIMILARITY_DIR = '/opt/genetalk/addons/similarity/'
-  SIMILARITY_JAR = 'VCF2Sim.jar' 
-
-  CONSENSUS_FILE = '/opt/genetalk/data/consensus/consensus.bed'
-  
-  LOG_FILE       = '/opt/genetalk/logs/similarity.log'
-
-  LPATH          = '/opt/genetalk/addons/similarity/LATEX/'
   LTEMPLATE      = 'f2greport.tex'
-
-
   DESIRED = {
                'ti/' => [2.7, 3.6],
                'Per' => [0.9, 1.0],
@@ -29,6 +15,7 @@ class SimilarityJob
 
   #===========================================================================
   def initialize( vcf_file, output_file = nil )
+    config_paths
     if output_file == nil 
        @output_file = vcf_file + '_QualityReport.pdf'
     else
@@ -37,10 +24,34 @@ class SimilarityJob
 
     @vcf_file = vcf_file
 
-    @logger = Logger.new(LOG_FILE, 10, 1024000)
+    @logger = Logger.new(@LOG_FILE, 10, 1024000)
     @logger.sev_threshold = Logger::INFO
   end
 
+  #===========================================================================
+  # read the necessary path from config file when in devmode
+  def config_paths
+    if Rails.env.production?
+      @JAVA           = '/usr/bin/java'
+      @BED_DIR        = '/usr/bin/'
+      @RSCRIPT        = '/usr/bin/Rscript'
+      @SIMILARITY_DIR = '/opt/genetalk/addons/similarity/'
+      @SIMILARITY_JAR = 'VCF2Sim.jar' 
+      @CONSENSUS_FILE = '/opt/genetalk/data/consensus/consensus.bed'
+      @LOG_FILE       = '/opt/genetalk/logs/similarity.log'
+      @LPATH          = '/opt/genetalk/addons/similarity/LATEX/'
+    else
+      path = YAML.load_file("#{Rails.root.to_s}/config/path_file.yml")
+      @JAVA           = path['JAVA']
+      @BED_DIR        = path['BED_DIR']
+      @RSCRIPT        = path['RSCRIPT']
+      @SIMILARITY_DIR = path['SIMILARITY_DIR']
+      @SIMILARITY_JAR = path['SIMILARITY_JAR']
+      @CONSENSUS_FILE = path['CONSENSUS_FILE'] 
+      @LOG_FILE       = path['LOG_FILE']
+      @LPATH          = path['LPATH']
+      end
+    end
   #===========================================================================
   def run()
     
@@ -80,7 +91,7 @@ private
     vcf_tmpfile = "#{vcf_tmpdir}/#{File.basename(@vcf_file)}"
 
     @logger.info "...Starting BED on #{@vcf_file}"
-    %x@(#{BED_DIR}/intersectBed -a "#{@vcf_file}" -b #{CONSENSUS_FILE} | grep -v "^#" >> "#{vcf_tmpfile}") 2>> #{LOG_FILE} @
+    %x@(#{@BED_DIR}/intersectBed -a "#{@vcf_file}" -b #{@CONSENSUS_FILE} | grep -v "^#" >> "#{vcf_tmpfile}") 2>> #{@LOG_FILE} @
 
     lines = %x@cat "#{vcf_tmpfile}" | wc @.split.first.to_i
     
@@ -88,11 +99,11 @@ private
 
       @logger.info "...Starting Java on #{@vcf_file}"
 
-      err = %x@(cd #{SIMILARITY_DIR}; #{JAVA} -Xmx2g -jar VCF2Sim.jar -d "#{vcf_tmpdir}/" -o similarity.txt 2>&1 >> #{LOG_FILE} )@
+      err = %x@(cd #{@SIMILARITY_DIR}; #{@JAVA} -Xmx2g -jar VCF2Sim.jar -d "#{vcf_tmpdir}/" -o similarity.txt 2>&1 >> #{@LOG_FILE} )@
       throw_error( "An error occured while processing your file #{@vcf_file}... #{$?.exitstatus}, #{err}" ) if $? != 0
 
       @logger.info "...Starting R on #{@vcf_file}"
-      err = %x@(cd #{SIMILARITY_DIR}; #{RSCRIPT} --verbose --vanilla R/MDS.R -i "#{vcf_tmpdir}/similarity.txt" -o "#{pdf_output}" -p "#{LPATH}" -t "#{LTEMPLATE}" 2>&1 >> #{LOG_FILE} )@
+      err = %x@(cd #{@SIMILARITY_DIR}; #{@RSCRIPT} --verbose --vanilla R/MDS.R -i "#{vcf_tmpdir}/similarity.txt" -o "#{pdf_output}" -p "#{@LPATH}" -t "#{LTEMPLATE}" 2>&1 >> #{@LOG_FILE} )@
       throw_error( "An error occured while processing your file #{@vcf_file}.... #{$?.exitstatus}, #{err}" ) if $? != 0
 
       return true

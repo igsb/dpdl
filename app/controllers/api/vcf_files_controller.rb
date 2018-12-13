@@ -132,9 +132,9 @@ class Api::VcfFilesController < Api::BaseController
     pdf_report = "#{Rails.root}/Data/Received_VcfFiles/"\
                  "#{case_id}/#{vcf}" + '.vcf_QualityReport.pdf'
     send_file(pdf_report,
-               disposition: 'inline',
-               type: 'application/pdf',
-               xsend_file: true)
+              disposition: 'inline',
+              type: 'application/pdf',
+              xsend_file: true)
   end
 
   # DELETE /vcf_files/id
