@@ -69,14 +69,14 @@ $(document).on('page:load', ready);
       <div id="grid1" ui-grid="gridOptions" class="grid">
         <div class="well grid-loading" ng-show="grid.rows.length == 0">
           <i class="fa fa-spin fa-spinner"></i>
-            <strong>Data Loading...</strong>
+          <strong>Data Loading...</strong>
         </div>
       </div>
     </div>
   </div>
   <br>
   <br>
-<%= link_to 'Back', :back %>
-<br>
-<br>
+  <%= link_to 'Back', :back %>
+  <br>
+  <br>
 <% end %>

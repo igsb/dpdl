@@ -185,6 +185,13 @@ namespace :bootstrap do
     PediaStatus.find_or_create_by(status: PediaStatus::PRE_FAILED)
     PediaStatus.find_or_create_by(status: PediaStatus::WORKFLOW_RUNNING)
     PediaStatus.find_or_create_by(status: PediaStatus::WORKFLOW_FAILED)
+    PediaStatus.find_or_create_by(status: PediaStatus::WORKFLOW_COMPLETE)
+    PediaStatus.find_or_create_by(status: PediaStatus::UPLOADING_RESULTS_SCORE_RUNNING)
+    PediaStatus.find_or_create_by(status: PediaStatus::UPLOADING_RESULTS_SCORE_COMPLETE)
+    PediaStatus.find_or_create_by(status: PediaStatus::UPLOADING_RESULTS_SCORE_FAILED)
+    PediaStatus.find_or_create_by(status: PediaStatus::UPLOADING_RESULTS_VCF_RUNNING)
+    PediaStatus.find_or_create_by(status: PediaStatus::UPLOADING_RESULTS_VCF_COMPLETE)
+    PediaStatus.find_or_create_by(status: PediaStatus::UPLOADING_RESULTS_VCF_FAILED)
     PediaStatus.find_or_create_by(status: PediaStatus::COMPLETE)
     PediaStatus.find_or_create_by(status: PediaStatus::UNKNOWN_FAILED)
   end
