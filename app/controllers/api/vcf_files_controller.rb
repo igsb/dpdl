@@ -94,11 +94,11 @@ class Api::VcfFilesController < Api::BaseController
     respond_to do |format|
       msg = if passed
               { msg: MSG_VCF_PASSED_QC }
-      elsif output.nil?
-        { msg: MSG_VCF_TOO_SHORT }
-      else
-        { msg: MSG_VCF_FAILED_QC }
-      end
+            elsif output.nil?
+              { msg: MSG_VCF_TOO_SHORT }
+            else
+              { msg: MSG_VCF_FAILED_QC }
+            end
       # msg = { msg: MSG_VCF_SUCCESS_PEDIA_RUNNING }
       format.json { render plain: msg.to_json,
                     status: 200,
@@ -130,11 +130,11 @@ class Api::VcfFilesController < Api::BaseController
     vcf = params[:vcf]
     case_id = params[:case_id]
     pdf_report = "#{Rails.root}/Data/Received_VcfFiles/"\
-                 "#{case_id}/#{vcf}" + ".vcf_QualityReport.pdf"
-    send_file( pdf_report,
+                 "#{case_id}/#{vcf}" + '.vcf_QualityReport.pdf'
+    send_file(pdf_report,
                disposition: 'inline',
                type: 'application/pdf',
-               xsend_file: true )
+               xsend_file: true)
   end
 
   # DELETE /vcf_files/id
