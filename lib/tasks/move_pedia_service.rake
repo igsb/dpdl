@@ -1,6 +1,6 @@
 require 'csv'
 namespace :pedia do
-  desc "move resuls file in pedia_service folder"
+  desc 'move resuls file in pedia_service folder'
   task :move_results => :environment do
     status = PediaStatus.find_by_status('Complete')
     services = status.pedia_services
