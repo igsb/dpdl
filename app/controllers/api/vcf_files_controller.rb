@@ -58,8 +58,6 @@ class Api::VcfFilesController < Api::BaseController
       end
     end
     vcf.save
-    # QC check
-    passed, output = SimilarityJob.new(f).run
     add_vcf_to_json(json_path, f)
     user = User.find_by(username: 'FDNA')
     # Check if PEDIA service is already running
@@ -78,6 +76,8 @@ class Api::VcfFilesController < Api::BaseController
         return
       end
     end
+    # QC check
+    passed, output = SimilarityJob.new(f).run
     status = PediaStatus.find_by(status: PediaStatus::INIT)
     service = PediaService.create(user_id: user.id,
                                   json_file: json_path,
