@@ -39,18 +39,11 @@ ready = function() {
     $('#showhidehposettingsoff').toggle();
     $('#showhidehposettingson').toggle();
   });
-  /*
-  var updateFilterBar = function (){ 
-    $.get( '/vcf_files/get_job_status/18', function (result) {
-      filterTimer = window.setTimeout( function(){ updateFilterBar(); }, 1000);  
-    });
-  };
-  var filterTimer = window.setTimeout( function(){ updateFilterBar(); }, 1000);  */
 };
 $(document).ready(ready);
 
 $(document).on('page:load', ready);
-</script>    
+</script>
 
 <style type="text/css">
 .grid {
@@ -60,22 +53,30 @@ $(document).on('page:load', ready);
 </style>
 <% end %>
 <%= heading_block 'VCF Viewer' do %>
-
-    <h5>File: <%= @vcf.name%></h5>
-    <h5 id='var_num'>Variants: </h5>
-<div ng-app="app">
-  <div ng-controller="MainCtrl">
+  <h5>File: <%= @vcf.name%></h5>
+  <div ng-app="app">
+    <div ng-controller="MainCtrl">
+      <p id='var_num'>
+        <font size='4'>Variants: {{count}}</font size>
+        <a id='pedia_var_str' title='{{pediaVar}}'>&#9432;</a>
+      </p>
+		  <button id="load_button" type="button" ng-click="loadMore()" class="btn btn-sm btn-success">
+        Load all variants
+		  </button>
+      <a title='Please note, it might takes a while to load all variants!'>&#9432;</a>
+      <br>
+      <br>
       <div id="grid1" ui-grid="gridOptions" class="grid">
-      <div class="well grid-loading" ng-show="grid.rows.length == 0">
-        <i class="fa fa-spin fa-spinner"></i>
+        <div class="well grid-loading" ng-show="grid.rows.length == 0">
+          <i class="fa fa-spin fa-spinner"></i>
           <strong>Data Loading...</strong>
+        </div>
       </div>
     </div>
   </div>
-</div>
-<br>
-<br>
-<%= link_to 'Back', :back %>
-<br>
-<br>
+  <br>
+  <br>
+  <%= link_to 'Back', :back %>
+  <br>
+  <br>
 <% end %>

@@ -133,16 +133,15 @@ class Api::PatientsController < Api::BaseController
         status = 400
       else
         service = services.last
-        if service.pedia_status.pedia_failed?
-          msg = { msg: service.pedia_status.status }
-          status = 500
-        elsif service.pedia_status.running?
-          msg = { msg: service.pedia_status.status }
-          status = 404
-        elsif service.pedia_status.pedia_complete?
-          result_file_name = (File.join('Data/PEDIA_service/', case_id, service.id.to_s, case_id + '.csv', ))
-          result_file_name_old = (File.join('Data/PEDIA_service/', case_id, case_id + '.csv', ))
-          unless File.exist?(result_file_name) or File.exist?(result_file_name_old)
+        result_file_name = (File.join('Data/PEDIA_service/', case_id, service.id.to_s, case_id + '.csv'))
+        unless File.exist?(result_file_name)
+          if service.pedia_status.workflow_failed?
+            msg = { msg: service.pedia_status.status }
+            status = 500
+          elsif service.pedia_status.workflow_running?
+            msg = { msg: service.pedia_status.status }
+            status = 404
+          else
             msg = { msg: MSG_NO_PEDIA_RESULTS }
             status = 500
           end
@@ -162,11 +161,7 @@ class Api::PatientsController < Api::BaseController
       end
       return
     end
-    if File.exist?(result_file_name)
-      result_file_name = (File.join('Data/PEDIA_service/', case_id, service.id.to_s, case_id + '.csv', ))
-    else
-      result_file_name = (File.join('Data/PEDIA_service/', case_id, case_id + '.csv', ))
-    end
+    result_file_name = (File.join('Data/PEDIA_service/', case_id, service.id.to_s, case_id + '.csv'))
     lines = CSV.open(result_file_name).readlines
     keys = lines.delete lines.first
 

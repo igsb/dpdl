@@ -186,18 +186,28 @@ class VcfFilesController < ApplicationController
 
   def get_var
     vcf_id = params[:id]
-    get_pshow_var(vcf_id)
+    all = false
+    all = true if params.has_key?(:all)
+    get_pshow_var(vcf_id, all)
     render :json => ActiveSupport::JSON.encode(@result)
   end
 
-  def get_pshow_var(vcf_id)
+  def get_pshow_var(vcf_id, all=false)
     @vcf_file = VcfFile.find_by_id(vcf_id)
     @p_vcf = @vcf_file.patients_vcf_files.last
     @patient = @vcf_file.patients.take
-    if @patient.pedia_services.count > 0
-      @pedia = @patient.pedia_services.last.pedia.limit(10).order("pedia_score DESC")
+    if all
+      if @patient.pedia_services.count > 0
+        @pedia = @patient.pedia_services.last.pedia.order("pedia_score DESC")
+      else
+        @pedia = @patient.pedia.order("pedia_score DESC")
+      end
     else
-      @pedia = @patient.pedia.limit(10).order("pedia_score DESC")
+      if @patient.pedia_services.count > 0
+        @pedia = @patient.pedia_services.last.pedia.limit(20).order("pedia_score DESC")
+      else
+        @pedia = @patient.pedia.limit(20).order("pedia_score DESC")
+      end
     end
     flash[:alert] = "VCF File not found" and redirect_to vcf_select_path and return if @p_vcf.blank?
 

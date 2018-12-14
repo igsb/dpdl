@@ -64,7 +64,7 @@ class Api::VcfFilesController < Api::BaseController
     unless p_services.empty?
       p_service = p_services.last
       p_status = p_service.pedia_status
-      if p_status.running?
+      if p_status.workflow_running?
         msg = { msg: MSG_PEDIA_RUNNING_TRY_LATER }
         respond_to do |format|
           format.json { render plain: msg.to_json,

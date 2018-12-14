@@ -96,103 +96,128 @@ class PediaService < ApplicationRecord
       end
       thread.join
     end
-    parse_pedia(result_path)
-    upload_vcf
+    self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::WORKFLOW_COMPLETE).id
+    self.save
+    parse_pedia(result_path, log_path)
+    upload_vcf(log_path)
     self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::COMPLETE).id
     self.save
   end
 
-  def upload_vcf
-    case_id = self.patient.case_id.to_s
-    f_ann_name = case_id + '_annotated.vcf.gz'
-    f_name = case_id + '_pedia.vcf.gz'
-    f = File.join("#{Rails.root}", 'Data/PEDIA_service', case_id, self.id.to_s, f_name)
-    f_ann_full_name = File.join("#{Rails.root}", 'Data/PEDIA_service', case_id, self.id.to_s, f_ann_name)
-    tmp = File.join("#{Rails.root}", 'Data/PEDIA_service', case_id, self.id.to_s, 'tmp.vcf.gz')
-    FileUtils.cp(f, tmp)
-    e=%x@gunzip -d -f "#{tmp}"@
-    tmp.sub!(/\.gz$/, '')
-    infile = File.open(tmp)
-    login = User.find_by_username('admin')
-    vcf_file, warnings, alerts = VcfFile.add_file(infile, f, f_name, login, self.id)
-    vcf_file.create_samples
-    vcf_file.parse_vcf(infile)
-    #vcf_file.create_tabix
-    vcf_file.name = f_ann_name
-    vcf_file.full_path = f_ann_full_name
-    vcf_file.save
-    FileUtils.rm(tmp)
-    self.vcf_file_id = vcf_file.id
+  def upload_vcf(log_path)
+    self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::UPLOADING_RESULTS_VCF_RUNNING).id
     self.save
-
+    out_log = File.join(log_path, 'upload_vcf.log')
+    logger = Logger.new(out_log)
+    begin
+      case_id = self.patient.case_id.to_s
+      f_ann_name = case_id + '_annotated.vcf.gz'
+      f_name = case_id + '_pedia.vcf.gz'
+      f = File.join("#{Rails.root}", 'Data/PEDIA_service', case_id, self.id.to_s, f_name)
+      f_ann_full_name = File.join("#{Rails.root}", 'Data/PEDIA_service', case_id, self.id.to_s, f_ann_name)
+      tmp = File.join("#{Rails.root}", 'Data/PEDIA_service', case_id, self.id.to_s, 'tmp.vcf.gz')
+      FileUtils.cp(f, tmp)
+      e=%x@gunzip -d -f "#{tmp}"@
+      tmp.sub!(/\.gz$/, '')
+      infile = File.open(tmp)
+      login = User.find_by_username('admin')
+      vcf_file, warnings, alerts = VcfFile.add_file(infile, f, f_name, login, self.id)
+      vcf_file.create_samples
+      vcf_file.parse_vcf(infile)
+      #vcf_file.create_tabix
+      vcf_file.name = f_ann_name
+      vcf_file.full_path = f_ann_full_name
+      vcf_file.save
+      FileUtils.rm(tmp)
+    rescue StandardError => e
+      self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::UPLOADING_RESULTS_VCF_FAILED).id
+      self.save
+      logger.error("Error while uploading VCF")
+      raise 'Uploading PEDIA scores failed, PEDIA service: ' + self.id.to_s
+    end
+    self.vcf_file_id = vcf_file.id
+    self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::UPLOADING_RESULTS_VCF_COMPLETE).id
+    self.save
   end
-  def parse_pedia(pedia_file)
 
-    lines = CSV.open(pedia_file).readlines
-    keys = lines.delete lines.first
+  def parse_pedia(pedia_file, log_path)
+    self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::UPLOADING_RESULTS_SCORE_RUNNING).id
+    self.save
+    out_log = File.join(log_path, 'upload_pedia_score.log')
+    logger = Logger.new(out_log)
+    begin
+      lines = CSV.open(pedia_file).readlines
+      keys = lines.delete lines.first
 
-    data = lines.map do |values|
-      is_int(values) ? values.to_i : values.to_s
-      Hash[keys.zip(values)]
+      data = lines.map do |values|
+        is_int(values) ? values.to_i : values.to_s
+        Hash[keys.zip(values)]
+      end
+      for gene in data
+        gene_id = gene['gene_id'].to_i
+        gene_name = gene['gene_name']
+        entrez_gene = Gene.find_by(entrez_id: gene_id)
+        if entrez_gene.nil?
+          entrez_gene = Gene.create(entrez_id: gene_id, name: gene_name)
+        end
+        if gene_name != entrez_gene.name
+          entrez_gene.name = gene_name
+          entrez_gene.save
+        end
+
+        pedia = gene['pedia_score']
+
+        cadd = 0
+        if gene.key?("cadd_score")
+          cadd = gene['cadd_score'].to_f
+        end
+
+        pheno = 0
+        if gene.key?("pheno_score")
+          pheno = gene['pheno_score'].to_f
+        end
+
+        gestalt = 0
+        if gene.key?("gestalt_score")
+          gestalt = gene['gestalt_score'].to_f
+        end
+
+        feature = 0
+        if gene.key?("feature_score")
+          feature = gene['feature_score'].to_f
+        end
+
+        boqa = 0
+        if gene.key?("boqa_score")
+          boqa = gene['boqa_score'].to_f
+        end
+        if entrez_gene.nil?
+          puts gene_id
+          puts gene['gene_name']
+          next
+        end
+
+        label = gene['label']
+        p = Pedium.find_or_create_by(pedia_service_id: self.id, gene_id: entrez_gene.id, patient_id: self.patient_id)
+        p.pedia_score = pedia
+        p.feature_score = feature
+        p.gestalt_score = gestalt
+        p.pheno_score = pheno
+        p.boqa_score = boqa
+        p.cadd_score = cadd
+        p.label = label
+        p.save
+        self.patient.result = true
+        self.patient.save
+      end
+    rescue StandardError => e
+      self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::UPLOADING_RESULTS_SCORE_FAILED).id
+      self.save
+      logger.error("Error while uploading PEDIA scores")
+      raise 'Uploading PEDIA scores failed, PEDIA service: ' + self.id.to_s
     end
-    for gene in data
-      gene_id = gene['gene_id'].to_i
-      gene_name = gene['gene_name']
-      entrez_gene = Gene.find_by(entrez_id: gene_id)
-      if entrez_gene.nil?
-        entrez_gene = Gene.create(entrez_id: gene_id, name: gene_name)
-      end
-      if gene_name != entrez_gene.name
-        entrez_gene.name = gene_name
-        entrez_gene.save
-      end
-
-      score = Score.find_or_create_by(name: 'pedia_score')
-      pedia = gene['pedia_score']
-
-      cadd = 0
-      if gene.key?("cadd_score")
-        cadd = gene['cadd_score'].to_f
-      end
-
-      pheno = 0
-      if gene.key?("pheno_score")
-        pheno = gene['pheno_score'].to_f
-      end
-
-      gestalt = 0
-      if gene.key?("gestalt_score")
-        gestalt = gene['gestalt_score'].to_f
-      end
-
-      feature = 0
-      if gene.key?("feature_score")
-        feature = gene['feature_score'].to_f
-      end
-
-      boqa = 0
-      if gene.key?("boqa_score")
-        boqa = gene['boqa_score'].to_f
-      end
-      if entrez_gene.nil?
-        puts gene_id
-        puts gene['gene_name']
-        next
-      end
-
-      label = gene['label']
-      p = Pedium.find_or_create_by(pedia_service_id: self.id, gene_id: entrez_gene.id, patient_id: self.patient_id)
-      p.pedia_score = pedia
-      p.feature_score = feature
-      p.gestalt_score = gestalt
-      p.pheno_score = pheno
-      p.boqa_score = boqa
-      p.cadd_score = cadd
-      p.label = label
-      p.save
-      self.patient.result = true
-      self.patient.save
-    end
+    self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::UPLOADING_RESULTS_SCORE_COMPLETE).id
+    self.save
   end
 
   def is_int(str)
