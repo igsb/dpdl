@@ -173,8 +173,8 @@
       <% if @pedia_service.pedia_status.pedia_complete? %>
         <% vcf = @pedia_service.vcf_file %>
         <tr>
-          <td><%= vcf.name %></td>
-          <td><%= vcf.user.username %></td>
+          <td><%= vcf.file_name unless vcf.file_name.nil? %></td>
+          <td><%= vcf.user.username unless vcf.user.username.nil? %></td>
           <td><%= vcf.updated_at %></td>
           <td>
             annotated VCF
