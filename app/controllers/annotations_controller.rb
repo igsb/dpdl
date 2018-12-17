@@ -107,6 +107,9 @@ class AnnotationsController < ApplicationController
       errors = @annotation.new_annotation(params)
       @mut_pos_id = params[:annotation][:mut_pos_id]
       @mut_pos = MutationsPosition.find(@mut_pos_id)
+      if @annotation.clinical_significance.value > 3
+        add_disease_causing(@annotation, @mut_pos_id, @gene_id)
+      end
       respond_to do |format|
         if @annotation.save
           @mut_pos.annotations << @annotation
@@ -147,6 +150,9 @@ class AnnotationsController < ApplicationController
       else
         gene_errors = 'please check if the entrez ID is correct'
       end
+      if @annotation.clinical_significance.value > 3
+        remove_disease_causing(@annotation)
+      end
       @annotation.hgvs = @hgvs
       @annotation.comment = @comment
       @annotation.clinical_significance_id = @sig
@@ -158,6 +164,9 @@ class AnnotationsController < ApplicationController
       respond_to do |format|
         if @annotation.save
           @mut_pos.annotations << @annotation
+          if @annotation.clinical_significance.value > 3
+            add_disease_causing(@annotation, @mut_pos_id, @gene_id)
+          end
           update_max(@mut_pos)
           msg = 'Annotation was successfully updated.'
           format.html { redirect_to @annotation, notice: msg }
@@ -169,7 +178,7 @@ class AnnotationsController < ApplicationController
           format.html { render :new }
           format.json { render json: @annotation.errors, status: :unprocessable_entity }
         end
-      end          
+      end
     end
   end
 
@@ -179,6 +188,10 @@ class AnnotationsController < ApplicationController
     mut_pos_arrays = []
     @annotation.mutations_positions.each do |mut|
       mut_pos_arrays.push(mut)
+    end
+
+    if @annotation.clinical_significance.value > 3
+      remove_disease_causing(@annotation)
     end
 
     @annotation.destroy
@@ -213,7 +226,7 @@ class AnnotationsController < ApplicationController
       access = true
     end
 
-    if not access 
+    if not access
       flash[:alert] = 'You do not have permissions to enter this case!'
       redirect_back(fallback_location: root_path)
     end
@@ -238,5 +251,30 @@ class AnnotationsController < ApplicationController
     puts max_score
     mut_pos.max_classification = max_score
     mut_pos.save
+  end
+
+  def add_disease_causing(annotation, mut_pos_id, gene_id)
+    vars = annotation.patients_vcf_file.disorders_mutations_scores.where(mutations_position_id: mut_pos_id)
+    vars.each do |var|
+      var.disease_causing = true
+      var.save
+    end
+    gene = Gene.find_by_entrez_id(gene_id)
+    pedia_gene = annotation.patients_vcf_file.patient.pedia_services.last.pedia.where(gene_id: gene.id).take
+    pedia_gene.label = true
+    pedia_gene.save
+  end
+
+  def remove_disease_causing(annotation)
+    mut_pos_id = annotation.mutations_positions.take.id
+    vars = annotation.patients_vcf_file.disorders_mutations_scores.where(mutations_position_id: mut_pos_id)
+    vars.each do |var|
+      var.disease_causing = false
+      var.save
+    end
+    gene = annotation.gene
+    pedia_gene = annotation.patients_vcf_file.patient.pedia_services.last.pedia.where(gene_id: gene.id).take
+    pedia_gene.label = false
+    pedia_gene.save
   end
 end
