@@ -30,17 +30,34 @@ class PatientsController < ApplicationController
     @diagnosed_disorders = @patient.get_selected_disorders
     @detected_disorders = @patient.get_detected_disorders
     #@gene = @patient.pedia.order("pedia_score DESC")
-    pedia_service = @patient.pedia_services.last
-    if pedia_service.nil?
+    @pedia_service = @patient.pedia_services.last
+    if @pedia_service.nil?
       @gene = @patient.pedia.order("pedia_score DESC")
       if @gene.count > 0
         gon.results = get_pedia_json(@gene)
       end
     else
-      @gene = pedia_service.pedia.order("pedia_score DESC")
+      @gene = @pedia_service.pedia.order("pedia_score DESC")
       gon.results = get_pedia_json(@gene)
     end
+    @pedia_status = get_status(@patient, @gene)
     @causing_muts = @patient.disease_causing_mutations
+  end
+
+  def get_status(patient, gene)
+    status = 0
+    if patient.pedia_services.count == 0 and gene.count > 0
+      status = 1
+    elsif patient.pedia_services.count == 0
+      status = 0
+    elsif patient.pedia_services.last.pedia_status.pedia_complete?
+      status = 1
+    elsif patient.pedia_services.last.pedia_status.pedia_failed?
+      status = 2
+    else
+      status = 3
+    end
+    return status
   end
 
   def get_pedia_json(results)
