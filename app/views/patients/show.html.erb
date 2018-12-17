@@ -133,6 +133,7 @@
       HGVS code: <%= ann.hgvs %> <br><br>
     <% end %>
   <% end %>
+  <%= 'No disease causing mutation found yet!' if ann_count_idx == 0 %>
 <% else %>
   No disease causing mutation found yet!
 <% end %>
@@ -157,8 +158,8 @@
     <% vcf = @patient.uploaded_vcf_files.last %>
     <% unless vcf.nil? %>
       <tr>
-        <td><%= vcf.file_name %></td>
-        <td><%= vcf.user.username %></td>
+        <td><%= vcf.file_name unless vcf.file_name.nil? %></td>
+        <td><%= vcf.user.username unless vcf.user.username.nil? %></td>
         <td><%= vcf.updated_at %></td>
         <td>
           original VCF
