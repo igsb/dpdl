@@ -1,12 +1,12 @@
 class SimilarityJob
-  LTEMPLATE      = 'f2greport.tex'
+  LTEMPLATE = 'f2greport.tex'
   DESIRED = {
                'ti/' => [2.7, 3.6],
-               'Per' => [0.9, 1.0],
+               'Per' => [0.8, 1.0],
                'var' => [0.016, 0.23],
                'Non' => [0.8, 1.0],
                'het' => [1.3, 2.0],
-               'SDS' => [1.0, Float::INFINITY]
+               'SDS' => [0.0, 1.0]
             }
 
   require 'logger.rb'
