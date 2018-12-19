@@ -27,3 +27,8 @@ MSG_NO_PEDIA_CASE = 'Case does not exist. Please create a case first to get PEDI
 
 # Log
 API_LOG = File.join("#{Rails.root}", 'log', 'api')
+
+# QC
+MSG_VCF_PASSED_QC = 'VCF file passed QC, report generated and PEDIA running'
+MSG_VCF_TOO_SHORT = 'VCF file too short for QC, no report generated, PEDIA running'
+MSG_VCF_FAILED_QC = 'VCF file failed QC, report generated and PEDIA running'

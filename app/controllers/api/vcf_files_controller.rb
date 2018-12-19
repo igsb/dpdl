@@ -1,4 +1,5 @@
 class Api::VcfFilesController < Api::BaseController
+  require_relative 'quality/similarity_job'
   before_action :authenticate_token
 
   # POST /vcf_files
@@ -75,6 +76,8 @@ class Api::VcfFilesController < Api::BaseController
         return
       end
     end
+    # QC check
+    passed, output = SimilarityJob.new(f).run
     status = PediaStatus.find_by(status: PediaStatus::INIT)
     service = PediaService.create(user_id: user.id,
                                   json_file: json_path,
@@ -89,7 +92,14 @@ class Api::VcfFilesController < Api::BaseController
     service.job_id = job.id
     service.save
     respond_to do |format|
-      msg = { msg: MSG_VCF_SUCCESS_PEDIA_RUNNING }
+      msg = if passed
+              { msg: MSG_VCF_PASSED_QC }
+            elsif output.nil?
+              { msg: MSG_VCF_TOO_SHORT }
+            else
+              { msg: MSG_VCF_FAILED_QC }
+            end
+      # msg = { msg: MSG_VCF_SUCCESS_PEDIA_RUNNING }
       format.json { render plain: msg.to_json,
                     status: 200,
                     content_type: 'application/json'
@@ -112,8 +122,19 @@ class Api::VcfFilesController < Api::BaseController
     if !(fname =~ /zip$/ || fname =~ /gz$/ || fname =~ /vcf$/)
       valid = false
     end
-
     return valid
+  end
+
+  # GET /get_QCreport
+  def get_QCreport
+    vcf = params[:vcf]
+    case_id = params[:case_id]
+    pdf_report = "#{Rails.root}/Data/Received_VcfFiles/"\
+                 "#{case_id}/#{vcf}" + '.vcf_QualityReport.pdf'
+    send_file(pdf_report,
+              disposition: 'inline',
+              type: 'application/pdf',
+              xsend_file: true)
   end
 
   # DELETE /vcf_files/id
