@@ -33,33 +33,6 @@ class Api::VcfFilesController < Api::BaseController
       return
     end
 
-    # Data/Received_VcfFiles/case_id/
-    dirname = File.join('Data', 'Received_VcfFiles', case_id.to_s)
-    dir = "#{Rails.root}/#{dirname}"
-    FileUtils.mkdir(dir) unless File.directory?(dir)
-    json_path = File.join('Data', 'Received_JsonFiles', case_id.to_s + '.json')
-
-    # Check if VCF file header hg19
-    f = "#{dir}/#{fname}"
-    vcf = UploadedVcfFile.find_by(patient_id: p.id, file_name: fname)
-    if vcf.nil?
-      FileUtils.cp_r(params[:file].tempfile.path, f)
-      user = User.find_by_username('admin')
-      vcf_full_path = File.join(dirname, fname)
-      vcf = UploadedVcfFile.create(patient_id: p.id,
-                                   file_name: fname,
-                                   user_id: user.id,
-                                   full_path: vcf_full_path)
-    else
-      # check if VCF file is different from the original one
-      unless FileUtils.compare_file(f, params[:file].tempfile.path)
-        vcf.updated_at = Time.now.to_datetime
-        FileUtils.cp_r(params[:file].tempfile.path, f)
-      end
-    end
-    vcf.save
-    add_vcf_to_json(json_path, f)
-    user = User.find_by(username: 'FDNA')
     # Check if PEDIA service is already running
     p_services = p.pedia_services
     unless p_services.empty?
@@ -76,30 +49,48 @@ class Api::VcfFilesController < Api::BaseController
         return
       end
     end
-    # QC check
-    passed, output = SimilarityJob.new(f).run
+    user = User.find_by(username: 'FDNA')
     status = PediaStatus.find_by(status: PediaStatus::INIT)
     service = PediaService.create(user_id: user.id,
-                                  json_file: json_path,
-                                  uploaded_vcf_file_id: vcf.id,
                                   patient_id: p.id,
                                   pedia_status_id: status.id)
-    # Create pedia service folder
-    service_folder = File.join('Data/PEDIA_service/', case_id.to_s, service.id.to_s)
-    FileUtils.mkdir_p service_folder
+
+    # Data/Received_VcfFiles/case_id/
+    dirname = File.join('Data', 'PEDIA_service', case_id.to_s, service.id.to_s)
+    dir = "#{Rails.root}/#{dirname}"
+    FileUtils.mkdir_p(dir) unless File.directory?(dir)
+
+
+    # Check if VCF file header hg19
+    f = "#{dir}/#{fname}"
+    FileUtils.cp_r(params[:file].tempfile.path, f)
+    user = User.find_by_username('admin')
+    vcf_full_path = File.join(dirname, fname)
+    vcf = UploadedVcfFile.create(patient_id: p.id,
+                                 file_name: fname,
+                                 user_id: user.id,
+                                 full_path: vcf_full_path)
+
+    # Add vcf path to JSON file, then PEDIA pipeline is able to
+    # find the VCF file
+    # Copy JSON file to PEDIA service folder
+    original_json_path = File.join('Data', 'Received_JsonFiles', case_id.to_s + '.json')
+    json_path = File.join(dir, case_id.to_s + '.json')
+    add_vcf_to_json(original_json_path, f)
+    FileUtils.cp_r(original_json_path, json_path)
+
+    service.json_file = json_path
+    service.uploaded_vcf_file_id = vcf.id
+    service.save
+
+    # QC check
+    passed, output = SimilarityJob.new(f).run
 
     job = Delayed::Job.enqueue(service)
     service.job_id = job.id
     service.save
     respond_to do |format|
-      msg = if passed
-              { msg: MSG_VCF_PASSED_QC }
-            elsif output.nil?
-              { msg: MSG_VCF_TOO_SHORT }
-            else
-              { msg: MSG_VCF_FAILED_QC }
-            end
-      # msg = { msg: MSG_VCF_SUCCESS_PEDIA_RUNNING }
+      msg = { msg: MSG_VCF_SUCCESS_PEDIA_RUNNING }
       format.json { render plain: msg.to_json,
                     status: 200,
                     content_type: 'application/json'
@@ -129,6 +120,13 @@ class Api::VcfFilesController < Api::BaseController
   def get_QCreport
     vcf = params[:vcf]
     case_id = params[:case_id]
+    msg = if passed
+            { msg: MSG_VCF_PASSED_QC }
+          elsif output.nil?
+            { msg: MSG_VCF_TOO_SHORT }
+          else
+            { msg: MSG_VCF_FAILED_QC }
+          end
     pdf_report = "#{Rails.root}/Data/Received_VcfFiles/"\
                  "#{case_id}/#{vcf}" + '.vcf_QualityReport.pdf'
     send_file(pdf_report,
