@@ -219,7 +219,6 @@ class VcfFile < ActiveRecord::Base
         chrom, pos, ident, ref, alt, qual, filter, info, format, *gt = line.split("\t");
         chrom_num = VcfTools.chrom_to_i(chrom)
 
-        Delayed::Worker.logger.debug("chrome")
         #Skip the variant which is not in chr1-22 X,Y
         next if chrom_num == 0
 

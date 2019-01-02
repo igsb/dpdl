@@ -37,7 +37,7 @@
         <b>Disorder:</b>
         <% search.get_selected_disorders.each do |disorder|%>
           <tr>
-            <td><%= disorder.disorder.disorder_id %></td>
+            <td><%= disorder.disorder.omim_id %></td>
             <td><%= disorder.disorder.disorder_name %></td>
           </tr>
         <% end %>

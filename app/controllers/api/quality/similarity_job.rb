@@ -36,7 +36,7 @@ class SimilarityJob
       @BED_DIR        = '/usr/bin/'
       @RSCRIPT        = '/usr/bin/Rscript'
       @SIMILARITY_DIR = '/opt/genetalk/addons/similarity/'
-      @SIMILARITY_JAR = 'VCF2Sim.jar' 
+      @SIMILARITY_JAR = '/opt/genetalk/addons/similarity/VCF2Sim.jar'
       @CONSENSUS_FILE = '/opt/genetalk/data/consensus/consensus.bed'
       @LOG_FILE       = '/opt/genetalk/logs/similarity.log'
       @LPATH          = '/opt/genetalk/addons/similarity/LATEX/'
@@ -47,14 +47,14 @@ class SimilarityJob
       @RSCRIPT        = path['RSCRIPT']
       @SIMILARITY_DIR = path['SIMILARITY_DIR']
       @SIMILARITY_JAR = path['SIMILARITY_JAR']
-      @CONSENSUS_FILE = path['CONSENSUS_FILE'] 
+      @CONSENSUS_FILE = path['CONSENSUS_FILE']
       @LOG_FILE       = path['LOG_FILE']
       @LPATH          = path['LPATH']
-      end
     end
+  end
   #===========================================================================
   def run()
-    
+
     @logger.info "Starting SimilarityJob on #{@vcf_file}"
 
     throw_error("File not found: #{@vcf_file}") if ! File.file?( @vcf_file )
@@ -67,14 +67,14 @@ class SimilarityJob
 
     ok = run_similarity(vcf_tmpdir, pdf_output)
 
-    if ok 
+    if ok
        passed = check_values( table_file )
        FileUtils.mv( pdf_output, @output_file, :force => true )
-    else 
-       passed = false 
+    else
+       passed = false
        @output_file = nil
     end
-    
+
     @logger.info "Finished SimilarityJob on #{@vcf_file}"
 
     return passed, @output_file
