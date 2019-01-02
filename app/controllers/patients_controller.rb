@@ -202,7 +202,7 @@ class PatientsController < ApplicationController
     end
   end
 
-  def download_vcf
+  def download_file
     name = File.basename(params[:name])
     ext = File.extname(params[:name])
     send_file(
