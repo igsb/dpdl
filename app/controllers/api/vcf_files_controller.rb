@@ -49,7 +49,7 @@ class Api::VcfFilesController < Api::BaseController
         return
       end
     end
-    user = User.find_by(username: 'FDNA')
+    user = User.find_by_username('admin')
     status = PediaStatus.find_by(status: PediaStatus::INIT)
     service = PediaService.create(user_id: user.id,
                                   patient_id: p.id,
@@ -64,7 +64,6 @@ class Api::VcfFilesController < Api::BaseController
     # Check if VCF file header hg19
     f = "#{dir}/#{fname}"
     FileUtils.cp_r(params[:file].tempfile.path, f)
-    user = User.find_by_username('admin')
     vcf_full_path = File.join(dirname, fname)
     vcf = UploadedVcfFile.create(patient_id: p.id,
                                  file_name: fname,
@@ -84,8 +83,28 @@ class Api::VcfFilesController < Api::BaseController
     service.save
 
     # QC check
-    passed, output = SimilarityJob.new(f).run
+    begin
+      if File.extname(f) == '.gz'
+        outfile = File.join(dir, File.basename(f, '.gz'))
+        cmd = %Q(bgzip -d -c #{f} | awk '{{gsub(/chr/,""); print}}' > #{outfile})
+        puts cmd
+        system(cmd)
+        passed, output = SimilarityJob.new(outfile).run
+      else
+        passed, output = SimilarityJob.new(f).run
+      end
+      result = passed ? 'Passed' : 'Failed'
+    rescue StandardError => e
+      result = 'Error'
+      output = nil
+      error_path = File.join(dir, 'report_error.log')
+      File.open(error_path, 'w') { |file| file.write(e.message) }
+    end
+    vcf.quality_result = result
+    vcf.quality_report_path = output
+    vcf.save
 
+    # enqueue PEDIA service
     job = Delayed::Job.enqueue(service)
     service.job_id = job.id
     service.save
@@ -117,22 +136,44 @@ class Api::VcfFilesController < Api::BaseController
   end
 
   # GET /get_QCreport
-  def get_QCreport
-    vcf = params[:vcf]
-    case_id = params[:case_id]
-    msg = if passed
-            { msg: MSG_VCF_PASSED_QC }
-          elsif output.nil?
-            { msg: MSG_VCF_TOO_SHORT }
-          else
-            { msg: MSG_VCF_FAILED_QC }
-          end
-    pdf_report = "#{Rails.root}/Data/Received_VcfFiles/"\
-                 "#{case_id}/#{vcf}" + '.vcf_QualityReport.pdf'
-    send_file(pdf_report,
-              disposition: 'inline',
-              type: 'application/pdf',
-              xsend_file: true)
+  def get_quality_report
+    case_id = params[:case_id].to_i
+    patient = Patient.find_by_case_id(case_id)
+    pdf_report = nil
+
+    if patient.nil?
+      msg = { msg: MSG_CASE_NOT_EXISTS }
+    else
+      service = patient.pedia_services.last
+      if service.nil?
+        msg = { msg: MSG_NO_PEDIA_CASE }
+      else
+        result = service.uploaded_vcf_file.quality_result
+        pdf_report = service.uploaded_vcf_file.quality_report_path
+        msg = if result == 'Passed'
+                { msg: MSG_VCF_PASSED_QC }
+              elsif result == 'Failed'
+                { msg: MSG_VCF_FAILED_QC }
+              else
+                { msg: MSG_VCF_TOO_SHORT }
+              end
+      end
+    end
+    if pdf_report.nil?
+      respond_to do |format|
+        format.json { render plain: msg.to_json,
+                      status: 400,
+                      content_type: 'application/json'
+        }
+      end
+    else
+      puts File.basename(pdf_report)
+      send_file(pdf_report,
+                disposition: 'inline',
+                type: 'application/pdf',
+                filename: File.basename(pdf_report),
+                xsend_file: true)
+    end
   end
 
   # DELETE /vcf_files/id

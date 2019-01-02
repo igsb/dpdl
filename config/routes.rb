@@ -34,14 +34,14 @@ Rails.application.routes.draw do
   resources :review
   resources :annotations
   resources :uploaded_vcf_files
-  post '/annotations/new' => 'annotations#new', as: :annotations_new 
+  post '/annotations/new' => 'annotations#new', as: :annotations_new
 
   namespace :api do
     resources :patients, only: [:create, :destroy]
     resources :auth ,only: [:create]
     resources :vcf_files, only: [:create, :destroy]
     get '/get_results/' => 'patients#get_results'
-    get '/get_QCreport/' => 'vcf_files#get_QCreport'
+    get '/get_quality_report/' => 'vcf_files#get_quality_report'
   end
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 end
