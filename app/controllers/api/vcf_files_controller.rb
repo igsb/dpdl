@@ -87,9 +87,9 @@ class Api::VcfFilesController < Api::BaseController
       if File.extname(f) == '.gz'
         outfile = File.join(dir, File.basename(f, '.gz'))
         cmd = %Q(bgzip -d -c #{f} | awk '{{gsub(/chr/,""); print}}' > #{outfile})
-        puts cmd
         system(cmd)
         passed, output = SimilarityJob.new(outfile).run
+        File.delete(outfile) if File.exist?(outfile)
       else
         passed, output = SimilarityJob.new(f).run
       end
@@ -152,10 +152,12 @@ class Api::VcfFilesController < Api::BaseController
         pdf_report = service.uploaded_vcf_file.quality_report_path
         msg = if result == 'Passed'
                 { msg: MSG_VCF_PASSED_QC }
-              elsif result == 'Failed'
-                { msg: MSG_VCF_FAILED_QC }
-              else
+              elsif pdf_report.nil? and result.nil?
+                { msg: MSG_VCF_QC_RUNNING }
+              elsif pdf_report.nil?
                 { msg: MSG_VCF_TOO_SHORT }
+              else
+                { msg: MSG_VCF_FAILED_QC }
               end
       end
     end

@@ -3,7 +3,7 @@ class SimilarityJob
   DESIRED = {
                'ti/' => [2.7, 3.6],
                'Per' => [0.8, 1.0],
-               'var' => [0.016, 0.23],
+               'var' => [0.016, 0.023],
                'Non' => [0.8, 1.0],
                'het' => [1.3, 2.0],
                'SDS' => [0.0, 1.0]
@@ -16,7 +16,7 @@ class SimilarityJob
   #===========================================================================
   def initialize( vcf_file, output_file = nil )
     config_paths
-    if output_file == nil 
+    if output_file == nil
        @output_file = vcf_file + '_QualityReport.pdf'
     else
        @output_file = output_file
@@ -38,7 +38,7 @@ class SimilarityJob
       @SIMILARITY_DIR = '/opt/genetalk/addons/similarity/'
       @SIMILARITY_JAR = '/opt/genetalk/addons/similarity/VCF2Sim.jar'
       @CONSENSUS_FILE = '/opt/genetalk/data/consensus/consensus.bed'
-      @LOG_FILE       = '/opt/genetalk/logs/similarity.log'
+      @LOG_FILE       = "#{Rails.root.to_s}/log/similarity.log"
       @LPATH          = '/opt/genetalk/addons/similarity/LATEX/'
     else
       path = YAML.load_file("#{Rails.root.to_s}/config/path_file.yml")
