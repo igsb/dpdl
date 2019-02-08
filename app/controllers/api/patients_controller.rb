@@ -21,55 +21,11 @@ class Api::PatientsController < Api::BaseController
     msg = {}
     begin
       ActiveRecord::Base.transaction do
-        if content['case_data'].has_key? 'posting_user'
-          user = content['case_data']['posting_user']
-          user_name = user['userDisplayName']
-          user_email = user['userEmail']
-          user_institute = user['userInstitution']
-          user_team = nil
-        else
-          user_name = "Mr. FDNA LAB"
-          user_email = "fdna@fdna.com"
-          user_institute = "F2G"
-          user_team = nil
-        end
-
-        user_array = user_name.split('.', 2)
-        title = ''
-        name = ''
-        if user_array.length > 1
-          title = user_array[0] + '.'
-          name = user_array[1][1..-1]
-          name_array = name.split(' ')
-          first_name = name_array[0]
-          last_name = name_array[-1]
-          if name_array.length > 2
-            first_name = name_array[0..-2].join(' ')
-          end
-        else
-          name = user_array[0]
-          name_array = name.split(' ')
-          first_name = name_array[0]
-          last_name = name_array[-1]
-          if name_array.length > 2
-            first_name = name_array[0..-2].join(' ')
-          end
-        end
-
-        submitter = Submitter.find_or_create_by(first_name: first_name, last_name: last_name, email: user_email, team: user_team, title: title)
-        patient = Patient.find_by_case_id(patient_id)
+        lab = Patient.parse_lab(content)
+        patient = Patient.find_by(case_id: patient_id, lab_id: lab.id)
         if patient.nil?
-          patient = Patient.find_or_create_by(case_id: patient_id, submitter: submitter)
-          patient.parse_json(content['case_data'])
-          # ToDo: Parse suggested syndrome
-          user = User.find_by_email(submitter.email)
-          if not user.nil?
-            if not user.patients.exists?(patient.id)
-              user.patients << patient
-            end
-          end
-          patient_save = patient.save
-          msg = { msg: MSG_CASE_CREATED } if patient_save
+          patient = Patient.create_patient(content)
+          msg = { msg: MSG_CASE_CREATED }
         else
           patient.update_json(content['case_data'])
           msg = { msg: MSG_CASE_UPDATE }

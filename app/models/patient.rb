@@ -1,5 +1,6 @@
 class Patient < ApplicationRecord
   belongs_to :submitter, :optional => true
+  belongs_to :lab, :optional => true
   has_many :patients_features
   has_many :features, :through => :patients_features, :dependent => :destroy
   has_many :patients_disorders
@@ -18,7 +19,100 @@ class Patient < ApplicationRecord
   has_many :uploaded_vcf_files
   has_many :pedia_services
   validates :case_id, :submitter_id, presence: true
-  validates :case_id, uniqueness: true
+  validates :case_id, uniqueness: { scope: :lab_id }
+
+  def self.create_patient(content)
+    submitter = self.parse_user(content)
+    lab = self.parse_lab(content)
+    patient = Patient.create(case_id: content['case_data']['case_id'],
+                             submitter_id: submitter.id,
+                             lab_id: lab.id)
+    patient.parse_json(content['case_data'])
+    # ToDo: Parse suggested syndrome
+    user = User.find_by_email(submitter.email)
+    if not user.nil?
+      if not user.patients.exists?(patient.id)
+        user.patients << patient
+      end
+    end
+    patient.save
+
+    return patient
+  end
+
+  def self.parse_lab(content)
+    # if contain lab info -> return lab
+    # else return default lab
+    if content['case_data'].has_key? 'lab_info'
+      info = content['case_data']['lab_info']
+      lab_f2g_id = info['lab_id']
+      lab_name = info['lab_name']
+      lab_contact = info['lab_contact']
+      lab_email = info['lab_email']
+      lab_country = info['lab_country']
+
+      lab = Lab.find_by_lab_f2g_id(lab_f2g_id)
+      if lab.nil?
+        lab = Lab.create(lab_f2g_id: lab_f2g_id,
+                  name: lab_name,
+                  contact: lab_contact,
+                  email: lab_email,
+                  country: lab_country)
+      end
+    else
+      lab = Lab.find_by_lab_f2g_id(0)
+    end
+
+    return lab
+  end
+
+  def self.parse_user(content)
+    # Parse user info
+    if content['case_data'].has_key? 'posting_user'
+      user = content['case_data']['posting_user']
+      user_name = user['userDisplayName']
+      user_email = user['userEmail']
+      user_institute = user['userInstitution']
+    else
+      user_name = "Mr. FDNA LAB"
+      user_email = "fdna@fdna.com"
+      user_institute = "F2G"
+    end
+
+    # Parse name
+    user_array = user_name.split('.', 2)
+    title = ''
+    name = ''
+    if user_array.length > 1
+      title = user_array[0] + '.'
+      name = user_array[1][1..-1]
+      name_array = name.split(' ')
+      first_name = name_array[0]
+      last_name = name_array[-1]
+      if name_array.length > 2
+        first_name = name_array[0..-2].join(' ')
+      end
+    else
+      name = user_array[0]
+      name_array = name.split(' ')
+      first_name = name_array[0]
+      last_name = name_array[-1]
+      if name_array.length > 2
+        first_name = name_array[0..-2].join(' ')
+      end
+    end
+
+    # Use email to find submitter
+    submitter = Submitter.find_by_email(user_email)
+    if submitter.nil?
+      submitter = Submitter.create(first_name: first_name,
+                                   last_name: last_name,
+                                   email: user_email,
+                                   institute: user_institute,
+                                   title: title)
+    end
+    return submitter
+  end
 
   def parse_json(data)
     @@log = Logger.new('log/patient.log')
@@ -33,7 +127,7 @@ class Patient < ApplicationRecord
     if data.key? "selected_syndromes"
       parse_selected(data['selected_syndromes'])
     end
-    #parse_pedia(data['geneList'])
+
     if data.key? "genomicData"
       if data['genomicData'].length.positive?
         parse_genomic(data['genomicData'])
@@ -144,7 +238,7 @@ class Patient < ApplicationRecord
                                         disorder_name: syn['syndrome_name'],
                                         is_phenotypic_series: false)
           end
-          omim_array << syn['omim_id']
+          omim_array << syn['omim_id'].to_i
         else
           ps_id = syn['omim_ps_id'].split('PS')[1]
           disorder = Disorder.find_by(omim_id: ps_id,
@@ -155,19 +249,12 @@ class Patient < ApplicationRecord
                                         disorder_name: syn['syndrome_name'],
                                         is_phenotypic_series: true)
           end
-          omim_array << ps_id
+          omim_array << ps_id.to_i
         end
         patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id,
                                                               disorder_id: disorder.id)
         patient_disorder.diagnosis_type_id = DiagnosisType.diag_type(diagnosis)
         patient_disorder.save
-      end
-    end
-    dia_disorders = get_selected_disorders
-    dia_disorders.each do |diag|
-      unless omim_array.include? diag.disorder.omim_id
-        puts diag.id
-        PatientsDisorder.delete(diag.id)
       end
     end
   end

@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :labs
   get 'news', to: 'news#index'
   get 'profile', to: 'profile#index'
 

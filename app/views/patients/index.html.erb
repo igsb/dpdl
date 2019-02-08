@@ -6,6 +6,7 @@
   <thead>
     <tr>
       <th>Case</th>
+      <th>Lab</th>
       <th>Submitter</th>
       <th>Disorder</th>
       <th>Result</th>
@@ -20,6 +21,7 @@
       <% @diagnosed = @diagnosed_disorders.take %>
       <tr>
         <td><%= patient.case_id %></td>
+        <td><%= patient.lab.name unless patient.lab.nil? %></td>
         <td><%= [patient.submitter.title, patient.submitter.first_name, patient.submitter.last_name].join(' ') %></td>
         <% if @diagnosed.nil? %>
           <td> </td>
