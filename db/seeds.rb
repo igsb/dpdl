@@ -20,8 +20,19 @@ when "development"
                       institute: 'FDNA',
                       title: 'Mr.')
   user.save!
-  user = User.create!(username: 'admin', password: 'admin123', password_confirmation: 'admin123', email: 'admin@gmail.com',
-                      approved: 1, admin: 1, created_at: Time.now.to_datetime, updated_at: Time.now.to_datetime,
-                      first_name: 'admin', last_name: 'admin', institute: 'uni bonn', title: 'Dr.')
+  user = User.create!(username: 'admin',
+                      password: 'admin123',
+                      password_confirmation: 'admin123',
+                      email: 'admin@gmail.com',
+                      approved: 1,
+                      admin: 1,
+                      created_at: Time.now.to_datetime,
+                      updated_at: Time.now.to_datetime,
+                      first_name: 'admin',
+                      last_name: 'admin',
+                      institute: 'uni bonn',
+                      title: 'Dr.')
   user.save!
+  lab = Lab.create(lab_f2g_id: 0, name: 'Face2Gene LAB')
+  lab.save
 end

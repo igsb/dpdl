@@ -223,7 +223,7 @@ class VcfFile < ActiveRecord::Base
         next if chrom_num == 0
 
         var_pos = Position.find_or_create_by(chr: chrom_num, pos: pos.to_i, reference_genome_id: 0)
-        # Pares GT 
+        # Pares GT
         gt_alt, genotype = get_alt_genotype(format, gt)
 
         info_array = info.split(";")
@@ -274,7 +274,7 @@ class VcfFile < ActiveRecord::Base
           hgvs = ann[ANN_FEATURE_ID] + ':' + ann[ANN_HGVS_C]
           MutationsHgvsCode.find_or_create_by(hgvs_code: hgvs, mutations_position_id: mut_pos.id)
 
-          hgvs_p = ann[ANN_HGVS_P] 
+          hgvs_p = ann[ANN_HGVS_P]
           if (not hgvs_p.include?("%3D")) and (not hgvs_p.include?("p.?"))
             MutationsHgvsCode.find_or_create_by(hgvs_code: hgvs_p, mutations_position_id: mut_pos.id)
           end
@@ -328,8 +328,6 @@ class VcfFile < ActiveRecord::Base
   ##---------------------------------------------------------------------
   def get_cadd(cadd_str)
     cadd = 0
-    puts '------------------'
-    puts cadd_str
     if cadd_str.include? '|'
       cadd_array = cadd_str.split('|')
       cadd_tmp = []
@@ -350,7 +348,6 @@ class VcfFile < ActiveRecord::Base
       cadd = cadd_tmp.max.to_f
     else
       cadd = cadd_str.to_f
-      puts cadd
     end
     return cadd
   end
