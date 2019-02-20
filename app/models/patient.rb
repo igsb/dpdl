@@ -108,7 +108,7 @@ class Patient < ApplicationRecord
       submitter = Submitter.create(first_name: first_name,
                                    last_name: last_name,
                                    email: user_email,
-                                   institute: user_institute,
+                                   #institute: user_institute,
                                    title: title)
     end
     return submitter
