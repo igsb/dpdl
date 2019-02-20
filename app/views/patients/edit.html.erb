@@ -1,5 +1,4 @@
 <h1>Updata Patient Data</h1>
-
 <h4>Case ID: <%= @patient.case_id %></h4>
 <p>To upload VCF file for this patient, please also fill in the sample ID.</p>
 <%= form_tag patient_path(@patient), :method => :put, :multipart => true do %>
@@ -16,6 +15,15 @@
   <% end %>
 
   <%= render 'form', patient: @patient %>
+<% end %>
+
+<br>
+<% if current_user.admin? %>
+  <%= form_for :assign_user, :url => {:controller => "patients", :action => "assign_user", :id => @patient.id} do |f| %>
+    <%= f.label 'Assign to user (username): ' %>
+    <%= f.text_field :username %>
+    <%= f.submit "Create" %>
+  <% end %>
 <% end %>
 
 <br>

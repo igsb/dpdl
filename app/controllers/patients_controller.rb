@@ -212,6 +212,32 @@ class PatientsController < ApplicationController
     )
   end
 
+  def assign_user
+    username = params[:assign_user][:username]
+    id = params[:id]
+    @patient = Patient.find(id)
+    user = User.find_by_username(username)
+    if user.nil?
+      respond_to do |format|
+        flash[:notice] = 'User not found! Please check username.'
+        format.html { render :edit }
+      end
+    else
+      if user.patients.exists?(@patient.id)
+        respond_to do |format|
+          flash[:notice] = 'User already has this patient.'
+          format.html { render :edit }
+        end
+      else
+        respond_to do |format|
+          user.patients << @patient
+          format.html { redirect_to @patient, notice: 'Patient was successfully updated.' }
+          format.json { render :show, status: :ok, location: @patient }
+        end
+      end
+    end
+  end
+
   private
   # Use callbacks to share common setup or constraints between actions.
   def set_patient
