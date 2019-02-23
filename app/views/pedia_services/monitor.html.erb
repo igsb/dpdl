@@ -3,10 +3,11 @@
 <table class='table'>
   <thead>
     <tr>
+      <th>PEDIA ID</th>
       <th>Job ID</th>
       <th>Patient</th>
+      <th>Lab</th>
       <th>Submitter</th>
-      <th>VCF</th>
       <th>Status</th>
       <th>Runtime</th>
       <th>Created date</th>
@@ -17,10 +18,11 @@
   <tbody>
     <% @pedia_services.each do |service| %>
       <tr>
+        <td><%= service.id unless service.id.nil? %></td>
         <td><%= service.job_id unless service.job_id.nil? %></td>
-        <td><%= service.patient.case_id unless service.patient.nil? %></td>
+        <td><%= link_to service.patient.case_id, service.patient unless service.patient.nil?%></td>
+        <td><%= service.patient.lab.name unless service.patient.nil? %></td>
         <td><%= service.user.first_name + ' ' + service.user.last_name %></td>
-        <td><%= 1  %></td>
         <td><%= service.pedia_status.status %></td>
         <% runtime = (service.updated_at - service.created_at) %>
         <td><%= (runtime.to_i / 60).to_s + '.' + (runtime.to_i % 60).to_s + ' min' %></td>

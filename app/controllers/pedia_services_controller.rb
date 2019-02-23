@@ -7,11 +7,11 @@ class PediaServicesController < ApplicationController
   # GET /pedia_services
   # GET /pedia_services.json
   def index
-    @pedia_services = PediaService.all.order('job_id DESC')
+    @pedia_services = PediaService.all.order('id DESC')
   end
 
   def monitor
-    @pedia_services = PediaService.all.order('job_id DESC')
+    @pedia_services = PediaService.all.order('id DESC')
   end
 
   def download
