@@ -77,7 +77,8 @@ rule pedia:
 	output:
 		result = "Data/PEDIA_service/{case}/{pedia_id}/{case}.csv",
 		vcf = "Data/PEDIA_service/{case}/{pedia_id}/{case}_pedia.vcf.gz",
-		ann_vcf = "Data/PEDIA_service/{case}/{pedia_id}/{case}_annotated.vcf.gz"
+		ann_vcf = "Data/PEDIA_service/{case}/{pedia_id}/{case}_annotated.vcf.gz",
+		qc_vcf = "Data/PEDIA_service/{case}/{pedia_id}/{case}_annotated_quality.vcf.gz"
 	params:
 		ann_vcf = os.path.join(PEDIA_ANN_VCF_DIR, "{case}_annotated.vcf.gz"),
 		dir = "Data/PEDIA_service/{case}/{pedia_id}/",
@@ -89,4 +90,5 @@ rule pedia:
 		cp {params.result} {output.result}
 		cp {params.vcf} {output.vcf}
 		cp {params.ann_vcf} {output.ann_vcf}
+		python lib/convert_annotation.py -i {params.ann_vcf} -o {output.qc_vcf}
 		"""

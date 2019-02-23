@@ -96,12 +96,42 @@ class PediaService < ApplicationRecord
       end
       thread.join
     end
+
+    out_path = File.join(service_path, case_id, pedia_id.to_s)
+    run_qc_report(out_path)
+
     self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::WORKFLOW_COMPLETE).id
     self.save
+
     parse_pedia(result_path, log_path)
     upload_vcf(log_path)
     self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::COMPLETE).id
     self.save
+  end
+
+  def run_qc_report(path)
+    begin
+      case_id = self.patient.case_id.to_s
+      f_ann_name = File.join(path, case_id + '_annotated_quality.vcf.gz')
+      if File.extname(f_ann_name) == '.gz'
+        outfile = File.basename(f_ann_name, '.gz')
+        cmd = %Q(bgzip -d -c #{f_ann_name} | awk '{{gsub(/chr/,""); print}}' > #{outfile})
+        system(cmd)
+        passed, output = SimilarityJob.new(outfile).run
+        File.delete(outfile) if File.exist?(outfile)
+      else
+        passed, output = SimilarityJob.new(f_ann_name).run
+      end
+      result = passed ? 'Passed' : 'Failed'
+    rescue StandardError => e
+      result = 'Error'
+      output = nil
+      error_path = File.join(path, 'report_error.log')
+      File.open(error_path, 'w') { |file| file.write(e.message) }
+    end
+    self.uploaded_vcf_file.quality_result = result
+    self.uploaded_vcf_file.quality_report_path = output
+    self.uploaded_vcf_file.save
   end
 
   def upload_vcf(log_path)
