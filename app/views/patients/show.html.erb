@@ -30,13 +30,19 @@
 <%= [@patient.submitter.title, @patient.submitter.first_name, @patient.submitter.last_name].join(' ')%>
 </p>
 
+<p>
+<strong>Lab:</strong>
+<%= @patient.lab.name unless @patient.lab.nil? %>
+</p>
+
+</p>
 <% if not @demo %>
   <% usi = @patient.usi_materialnrs.take %>
   <% if usi != nil %>
     <% usi_id = usi.usi_id %>
     <% materialnr = usi.materialnr %>
     <p>
-    <strong>USI:</strong>
+    <strong>Sample ID:</strong>
     <%= usi_id %>
     </p>
   <% end %>

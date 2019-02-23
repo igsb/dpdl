@@ -82,28 +82,6 @@ class Api::VcfFilesController < Api::BaseController
     service.uploaded_vcf_file_id = vcf.id
     service.save
 
-    # QC check
-    begin
-      if File.extname(f) == '.gz'
-        outfile = File.join(dir, File.basename(f, '.gz'))
-        cmd = %Q(bgzip -d -c #{f} | awk '{{gsub(/chr/,""); print}}' > #{outfile})
-        system(cmd)
-        passed, output = SimilarityJob.new(outfile).run
-        File.delete(outfile) if File.exist?(outfile)
-      else
-        passed, output = SimilarityJob.new(f).run
-      end
-      result = passed ? 'Passed' : 'Failed'
-    rescue StandardError => e
-      result = 'Error'
-      output = nil
-      error_path = File.join(dir, 'report_error.log')
-      File.open(error_path, 'w') { |file| file.write(e.message) }
-    end
-    vcf.quality_result = result
-    vcf.quality_report_path = output
-    vcf.save
-
     # enqueue PEDIA service
     job = Delayed::Job.enqueue(service)
     service.job_id = job.id
