@@ -1,5 +1,4 @@
 class Api::VcfFilesController < Api::BaseController
-  require_relative 'quality/similarity_job'
   before_action :authenticate_token
 
   # POST /vcf_files
