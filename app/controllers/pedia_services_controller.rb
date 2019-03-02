@@ -17,16 +17,6 @@ class PediaServicesController < ApplicationController
   def download
   end
 
-  def download_file
-    filename = "pedia_jsons_v1.tar.gz"
-    Download.create(filename: filename, user_id: current_user.id)
-    send_file(
-      "#{Rails.root}/public/" + filename,
-      filename: filename,
-      type: "application/x-compressed"
-    )
-  end
-
   # GET /pedia_services/1
   # GET /pedia_services/1.json
   def show
