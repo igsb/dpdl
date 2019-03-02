@@ -9,7 +9,6 @@ Rails.application.routes.draw do
   resources :pedia_services, only: [:index, :new, :create, :destroy]
   get 'pedia_services/monitor', to: 'pedia_services#monitor', as: :pedia_services_monitor
   get 'pedia_services/download', to: 'pedia_services#download', as: :pedia_services_download
-  get 'pedia_services/download_file', to: 'pedia_services#download_file', as: :pedia_services_download_file
   resources :result_figures
   devise_for :users, controllers: { registrations: 'users/registrations' }
   resources :users
