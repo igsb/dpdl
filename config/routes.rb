@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resources :gfh, only: [:index]
+
   resources :labs
   get 'news', to: 'news#index'
   get 'profile', to: 'profile#index'
