@@ -38,6 +38,8 @@ Rails.application.routes.draw do
   resources :uploaded_vcf_files
   post '/annotations/new' => 'annotations#new', as: :annotations_new
   post '/patients/assign_user' => 'patients#assign_user', as: :patients_assign_user
+  post '/labs/assign_user_to_lab' => 'labs#assign_user_to_lab', as: :labs_assign_user_to_lab
+  post '/labs/remove_user' => 'labs#remove_user', as: :labs_remove_user
 
   namespace :api do
     resources :patients, only: [:create, :destroy]

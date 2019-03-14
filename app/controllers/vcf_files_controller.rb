@@ -1,5 +1,8 @@
 class VcfFilesController < ApplicationController
   before_action :verify_is_admin, only: [:index, :edit, :destroy, :update]
+  before_action :check_access, only: [:show, :edit, :update, :destroy]
+  before_action :check_read_only, only: [:edit, :update, :destroy]
+  before_action :check_demo, only: [:index, :show, :edit, :update, :destroy]
 
   #######################################################################
   # GET /vcf_files/new
@@ -391,9 +394,51 @@ class VcfFilesController < ApplicationController
     return vcf_file, warnings, alerts
   end
 
+  def check_access
+    access = false
+    patients = VcfFile.find(params[:id]).patients
+    if not current_user.admin
+      user = current_user
+      patients.each do |patient|
+        if user.patients.exists?(patient.id)
+          access = true
+          break
+        else
+          lab_ids = []
+          user.labs.each do |lab|
+            lab_ids.push(lab.id)
+          end
+          if lab_ids.include? (patient.lab_id)
+            access = true
+            break
+          end
+        end
+      end
+    else
+      access = true
+    end
+    if not access
+      flash[:alert] = 'You do not have permissions to enter this case!'
+      redirect_back(fallback_location: root_path)
+    end
+  end
+
   def verify_is_admin
     (current_user.nil?) ? redirect_to(root_path) : (redirect_to(root_path) unless current_user.admin?)
   end
 
+  def check_read_only
+    if current_user.username == "demo"
+      flash[:alert] = 'You do not have permissions to modify this case!'
+      redirect_back(fallback_location: root_path)
+    end
+  end
+
+  def check_demo
+    @demo = false
+    if current_user.username == "demo"
+      @demo = true
+    end
+  end
 end # class
 

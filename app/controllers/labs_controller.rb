@@ -1,5 +1,6 @@
 class LabsController < ApplicationController
   before_action :set_lab, only: [:show, :edit, :update, :destroy]
+  before_action :verify_is_admin
 
   # GET /labs
   # GET /labs.json
@@ -10,6 +11,7 @@ class LabsController < ApplicationController
   # GET /labs/1
   # GET /labs/1.json
   def show
+    @labs_users = @lab.labs_users
   end
 
   # GET /labs/new
@@ -61,14 +63,53 @@ class LabsController < ApplicationController
     end
   end
 
-  private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_lab
-      @lab = Lab.find(params[:id])
+  def remove_user
+    lab_user = LabsUser.find(params[:id])
+    lab = lab_user.lab
+    lab_user.destroy
+    respond_to do |format|
+      format.html { redirect_to lab, notice: 'User was successfully removed.' }
+      format.json { head :no_content }
     end
+  end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def lab_params
-      params.require(:lab).permit(:name, :email, :country, :contact)
+  def assign_user_to_lab
+    username = params[:assign_user_to_lab][:username]
+    id = params[:id]
+    @lab = Lab.find(id)
+    user = User.find_by_username(username)
+    if user.nil?
+      respond_to do |format|
+        flash[:notice] = 'User not found! Please check username.'
+        format.html { render :edit }
+      end
+    else
+      if @lab.users.exists?(user.id)
+        respond_to do |format|
+          flash[:notice] = 'Lab already has this user.'
+          format.html { render :edit }
+        end
+      else
+        respond_to do |format|
+          @lab.users << user
+          format.html { redirect_to @lab, notice: 'User was successfully updated.' }
+          format.json { render :show, status: :ok, location: @lab }
+        end
+      end
     end
+  end
+  private
+  # Use callbacks to share common setup or constraints between actions.
+  def set_lab
+    @lab = Lab.find(params[:id])
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def lab_params
+    params.require(:lab).permit(:name, :email, :country, :contact)
+  end
+
+  def verify_is_admin
+    (current_user.nil?) ? redirect_to(root_path) : (redirect_to(root_path) unless current_user.admin? or true_user.admin?)
+  end
 end

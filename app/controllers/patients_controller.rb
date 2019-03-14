@@ -8,12 +8,21 @@ class PatientsController < ApplicationController
   # GET /patients.json
   def index
     user = current_user
-    sub_ids = []
     if not current_user.admin
+      lab_ids = []
+      user.labs.each do |lab|
+        lab_ids.push(lab.id)
+      end
       if params[:result] == "true"
-        @patients = user.patients.where(result: true).order(:case_id).page(params[:page]).per(25)
+        patients = Patient.includes(:users_patients)
+          .where('result = true and (users_patients.user_id = ? or lab_id IN (?))', user.id, lab_ids)
+          .references(:users_patients)
+        @patients = patients.order(:case_id).page(params[:page]).per(25)
       else
-        @patients = user.patients.order(:case_id).page(params[:page]).per(25)
+        patients = Patient.includes(:users_patients)
+          .where('users_patients.user_id = ? or lab_id IN (?)', user.id, lab_ids)
+          .references(:users_patients)
+        @patients = patients.order(:case_id).page(params[:page]).per(25)
       end
     else
       if params[:result] == "true"
@@ -212,6 +221,11 @@ class PatientsController < ApplicationController
     )
   end
 
+  def remove_user
+    lab_user = User.find(params[:lab_user])
+    lab_user.destroy
+  end
+
   def assign_user
     username = params[:assign_user][:username]
     id = params[:id]
@@ -259,6 +273,14 @@ class PatientsController < ApplicationController
       user = current_user
       if user.patients.exists?(@patient.id)
         access = true
+      else
+        lab_ids = []
+        user.labs.each do |lab|
+          lab_ids.push(lab.id)
+        end
+        if lab_ids.include? (@patient.lab_id)
+          access = true
+        end
       end
     else
       access = true
