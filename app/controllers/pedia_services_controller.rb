@@ -2,6 +2,7 @@ class PediaServicesController < ApplicationController
   skip_before_action :authenticate_user!, only: [:index]
   before_action :set_pedia_service, only: [:show, :edit, :update, :destroy]
   before_action :check_access, only: [:show, :edit, :update, :destroy]
+  before_action :verify_is_admin, only: [:show, :edit, :update, :destroy, :monitor]
   require 'fileutils'
 
   # GET /pedia_services
@@ -119,5 +120,9 @@ class PediaServicesController < ApplicationController
       flash[:alert] = 'You do not have permissions to enter this case!'
       redirect_back(fallback_location: root_path)
     end
+  end
+
+  def verify_is_admin
+    (current_user.nil?) ? redirect_to(root_path) : (redirect_to(root_path) unless current_user.admin? or true_user.admin?)
   end
 end

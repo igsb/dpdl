@@ -10,6 +10,8 @@ class User < ApplicationRecord
   has_many :annotations
   has_many :pedia_services
   has_many :downloads
+  has_many :labs_users
+  has_many :labs, :through => :labs_users
   after_create :send_admin_mail
   validates :institute, :presence => true
   validates :last_name, :presence => true
