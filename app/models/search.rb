@@ -8,11 +8,13 @@ class Search < ApplicationRecord
     omim_array = Array.new
     case_array = Array.new
     submitter_array = Array.new
+    sample_array = Array.new
     
     has_hpo = false
     has_disorder = false
     has_case = false
     has_submitter = false
+    has_sample = false
 
 
     # Parse search input
@@ -32,11 +34,14 @@ class Search < ApplicationRecord
         elsif value_type.to_i == 4
           submitter_array.push(search_value)
           has_submitter = true
+        elsif value_type.to_i == 5
+          sample_array.push(search_value)
+          has_sample = true
         else
         end
       end
     end
-    
+
     case_query = Array.new
     case_query_str = ""
     if has_case
@@ -45,7 +50,16 @@ class Search < ApplicationRecord
       end
     case_query_str = " AND "
     end
-    
+
+    sample_query = Array.new
+    sample_query_str = ""
+    if has_sample
+      for c in sample_array
+        sample_query.push('sample_id LIKE ' + "'#{c}'")
+      end
+    sample_query_str = " AND "
+    end
+
     submitter_query = Array.new
     submitter_query_str = ""
     if has_submitter
@@ -57,9 +71,6 @@ class Search < ApplicationRecord
         else
           submitters = Submitter.where("first_name LIKE ? OR last_name LIKE ? ", "#{c}", "#{c}")
         end
-        puts 'fff'
-        puts submitters.count
-        puts 'fddd'
         if not submitters.empty?
           submitters.each do |submitter|
             submitter_query.push('submitter_id LIKE ' + "'#{submitter.id}'")
@@ -77,7 +88,6 @@ class Search < ApplicationRecord
       end
       return Patient.joins(:features).where(query.join(" OR ") + " " + submitter_query_str + submitter_query.join(" OR ") + case_query_str + case_query.join(" OR ")).distinct
     elsif !has_hpo and has_disorder
-      puts 'Search omim'
       query = Array.new
       for omim in omim_array
         query.push('disorders.disorder_id LIKE ' + "'#{omim}'")
@@ -86,10 +96,9 @@ class Search < ApplicationRecord
       # Add Phenotypic and Molecular diagnose
       diag_query.push('patients_disorders.diagnose_type_id LIKE 2')
       diag_query.push('patients_disorders.diagnose_type_id LIKE 3')
-      
+
         return Patient.joins(:disorders).where(query.join(" OR ") + ' AND (' + diag_query.join(" OR ") + ') ' + submitter_query_str + submitter_query.join(" OR ") + case_query_str + case_query.join(" OR ")).distinct
     elsif has_hpo and has_disorder
-      puts 'Search HPO and omim'
       omim_query = Array.new
       for omim in omim_array
         omim_query.push('disorders.disorder_id LIKE ' + "'#{omim}'")
@@ -103,15 +112,22 @@ class Search < ApplicationRecord
       diag_query.push('patients_disorders.diagnose_type_id LIKE 2')
       #diag_query.push('patients_disorders.diagnose_type_id LIKE 3')
       return Patient.joins(:features).joins(:disorders).where(hpo_query.join(" OR ") + " AND (" + omim_query.join(" OR ") + ' AND ' + diag_query.join(" OR ") + ' ) '+ submitter_query_str + submitter_query.join(" OR ") + case_query_str + case_query.join(" OR ")).distinct
-    elsif !has_hpo and !has_disorder and (has_submitter or has_case)
+    elsif !has_hpo and !has_disorder and (has_submitter or has_case or has_sample)
       puts 'Search case and submitter'
       if case_query_str == ""
         submitter_query_str = ""
       end
-      if submitter_query.empty? and case_query.empty?
+      if submitter_query_str == "" and case_query_str == ""
+        sample_query_str = ""
+      end
+      if submitter_query.empty? and case_query.empty? and sample_query.empty?
           return Patient.none
       else
-        return Patient.where(case_query.join(" OR ") + submitter_query_str + submitter_query.join(" OR ")).distinct
+        return Patient.where(case_query.join(" OR ") +
+                             submitter_query_str +
+                             submitter_query.join(" OR ") +
+                             sample_query_str +
+                             sample_query.join(" OR ")).distinct
       end
     else
       puts 'invalid'
