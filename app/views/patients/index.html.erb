@@ -9,6 +9,7 @@
       <th>Lab</th>
       <th>Submitter</th>
       <th>Disorder</th>
+      <th>Sample ID</th>
       <th>Result</th>
       <th colspan="3"></th>
     </tr>
@@ -26,8 +27,13 @@
         <% if @diagnosed.nil? %>
           <td> </td>
         <% else %>
-          <td><%= @diagnosed.disorder.disorder_name %></td>
+          <% if @diagnosed.disorder.disorder_name.length < 25 %>
+            <td><%= @diagnosed.disorder.disorder_name %></td>
+          <% else %>
+            <td><%= @diagnosed.disorder.disorder_name[0..24] + '...' %></td>
+          <% end %>
         <% end %>
+        <td><%= patient.sample_id unless patient.sample_id.nil? %></td>
         <td><%= patient.result ? "Yes" : "No"  %></td>
         <td><%= link_to 'Show', patient %></td>
         <% if not @demo %>

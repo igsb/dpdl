@@ -27,6 +27,9 @@ class Patient < ApplicationRecord
     patient = Patient.create(case_id: content['case_data']['case_id'],
                              submitter_id: submitter.id,
                              lab_id: lab.id)
+    if content['case_data'].has_key? 'sample_id'
+      patient.sample_id = content['case_data']['sample_id']
+    end
     patient.parse_json(content['case_data'])
     # ToDo: Parse suggested syndrome
     user = User.find_by_email(submitter.email)
@@ -139,6 +142,10 @@ class Patient < ApplicationRecord
     @@log = Logger.new('log/patient.log')
     @@log.info "Patient: #{data['case_id']}"
     @algo_version = data['algo_deploy_version']
+    if data.has_key? 'sample_id'
+      self.sample_id = data['sample_id']
+    end
+
     # features
     if data.has_key? 'selected_features'
       update_features(data['selected_features'])

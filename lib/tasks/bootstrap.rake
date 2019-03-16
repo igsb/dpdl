@@ -14,6 +14,7 @@ namespace :bootstrap do
     SearchType.find_or_create_by(type_name: 'OMIM')
     SearchType.find_or_create_by(type_name: 'Case ID')
     SearchType.find_or_create_by(type_name: 'Submitter')
+    SearchType.find_or_create_by(type_name: 'Sample ID')
     @@log.info "Add search type complete"
   end
 
