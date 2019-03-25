@@ -21,6 +21,74 @@ class Patient < ApplicationRecord
   validates :case_id, :submitter_id, presence: true
   validates :case_id, uniqueness: { scope: :lab_id }
 
+  def self.convert(content)
+    suggested_syns = []
+    features = []
+    content['suggested']['syndromes'].each do |syn|
+      out_syn = {
+        'syndrome': {
+          'syndrome_name': syn['title'],
+          'omim_id': syn['omim_id'],
+          'omim_ids': [],
+          'omim_ps_id': nil,
+          'is_group': false
+        },
+        gestalt_score: syn['gestalt_score'],
+        feature_score: syn['feature_score']
+      }
+      suggested_syns.append out_syn
+    end
+
+    content['suggested']['features'].each do |feature|
+      out_feature = {
+        'is_present': 1,
+        'feature': {
+           'feature_name': feature['name'],
+           'hpo_id': feature['hpo_id'],
+           'hpo_full_id': feature['hpo_id']
+        }
+      }
+      features.append out_feature
+    end
+
+    case_data = {
+      'case_id': content['case_id'],
+      'selected_syndromes': [],
+      'selected_features': features,
+      'suggested_syndromes': suggested_syns,
+      'algo_version': 'full_gestalt',
+      'lab_info': {
+        'lab_id': 1000,
+        'lab_name': 'GeneTalk',
+        'lab_contact': 'Dr. Tom Kamphans',
+        'lab_address1': 'Zentrum Medizinische Genetik, UKBonn, Sigmund-Freud-Str. 25, 53127 Bonn, Germany',
+        'lab_address2': '',
+        'lab_city': 'Bonn',
+        'lab_state': 'North Rhine Westphalia',
+        'lab_country': 'Germany',
+        'lab_zip_code': '53127',
+        'lab_email': 'contact@genetalk.de',
+        'lab_phone': '+49 228 287-14733/51040'
+      },
+      'sample_id': '',
+      'team': {},
+      'posting_user': {
+         'userDisplayName': 'Dr. Tom Kamphans',
+         'userInstitution': 'GeneTalk',
+         'userEmail': 'tom@gene-talk.de',
+         'userPhone': nil,
+         'userCountry': 'Germany',
+         'userState': nil
+        }
+    }
+
+    output = {
+      'case_data': case_data
+    }
+
+    return output.to_json
+  end
+
   def self.create_patient(content)
     submitter = self.parse_user(content)
     lab = self.parse_lab(content)
@@ -30,7 +98,9 @@ class Patient < ApplicationRecord
     if content['case_data'].has_key? 'sample_id'
       patient.sample_id = content['case_data']['sample_id']
     end
+    puts 'before parse'
     patient.parse_json(content['case_data'])
+    puts 'after parse'
     # ToDo: Parse suggested syndrome
     user = User.find_by_email(submitter.email)
     if not user.nil?
@@ -47,6 +117,7 @@ class Patient < ApplicationRecord
     # if contain lab info -> return lab
     # else return default lab
     if content['case_data'].has_key? 'lab_info'
+      puts 'fffffffffffff'
       info = content['case_data']['lab_info']
       lab_f2g_id = info['lab_id']
       lab_name = info['lab_name']
