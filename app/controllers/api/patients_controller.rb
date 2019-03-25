@@ -8,6 +8,9 @@ class Api::PatientsController < Api::BaseController
   # read the request body, parse the json and create a new patient record
   def create
     content = JSON.parse request.body.read
+    if content.key? ('source') and content['source'] == 'GeneTalk'
+      content = JSON.parse Patient.convert(content)
+    end
     patient_id = content['case_data']['case_id']
     time = Time.now.strftime('%d_%m_%Y_%H_%M_%S')
     log_dir = File.join(API_LOG, patient_id.to_s)
@@ -22,6 +25,7 @@ class Api::PatientsController < Api::BaseController
     begin
       ActiveRecord::Base.transaction do
         lab = Patient.parse_lab(content)
+        puts ' parse lab'
         patient = Patient.find_by(case_id: patient_id, lab_id: lab.id)
         if patient.nil?
           patient = Patient.create_patient(content)
