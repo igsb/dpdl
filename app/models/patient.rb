@@ -31,7 +31,8 @@ class Patient < ApplicationRecord
           'omim_id': syn['omim_id'],
           'omim_ids': [],
           'omim_ps_id': nil,
-          'is_group': false
+          'is_group': false,
+          'app_valid': 1
         },
         gestalt_score: syn['gestalt_score'],
         feature_score: syn['feature_score']
