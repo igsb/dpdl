@@ -282,6 +282,7 @@ class VcfFile < ActiveRecord::Base
           snps = ident.split(',')
           if snps[0] != '.'
             snps.each do |snp_id|
+              next if snp_id.include?("rs")
               snp = Dbsnp.find_or_create_by(snp_id:snp_id)
               ann_dbsnp = MutationsDbsnp.find_or_create_by(dbsnp_id:snp.id, mutations_position_id:mut_pos.id)
             end
