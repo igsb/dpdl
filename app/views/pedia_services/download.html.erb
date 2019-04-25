@@ -1,44 +1,201 @@
-<h1>PEDIA dataset</h1>
-
+<h1>PEDIA datasets</h1>
+<h5>Contents</h5>
+<ol >
+  <li><a href="#download">Download</a></li>
+  <li><a href="#PEDIA_cohort">PEDIA cohort</a></li>
+  <li><a href="#deepgestalt">DeepGestalt publication test set</a></li>
+  <li><a href="#json_format">JSON format</a></li>
+  <li><a href="#results">Results</a></li>
+</ol>
 <p>
-The PEDIA datasets contains the following data for different evluation.
+The PEDIA datasets contain the following two different datasets used in PEDIA paper.
+To use PEDIA datasets, please also clone the PEDIA classifier
+(<a href="https://github.com/PEDIA-Charite/classifier" target="_blank">https://github.com/PEDIA-Charite/classifier</a>). If you have any question, please contact Tzung-Chien Hsieh (thsieh@uni-bonn.de).
 <ul>
-  <li>Cross-Validation</li>
+  <li>PEDIA cohort</li>
   <li>Deep-Gestalt publication test set</li>
 </ul>
 </p>
+<p id='download'>
+<h5>1. Please download the PEDIA datasets by the following link</h5>
+version: v1.2
+<br>
+Last updated: 25.04.2019
+<br>
+<a href= "https://uni-bonn.sciebo.de/s/vxm4gW8Tmjb8QM1" target="_blank"><%= "Download PEDIA JSON files" %></a> 
+Size: 21.2 MB
+<br>
+<a href= "https://uni-bonn.sciebo.de/s/5i6wVYzE6E77XrT" target="_blank"><%= "Download publication test set" %></a>
+Size: 204.8 MB
+</p>
 
-<p>
-<b>1. Cross-Validation</b><br>
-In jsons folder, there is 1KG folder which contains
-the 679 json files simulated by 1KGP dataset for cross-validation.
+<p id='PEDIA_cohort'>
+<h5>2. PEDIA cohort</h5>
+In pedia_jsons_v1.2/jsons/1KG/CV folder, there are 679 json files simulated by 1KGP dataset.
+For each case, you will find 'geneList' in case_id.json which contains the scores from five different scoring methods for each gene.
+The dataset could be used for cross-validation evaluation which is performed in PEDIA paper.
+In addition to the cross-validation, it could be also used for training the model and further testing on
+the new patient.
 <pre>
 <code class="codeblock">
-  # 1KG
-  jsons/1KG/CV_gestalt/*.json
+  # 679 cases in PEDIA cohort 
+  pedia_jsons_v1.2/jsons/1KG/CV/*.json
+  
+  # Performed 10 fold cross-validation
+  python pedia.py pedia_jsons_v1.2/jsons/1KG/CV/ 1KG -c 10 -o output_dir --cv-rep 1 --cv-cores 5 -p 5
+
 </code>
 </pre>
 </p>
-<p>
-<b>2. Deep-Gestalt publication test set</b><br>
+<p id='deepgestalt'>
+<h5>3. Deep-Gestalt publication test set</h5>
+
+In Deep-Gestalt paper
+(<a href="https://www.nature.com/articles/s41591-018-0279-0" target="_blank">Gurovich et al.</a>),
+they provided 329 cases with frontal images for evaluation.
+We selected <b>260</b> out of 329 caseswhich is suitable for exome sequencing analysis.
+The cases with the disorders that are confirmed by other tests than exome
+sequencing such as Down syndrome were removed in this analysis.<br><br>
+
+In order to compare the performance between Deep-Gestalt and PEDIA, we randomly selected the cases in PEDIA
+cohort with the same diagnosis as the one in Deep-Gestalt publication test set, and further assigned the
+features and disease-causing mutations to the case in Deep-Gestalt test set.
+Then we took the PEDIA cohort as the training set.
+To avoid over-fitting, we removed the cases with the same disease-causing mutations in PEDIA cohort because
+the same mutation leads to the same CADD score.
+The number of cases in training set ranges from 381 to 404 due to random selection.
+<br><br>
+
 In publication_simulation folder, there are 10 folder with REP prefix and number as suffix
 which contains the deep gestalt publication data set simulated by the PEDIA cohort.
 We simulated the cases randomly, so we ran the experiments for ten times. The suffix indicates
-the number of run. In this experiment, we train on the PEDIA cohort, then test the model with 
+the number of run. In this experiment, we train on the PEDIA cohort, then test the model with
 the simulated deep gestalt cases.
 <pre>
 <code class="codeblock">
-  # 1KG
-  REP_0/jsons/1KG/train/
-  REP_0/jsons/1KG/test/
+  # training and testing set
+  publication_simulation_v1.2/REP_0/jsons/1KG/train/
+  publication_simulation_v1.2/REP_0/jsons/1KG/test/
+
+  # Train on training set and test on deepgestalt publication test set
+  python pedia.py publication_simulation_v1.2/REP_0/jsons/1KG/train/ 1KG -t publication_simulation_v1.2/REP_0/jsons/1KG/test/ -o output_dir -p 5
 </code>
 </pre>
 
 </p>
-Please download the PEDIA datasets by the following link
+
+<p id='json_format'>
+<h5>4. JSON format</h5>
+Please find the structure of the JSON format of each case in the dataset below.
+We only listed part of the data here, for the complete information, please
+check the original JSON file.
+<pre>
+<code>
+  {
+    "case_id": 45254,
+    "features": [
+        "HP:0000316",
+        "HP:0010541",
+        "HP:0000729"
+    ],
+    "geneList": [
+        {
+            "gene_symbol": "ARID1B",
+            "cadd_phred_score": 25,
+            "syndrome_name": "Coffin-Siris Syndrome",
+            "gestalt_score": 0.7211414282399627,
+            "gene_omim_id": "614556",
+            "has_mask": true,
+            "feature_score": 0.8369029469,
+            "pheno_score": 0.9977,
+            "boqa_score": 0,
+            "gene_id": "57492"
+        },
+        {
+            "cadd_phred_score": 8.507,
+            "syndrome_name": "Laron Syndrome",
+            "gestalt_score": 0.026714321059580264,
+            "gene_omim_id": "600946",
+            "has_mask": true,
+            "feature_score": 0,
+            "pheno_score": 0,
+            "boqa_score": 0,
+            "gene_id": "2690"
+        }
+    ],
+    "genomicData": [
+        {
+            "Mutations": {
+                "result": "VARIANTS_DETECTED",
+                "Build": "GRCh37",
+                "HGVS-code": "NM_020732.3:c.5737C>T",
+                "additional info": "",
+                "Inheritance Mode": ""
+            },
+            "Test Information": {
+                "Gene Name": "ARID1B",
+                "Gene ID": 57492,
+                "Genotype": "HETEROZYGOUS",
+                "Notation": "CDNA_LEVEL",
+                "Mutation Type": "TARGETED_TESTING",
+                "Molecular Test": "TARGETED_TESTING"
+            }
+        }
+    ],
+    "selected_syndromes": [
+        {
+            "has_mask": 0,
+            "omim_id": 135900,
+            "diagnosis": "MOLECULARLY_DIAGNOSED",
+            "syndrome_name": "Coffin-Siris Syndrome1; CSS1"
+        },
+        {
+            "has_mask": 1,
+            "omim_id": [
+                614608,
+                614609,
+                616938,
+                135900,
+                614607
+            ],
+            "diagnosis": "MOLECULARLY_DIAGNOSED",
+            "syndrome_name": "Coffin-Siris Syndrome"
+        }
+    ]
+  }
+</code>
+</pre>
+</p>
+<p id="results">
+<h5>Results</h5>
+You will find the results in the output dir you specified in the command.<br> 
+<pre>
+<code>
+ls output_dir/cv_0/
+# *.csv contain all five scores and pedia score for each gene in csv format
+# *.json contain the PEDIA score in JSON format
+# count_*.csv list the number of cases in each rank
+# rank_*.csv list the rank of each case
+</code>
+</pre>
+</p>
+<b>45254.csv</b>
 <br>
-<a href= "https://uni-bonn.sciebo.de/s/WULq5qTcOaUdMPf" target="_blank"><%= "Download PEDIA JSON files" %></a> 
-Size: 42.6 MB
-<br>
-<a href= "https://uni-bonn.sciebo.de/s/IaSs0hFXDmA6HdD" target="_blank"><%= "Download publication test set" %></a>
-Size: 218.1 MB
+We listed the top ten genes in 45254.csv. You will find the five scores and PEDIA score.
+The label indicates whether this gene is disease-causing gene or not.
+In this, ARID1B has the highest PEDIA score and it is the disease-causing gene of this case.
+<pre>
+<code>
+gene_name gene_id pedia_score feature_score cadd_score gestalt_score boqa_score pheno_score label
+ARID1B    57492   4.509       0.836         25.0       0.721         0.0        0.9982      1
+ARID1A    8289    1.238       0.836         0.001      0.721         0.0        0.9982      0
+SMARCB1   6598    1.238       0.836         0.001      0.721         0.0        0.9982      0
+SOX11     6664    1.238       0.836         0.001      0.721         0.0        0.9982      0
+SMARCE1   6605    1.238       0.836         0.001      0.721         0.0        0.9982      0
+SMARCA4   6597    1.238       0.836         0.001      0.721         0.0        0.9982      0
+FIG4      9896    0.942       0.738         38.0       0.0           0.0        0.0         0
+CYP26C1   340665  0.074       0.0           24.0       0.273         0.0        0.0         0
+RFT1      91869   0.0207      0.0           35.0       0.0           0.0        0.0         0
+VEGFC     7424    -0.110      0.0           34.0       0.0           0.0        0.0         0
+</code>
+</pre>
