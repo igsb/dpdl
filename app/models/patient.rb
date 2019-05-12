@@ -42,7 +42,7 @@ class Patient < ApplicationRecord
 
     content['suggested']['features'].each do |feature|
       out_feature = {
-        'is_present': 1,
+        'is_present': '1',
         'feature': {
            'feature_name': feature['name'],
            'hpo_id': feature['hpo_id'],

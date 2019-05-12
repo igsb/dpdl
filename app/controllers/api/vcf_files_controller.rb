@@ -18,9 +18,12 @@ class Api::VcfFilesController < Api::BaseController
 
     fname = File.basename(params[:file].original_filename)
     case_id = params[:case_id]
+    lab_f2g_id = params[:lab_id]
+    lab = Lab.find_by_lab_f2g_id(lab_f2g_id)
+    lab_id = lab.id unless lab.nil?
 
     # check if the corresponding case is alredy created
-    p = Patient.find_by_case_id(case_id)
+    p = Patient.find_by(case_id: case_id, lab_id: lab_id)
     if p.nil?
       msg = { msg: MSG_VCF_NO_CASE }
       respond_to do |format|
@@ -55,7 +58,7 @@ class Api::VcfFilesController < Api::BaseController
                                   pedia_status_id: status.id)
 
     # Data/Received_VcfFiles/case_id/
-    dirname = File.join('Data', 'PEDIA_service', case_id.to_s, service.id.to_s)
+    dirname = File.join('Data', 'PEDIA_service', lab_id.to_s, case_id.to_s, service.id.to_s)
     dir = "#{Rails.root}/#{dirname}"
     FileUtils.mkdir_p(dir) unless File.directory?(dir)
 
@@ -72,7 +75,7 @@ class Api::VcfFilesController < Api::BaseController
     # Add vcf path to JSON file, then PEDIA pipeline is able to
     # find the VCF file
     # Copy JSON file to PEDIA service folder
-    original_json_path = File.join('Data', 'Received_JsonFiles', case_id.to_s + '.json')
+    original_json_path = File.join('Data', 'Received_JsonFiles', lab_id.to_s, case_id.to_s + '.json')
     json_path = File.join(dir, case_id.to_s + '.json')
     add_vcf_to_json(original_json_path, f)
     FileUtils.cp_r(original_json_path, json_path)
@@ -115,7 +118,10 @@ class Api::VcfFilesController < Api::BaseController
   # GET /get_QCreport
   def get_quality_report
     case_id = params[:case_id].to_i
-    patient = Patient.find_by_case_id(case_id)
+    lab_f2g_id = params[:lab_id]
+    lab = Lab.find_by_lab_f2g_id(lab_f2g_id)
+    lab_id = lab.id unless lab.nil?
+    patient = Patient.find_by(case_id: case_id, lab_id: lab_id)
     pdf_report = nil
 
     if patient.nil?
@@ -158,7 +164,11 @@ class Api::VcfFilesController < Api::BaseController
   # DELETE /vcf_files/id
   def destroy
     case_id = params[:id]
-    p = Patient.find_by_case_id(case_id)
+    lab_f2g_id = params[:lab_id]
+    lab = Lab.find_by_lab_f2g_id(lab_f2g_id)
+    lab_id = lab.id unless lab.nil?
+    p = Patient.find_by(case_id: case_id, lab_id: lab_id)
+
     vcf = UploadedVcfFile.find_by(patient_id: p.id)
     if !vcf.nil?
       vcf.destroy
