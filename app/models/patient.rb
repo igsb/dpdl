@@ -42,7 +42,7 @@ class Patient < ApplicationRecord
 
     content['suggested']['features'].each do |feature|
       out_feature = {
-        'is_present': 1,
+        'is_present': '1',
         'feature': {
            'feature_name': feature['name'],
            'hpo_id': feature['hpo_id'],
@@ -59,7 +59,7 @@ class Patient < ApplicationRecord
       'suggested_syndromes': suggested_syns,
       'algo_version': 'full_gestalt',
       'lab_info': {
-        'lab_id': 1000,
+        'lab_id': 0,
         'lab_name': 'GeneTalk',
         'lab_contact': 'Dr. Tom Kamphans',
         'lab_address1': 'Zentrum Medizinische Genetik, UKBonn, Sigmund-Freud-Str. 25, 53127 Bonn, Germany',
@@ -118,7 +118,6 @@ class Patient < ApplicationRecord
     # if contain lab info -> return lab
     # else return default lab
     if content['case_data'].has_key? 'lab_info'
-      puts 'fffffffffffff'
       info = content['case_data']['lab_info']
       lab_f2g_id = info['lab_id']
       lab_name = info['lab_name']
@@ -135,7 +134,7 @@ class Patient < ApplicationRecord
                   country: lab_country)
       end
     else
-      lab = Lab.find_by_lab_f2g_id(0)
+      lab = Lab.find_by_lab_f2g_id(-1)
     end
 
     return lab

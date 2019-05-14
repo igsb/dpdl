@@ -193,10 +193,10 @@ class VcfFile < ActiveRecord::Base
 
   #######################################################################
   # create a new sample record for each sample in the vcf file
-  def create_samples
+  def create_samples(case_id, lab_id)
     links = []
     sample_names_array.each_with_index do |name, i|
-      patient = Patient.where(case_id: name.to_i).first
+      patient = Patient.where(case_id: name.to_i, lab_id: lab_id.to_i).first
       PatientsVcfFile.create(:patient_id  => patient.id,
                              :vcf_file_id => self.id,
                              :name => name)
