@@ -58,7 +58,7 @@ class Api::VcfFilesController < Api::BaseController
                                   pedia_status_id: status.id)
 
     # Data/Received_VcfFiles/case_id/
-    dirname = File.join('Data', 'PEDIA_service', lab_id.to_s, case_id.to_s, service.id.to_s)
+    dirname = File.join('Data', 'PEDIA_service/labs', lab_id.to_s, case_id.to_s, service.id.to_s)
     dir = "#{Rails.root}/#{dirname}"
     FileUtils.mkdir_p(dir) unless File.directory?(dir)
 
