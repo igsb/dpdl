@@ -45,7 +45,7 @@ rule preprocess:
 	output:
 		"Data/PEDIA_service/labs/{lab}/{case}/{pedia_id}/preproc.done"
 	params:
-		dir = "Data/PEDIA_service/labs/{case}/{pedia_id}/"
+		dir = "Data/PEDIA_service/labs/{lab}/{case}/{pedia_id}/"
 	shell:
 		"""
 		mkdir -p {params.dir}

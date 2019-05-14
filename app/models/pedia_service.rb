@@ -121,7 +121,7 @@ class PediaService < ApplicationRecord
       case_id = self.patient.case_id.to_s
       f_ann_name = File.join(path, case_id + '_annotated_quality.vcf.gz')
       if File.extname(f_ann_name) == '.gz'
-        outfile = File.basename(f_ann_name, '.gz')
+        outfile = File.join(path, File.basename(f_ann_name, '.gz'))
         cmd = %Q(bgzip -d -c #{f_ann_name} | awk '{{gsub(/chr/,""); print}}' > #{outfile})
         system(cmd)
         passed, output = SimilarityJob.new(outfile).run
