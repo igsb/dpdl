@@ -24,12 +24,12 @@ class Patient < ApplicationRecord
   def self.convert(content)
     suggested_syns = []
     features = []
-    if not syn['omim_ids'].nil and syn['omim_ids'].size > 0
-      is_group = true
-    else
-      is_group = false
-    end
     content['suggested']['syndromes'].each do |syn|
+      if not syn['omim_ids'].nil? and syn['omim_ids'].size > 0
+        is_group = true
+      else
+        is_group = false
+      end
       out_syn = {
         'syndrome': {
           'syndrome_name': syn['title'],
