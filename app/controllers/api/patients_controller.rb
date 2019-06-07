@@ -7,9 +7,11 @@ class Api::PatientsController < Api::BaseController
   # POST /patients
   # read the request body, parse the json and create a new patient record
   def create
-    content = JSON.parse request.body.read
-    if content.key? ('source') and content['source'] == 'GeneTalk'
-      content = JSON.parse Patient.convert(content)
+    original_content = JSON.parse request.body.read
+    if original_content.key? ('source') and original_content['source'] == 'GeneTalk'
+      content = JSON.parse Patient.convert(original_content)
+    else
+      content = original_content
     end
     patient_id = content['case_data']['case_id']
     time = Time.now.strftime('%d_%m_%Y_%H_%M_%S')
@@ -20,6 +22,10 @@ class Api::PatientsController < Api::BaseController
     log_path = File.join(log_dir, time + '.log')
     logger = Logger.new(log_path)
     logger.info 'Receive patient data'
+
+    # Log the raw JSON data
+    original_f = File.join(log_dir, time + '.json')
+    File.open(original_f, "wb") { |f| f.write(JSON.pretty_generate(original_content)) }
 
     # if a case doesnt exist, process the request and create a new case
     patient_save = true
