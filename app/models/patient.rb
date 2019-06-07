@@ -25,13 +25,18 @@ class Patient < ApplicationRecord
     suggested_syns = []
     features = []
     content['suggested']['syndromes'].each do |syn|
+      if not syn['omim_ids'].nil? and syn['omim_ids'].size > 0
+        is_group = true
+      else
+        is_group = false
+      end
       out_syn = {
         'syndrome': {
           'syndrome_name': syn['title'],
           'omim_id': syn['omim_id'],
-          'omim_ids': [],
-          'omim_ps_id': nil,
-          'is_group': false,
+          'omim_ids': syn['omim_ids'],
+          'omim_ps_id': syn['omim_ps_id'],
+          'is_group': is_group,
           'app_valid': 1
         },
         gestalt_score: syn['gestalt_score'],
@@ -40,7 +45,8 @@ class Patient < ApplicationRecord
       suggested_syns.append out_syn
     end
 
-    content['suggested']['features'].each do |feature|
+    # Parsing present features
+    content['user_selected']['features']['accepted'].each do |feature|
       out_feature = {
         'is_present': '1',
         'feature': {
@@ -52,29 +58,31 @@ class Patient < ApplicationRecord
       features.append out_feature
     end
 
+    # Parsing absent features
+    content['user_selected']['features']['rejected'].each do |feature|
+      out_feature = {
+        'is_present': '0',
+        'feature': {
+           'feature_name': feature['name'],
+           'hpo_id': feature['hpo_id'],
+           'hpo_full_id': feature['hpo_id']
+        }
+      }
+      features.append out_feature
+    end
+
     case_data = {
       'case_id': content['case_id'],
+      'user_selected': content['user_selected'],
       'selected_syndromes': [],
       'selected_features': features,
       'suggested_syndromes': suggested_syns,
       'algo_version': 'full_gestalt',
-      'lab_info': {
-        'lab_id': 0,
-        'lab_name': 'GeneTalk',
-        'lab_contact': 'Dr. Tom Kamphans',
-        'lab_address1': 'Zentrum Medizinische Genetik, UKBonn, Sigmund-Freud-Str. 25, 53127 Bonn, Germany',
-        'lab_address2': '',
-        'lab_city': 'Bonn',
-        'lab_state': 'North Rhine Westphalia',
-        'lab_country': 'Germany',
-        'lab_zip_code': '53127',
-        'lab_email': 'contact@genetalk.de',
-        'lab_phone': '+49 228 287-14733/51040'
-      },
+      'lab_info': content['lab_info'],
       'sample_id': '',
       'team': {},
       'posting_user': {
-         'userDisplayName': 'Dr. Tom Kamphans',
+         'userDisplayName': content['posting_user']['userDisplayName'],
          'userInstitution': 'GeneTalk',
          'userEmail': 'tom@gene-talk.de',
          'userPhone': nil,
