@@ -1,0 +1,42 @@
+<p>
+  <strong>Name:</strong>
+  <%= @lab.name %>
+</p>
+
+<p>
+  <strong>Email:</strong>
+  <%= @lab.email %>
+</p>
+
+<p>
+  <strong>Country:</strong>
+  <%= @lab.country %>
+</p>
+
+<p>
+  <strong>Contact:</strong>
+  <%= @lab.contact %>
+</p>
+
+<table class='table'>
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Institute</th>
+      <th colspan="2"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @labs_users.each do |lab_user| %>
+      <tr>
+        <td><%= lab_user.user.username %></td>
+        <td><%= lab_user.user.institute %></td>
+        <td><%= link_to 'Show', user_path(lab_user.user) %></td>
+        <td><%= link_to 'Delete', labs_remove_user_url(id: lab_user.id), :method => :post, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<%= link_to 'Edit', edit_lab_path(@lab) %> |
+<%= link_to 'Back', labs_path %>

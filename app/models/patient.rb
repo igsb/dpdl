@@ -1,5 +1,6 @@
 class Patient < ApplicationRecord
   belongs_to :submitter, :optional => true
+  belongs_to :lab, :optional => true
   has_many :patients_features
   has_many :features, :through => :patients_features, :dependent => :destroy
   has_many :patients_disorders
@@ -14,26 +15,203 @@ class Patient < ApplicationRecord
   has_many :usi_materialnrs, :dependent => :destroy
   has_many :users_patients
   has_many :users, :through => :users_patients
-  validates :case_id, :submitter_id, presence: true
-  validates :case_id, uniqueness: true
 
-  PHENOTYPE_DIAGNOSED = 2
-  MOLECULAR_DIAGNOSED = 3
+  has_many :uploaded_vcf_files
+  has_many :pedia_services
+  validates :case_id, :submitter_id, presence: true
+  validates :case_id, uniqueness: { scope: :lab_id }
+
+  def self.convert(content)
+    suggested_syns = []
+    features = []
+    content['suggested']['syndromes'].each do |syn|
+      if not syn['omim_ids'].nil? and syn['omim_ids'].size > 0
+        is_group = true
+      else
+        is_group = false
+      end
+      out_syn = {
+        'syndrome': {
+          'syndrome_name': syn['title'],
+          'omim_id': syn['omim_id'],
+          'omim_ids': syn['omim_ids'],
+          'omim_ps_id': syn['omim_ps_id'],
+          'is_group': is_group,
+          'app_valid': 1
+        },
+        gestalt_score: syn['gestalt_score'],
+        feature_score: syn['feature_score']
+      }
+      suggested_syns.append out_syn
+    end
+
+    # Parsing present features
+    content['user_selected']['features']['accepted'].each do |feature|
+      out_feature = {
+        'is_present': '1',
+        'feature': {
+           'feature_name': feature['name'],
+           'hpo_id': feature['hpo_id'],
+           'hpo_full_id': feature['hpo_id']
+        }
+      }
+      features.append out_feature
+    end
+
+    # Parsing absent features
+    content['user_selected']['features']['rejected'].each do |feature|
+      out_feature = {
+        'is_present': '0',
+        'feature': {
+           'feature_name': feature['name'],
+           'hpo_id': feature['hpo_id'],
+           'hpo_full_id': feature['hpo_id']
+        }
+      }
+      features.append out_feature
+    end
+
+    case_data = {
+      'case_id': content['case_id'],
+      'user_selected': content['user_selected'],
+      'selected_syndromes': [],
+      'selected_features': features,
+      'suggested_syndromes': suggested_syns,
+      'algo_version': 'full_gestalt',
+      'lab_info': content['lab_info'],
+      'sample_id': '',
+      'team': {},
+      'posting_user': {
+         'userDisplayName': content['posting_user']['userDisplayName'],
+         'userInstitution': 'GeneTalk',
+         'userEmail': 'tom@gene-talk.de',
+         'userPhone': nil,
+         'userCountry': 'Germany',
+         'userState': nil
+        }
+    }
+
+    output = {
+      'case_data': case_data
+    }
+
+    return output.to_json
+  end
+
+  def self.create_patient(content)
+    submitter = self.parse_user(content)
+    lab = self.parse_lab(content)
+    patient = Patient.create(case_id: content['case_data']['case_id'],
+                             submitter_id: submitter.id,
+                             lab_id: lab.id)
+    if content['case_data'].has_key? 'sample_id'
+      patient.sample_id = content['case_data']['sample_id']
+    end
+    puts 'before parse'
+    patient.parse_json(content['case_data'])
+    puts 'after parse'
+    # ToDo: Parse suggested syndrome
+    user = User.find_by_email(submitter.email)
+    if not user.nil?
+      if not user.patients.exists?(patient.id)
+        user.patients << patient
+      end
+    end
+    patient.save
+
+    return patient
+  end
+
+  def self.parse_lab(content)
+    # if contain lab info -> return lab
+    # else return default lab
+    if content['case_data'].has_key? 'lab_info'
+      info = content['case_data']['lab_info']
+      lab_f2g_id = info['lab_id']
+      lab_name = info['lab_name']
+      lab_contact = info['lab_contact']
+      lab_email = info['lab_email']
+      lab_country = info['lab_country']
+
+      lab = Lab.find_by_lab_f2g_id(lab_f2g_id)
+      if lab.nil?
+        lab = Lab.create(lab_f2g_id: lab_f2g_id,
+                  name: lab_name,
+                  contact: lab_contact,
+                  email: lab_email,
+                  country: lab_country)
+      end
+    else
+      lab = Lab.find_by_lab_f2g_id(-1)
+    end
+
+    return lab
+  end
+
+  def self.parse_user(content)
+    # Parse user info
+    if content['case_data'].has_key? 'posting_user'
+      user = content['case_data']['posting_user']
+      user_name = user['userDisplayName']
+      user_email = user['userEmail']
+      user_institute = user['userInstitution']
+    else
+      user_name = "Mr. FDNA LAB"
+      user_email = "fdna@fdna.com"
+      user_institute = "F2G"
+    end
+
+    # Parse name
+    user_array = user_name.split('.', 2)
+    title = ''
+    name = ''
+    if user_array.length > 1
+      title = user_array[0] + '.'
+      name = user_array[1][1..-1]
+      name_array = name.split(' ')
+      first_name = name_array[0]
+      last_name = name_array[-1]
+      if name_array.length > 2
+        first_name = name_array[0..-2].join(' ')
+      end
+    else
+      name = user_array[0]
+      name_array = name.split(' ')
+      first_name = name_array[0]
+      last_name = name_array[-1]
+      if name_array.length > 2
+        first_name = name_array[0..-2].join(' ')
+      end
+    end
+
+    # Use email to find submitter
+    submitter = Submitter.find_by_email(user_email)
+    if submitter.nil?
+      submitter = Submitter.create(first_name: first_name,
+                                   last_name: last_name,
+                                   email: user_email,
+                                   #institute: user_institute,
+                                   title: title)
+    end
+    return submitter
+  end
 
   def parse_json(data)
     @@log = Logger.new('log/patient.log')
     @@log.info "Patient: #{data['case_id']}"
-    @algo_version = data['algo_deploy_version']
-    features = parse_features(data['features'])
-    self.features << features
-    parse_detected(data['detected_syndromes'])
+    @algo_version = data['algo_version']
+    #parse_detected(data['detected_syndromes'])
+
+    if data.has_key? 'selected_features'
+      update_features(data['selected_features'])
+    end
 
     if data.key? "selected_syndromes"
       parse_selected(data['selected_syndromes'])
     end
-    #parse_pedia(data['geneList'])
+
     if data.key? "genomicData"
-      if data['genomicData'].length > 0 
+      if data['genomicData'].length.positive?
         parse_genomic(data['genomicData'])
       end
     end
@@ -43,10 +221,24 @@ class Patient < ApplicationRecord
     @@log = Logger.new('log/patient.log')
     @@log.info "Patient: #{data['case_id']}"
     @algo_version = data['algo_deploy_version']
-    if data.key? "selected_syndromes"
+    if data.has_key? 'sample_id'
+      self.sample_id = data['sample_id']
+    end
+
+    # features
+    if data.has_key? 'selected_features'
+      update_features(data['selected_features'])
+    end
+
+    # selected syndrome
+    if data.key? 'selected_syndromes'
       parse_selected(data['selected_syndromes'])
     end
-    parse_pedia(data['geneList'])
+
+    # pedia score
+    parse_pedia(data['geneList']) if data.key? 'geneList'
+
+    # genomic data
     if data.key? "genomicData"
       if data['genomicData'].length > 0
         parse_genomic(data['genomicData'])
@@ -55,9 +247,22 @@ class Patient < ApplicationRecord
     self.result = true
   end
 
-  def parse_features(data)
+  def update_features(data)
+    features = parse_features(data)
+    new_features = features - self.features
+    remove_features = self.features - features
+    # Add new features
+    self.features << new_features
+    # Remove features
+    remove_features.each do |feature|
+      self.features.delete(feature.id)
+    end
+  end
+
+  def parse_features(features)
     feature_array = Array.new
-    for hpo in data do
+    features.each do |feature|
+      hpo = feature['feature']['hpo_full_id']
       hpo_result = Feature.find_or_create_by(hpo_term: hpo)
       feature_array.push(hpo_result)
     end
@@ -72,7 +277,7 @@ class Patient < ApplicationRecord
         if psn.nil?
           @@log.fatal "PSN not found: #{syndrome_name}"
           next
-        else  
+        else
           psn_id = psn.id
           psn_num = psn.phenotypic_series_id
           psn_disorder_id = Disorder.where(disorder_id:psn_num, is_phenotypic_series: true).take.id
@@ -103,45 +308,39 @@ class Patient < ApplicationRecord
   end
 
   def parse_selected(disorders)
-    if !disorders.empty?
-      for disorder in disorders
-        if disorder['omim_id'].kind_of?(Array)
-          # This syndrome is PS
-          syndrome_name = disorder['syndrome_name']
-          psn = PhenotypicSeries.where(title:syndrome_name).take
-          if psn.nil?
-            @@log.fatal "PSN not found: #{syndrome_name}"
-          else  
-            psn_id = psn.id
-            psn_num = psn.phenotypic_series_id
-            psn_disorder_id = Disorder.where(disorder_id:psn_num, is_phenotypic_series: true).take.id
-            omims = disorder['omim_id']
-            for omim in omims
-              disorder_result = Disorder.where(disorder_id: omim, is_phenotypic_series: false).take
-              if disorder_result.nil?
-                @@log.fatal "Omim not found: #{omim}"
-                disorder_result = Disorder.create(disorder_id: omim)
-              else
-                PhenotypicSeriesDisorder.find_or_create_by(disorder_id:disorder_result.id, phenotypic_series_id:psn_id)
-              end
-            end
-            patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id:psn_disorder_id)
-            patient_disorder.diagnose_type_id = PHENOTYPE_DIAGNOSED
-            patient_disorder.save
+    omim_array = Array.new
+    disorders.each do |selected_syn|
+      syn = selected_syn['syndrome']
+      diagnosis = selected_syn['diagnosis']
+      if syn['omim_id'].nil? and syn['omim_ids'].nil?
+        puts "Syndrome has no omim: #{syn['syndrome_name']}"
+      else
+        if syn['omim_ps_id'].nil?
+          disorder = Disorder.find_by(omim_id: syn['omim_id'],
+                                      is_phenotypic_series: false)
+          if disorder.nil?
+            puts "Syndrome has no disorder: #{syn['syndrome_name']}"
+            disorder = Disorder.create(omim_id: syn['omim_id'],
+                                        disorder_name: syn['syndrome_name'],
+                                        is_phenotypic_series: false)
           end
+          omim_array << syn['omim_id'].to_i
         else
-          if disorder['omim_id'].nil?
-            @@log.fatal "Syndrome has no omim: #{disorder['syndrome_name']}"
-          else
-            disorder_result = Disorder.where(disorder_id: disorder['omim_id']).take
-            if disorder_result.nil?
-              disorder_result = Disorder.create(disorder_id: disorder['omim_id'])
-            end
-            patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id, disorder_id: disorder_result.id)
-            patient_disorder.diagnose_type_id = PHENOTYPE_DIAGNOSED
-            patient_disorder.save
+          ps_id = syn['omim_ps_id'].split('PS')[1]
+          disorder = Disorder.find_by(omim_id: ps_id,
+                                      is_phenotypic_series: true)
+          if disorder.nil?
+            puts "Syndrome has no PS: #{syn['syndrome_name']}"
+            disorder = Disorder.create(omim_id: ps_id,
+                                        disorder_name: syn['syndrome_name'],
+                                        is_phenotypic_series: true)
           end
+          omim_array << ps_id.to_i
         end
+        patient_disorder = PatientsDisorder.find_or_create_by(patient_id: self.id,
+                                                              disorder_id: disorder.id)
+        patient_disorder.diagnosis_type_id = DiagnosisType.diag_type(diagnosis)
+        patient_disorder.save
       end
     end
   end
@@ -150,7 +349,12 @@ class Patient < ApplicationRecord
     for gene in gene_list
       if gene.key?("pedia_score")
         gene_id = gene['gene_id']
-        entrez_gene = Gene.where(entrez_id: gene_id).take
+        gene_name = gene['gene_name']
+        entrez_gene = Gene.find_by(entrez_id: gene_id)
+        if gene_name != entrez_gene.name
+          entrez_gene.name = gene_name
+          entrez_gene.save
+        end
 
         score = Score.find_or_create_by(name: 'pedia_score')
         pedia = gene['pedia_score']
@@ -226,7 +430,8 @@ class Patient < ApplicationRecord
   end
 
   def get_selected_disorders
-    return self.patients_disorders.where("diagnose_type_id = ? OR diagnose_type_id = ?", PHENOTYPE_DIAGNOSED, MOLECULAR_DIAGNOSED)
+    unknow_id = DiagnosisType.find_by(name: DiagnosisType::UNKNOWN)
+    return self.patients_disorders.where('diagnosis_type_id != ?', unknow_id)
   end
 
   def get_detected_disorders

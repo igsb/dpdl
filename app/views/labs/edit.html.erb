@@ -1,0 +1,10 @@
+<h1>Editing Lab</h1>
+
+<%= render 'form', lab: @lab %>
+<%= form_for :assign_user_to_lab, :url => {:controller => "labs", :action => "assign_user_to_lab", :id => @lab.id} do |f| %>
+  <%= f.label 'Assign user (username) to this lab: ' %>
+  <%= f.text_field :username %>
+  <%= f.submit "Add" %>
+<% end %>
+<%= link_to 'Show', @lab %> |
+<%= link_to 'Back', labs_path %>

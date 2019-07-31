@@ -1,12 +1,21 @@
 class PediaServicesController < ApplicationController
-  skip_before_action :authenticate_user!
+  skip_before_action :authenticate_user!, only: [:index]
   before_action :set_pedia_service, only: [:show, :edit, :update, :destroy]
+  before_action :check_access, only: [:show, :edit, :update, :destroy]
+  before_action :verify_is_admin, only: [:show, :edit, :update, :destroy, :monitor]
   require 'fileutils'
 
   # GET /pedia_services
   # GET /pedia_services.json
   def index
-    @pedia_services = PediaService.all
+    @pedia_services = PediaService.all.order('id DESC')
+  end
+
+  def monitor
+    @pedia_services = PediaService.all.order('id DESC')
+  end
+
+  def download
   end
 
   # GET /pedia_services/1
@@ -43,7 +52,7 @@ class PediaServicesController < ApplicationController
     patient_id = data['case_id']
     dir_path = File.join("Data", "PEDIA_service", patient_id)
     unless File.directory?(dir_path)
-        FileUtils.mkdir_p(dir_path)
+      FileUtils.mkdir_p(dir_path)
     end
     json_path = File.join(dir_path, patient_id + '.json')
     File.open(json_path, "wb") { |f| f.write(json_file) }
@@ -103,5 +112,17 @@ class PediaServicesController < ApplicationController
   # Never trust parameters from the scary internet, only allow the white list through.
   def pedia_service_params
     params.fetch(:pedia_service, {})
+  end
+
+  def check_access
+    access = current_user.username == 'FDNA' || current_user.admin
+    if not access
+      flash[:alert] = 'You do not have permissions to enter this case!'
+      redirect_back(fallback_location: root_path)
+    end
+  end
+
+  def verify_is_admin
+    (current_user.nil?) ? redirect_to(root_path) : (redirect_to(root_path) unless current_user.admin? or true_user.admin?)
   end
 end

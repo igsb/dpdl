@@ -1,0 +1,46 @@
+<h1>PEDIA Service</h1>
+
+<table class='table'>
+  <thead>
+    <tr>
+      <th>PEDIA ID</th>
+      <th>Job ID</th>
+      <th>Patient</th>
+      <th>Lab</th>
+      <th>Submitter</th>
+      <th>Status</th>
+      <th>Runtime</th>
+      <th>Created date</th>
+      <th>Modified date</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @pedia_services.each do |service| %>
+      <tr>
+        <td><%= service.id unless service.id.nil? %></td>
+        <td><%= service.job_id unless service.job_id.nil? %></td>
+        <td><%= link_to service.patient.case_id, service.patient unless service.patient.nil?%></td>
+        <% unless service.patient.nil? %>
+          <% if service.patient.lab.nil? %>
+            <td></td>
+          <% else %>
+            <% if service.patient.lab.name.nil? %>
+              <td></td>
+            <% else %>
+              <td><%= service.patient.lab.name %></td>
+            <% end %>
+          <% end %>
+        <% else%>
+          <td></td>
+        <% end %>
+        <td><%= service.user.first_name + ' ' + service.user.last_name %></td>
+        <td><%= service.pedia_status.status %></td>
+        <% runtime = (service.updated_at - service.created_at) %>
+        <td><%= (runtime.to_i / 60).to_s + '.' + (runtime.to_i % 60).to_s + ' min' %></td>
+        <td><%= service.created_at %></td>
+        <td><%= service.updated_at %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

@@ -1,6 +1,7 @@
 class VcfFile < ActiveRecord::Base
   belongs_to :user, :optional => true
   belongs_to :login, :optional => true
+  belongs_to :pedia_service, :optional => true
 
   delegate :login, :to => :user
 
@@ -89,7 +90,7 @@ class VcfFile < ActiveRecord::Base
   # login         : object of type Login
   # queue         : queue for job scheduling or nil for basic/prio
  
-  def self.add_file(infile_name, tempfile, fname, login, queue = nil)
+  def self.add_file(infile_name, full_path, fname, login, service_id, queue = nil)
     warnings = ""
     alerts = ""
     infile = File.open(infile_name)
@@ -99,7 +100,6 @@ class VcfFile < ActiveRecord::Base
       return nil, warnings, alerts
     end
     ref_found = false
-    sample_names = ''
     infile.each do |line|
        line.chomp!
        if line =~ /^##reference=(.*)/i
@@ -119,24 +119,24 @@ class VcfFile < ActiveRecord::Base
 
     infile.close
 
-    fname.gsub!(/[^\w\.\-]/,'_')
-    path = VcfFile.vcf_to_path(fname)
-    if File.exist?(path)
-      alerts << "File #{fname}: File aready exists \n"
-      return nil, warnings, alerts
-    end
+    sample_name = fname.split('_')[0]
+    #if File.exist?(path)
+    #  alerts << "File #{fname}: File aready exists \n"
+    #  return nil, warnings, alerts
+    #end
 
     # write the file
     # File.open(path, "wb") { |f| f.write( data ) }
-    vcf_file = VcfFile.new(:name => fname,
-                            :filtered => false,
-                            :sample_names => sample_names,
-                            :user_id => login.id);
+    vcf_file = VcfFile.new(name: fname,
+                           filtered: false,
+                           sample_names: sample_name,
+                           user_id: login.id,
+                           pedia_service_id: service_id,
+                           full_path: full_path)
 
-    FileUtils.cp(tempfile, path)
-    login.vcf_files << vcf_file;
-    login.uploaded_count += 1
-    login.save
+		login.vcf_files << vcf_file;
+		login.uploaded_count += 1
+		login.save
 
     vcf_file.save
     vcf_file.reload
@@ -193,13 +193,14 @@ class VcfFile < ActiveRecord::Base
 
   #######################################################################
   # create a new sample record for each sample in the vcf file
-  def create_samples
+  def create_samples(case_id, lab_id)
     links = []
     sample_names_array.each_with_index do |name, i|
-      patient = Patient.where(case_id: name.to_i).first
+      patient = Patient.where(case_id: name.to_i, lab_id: lab_id.to_i).first
       PatientsVcfFile.create(:patient_id  => patient.id,
                              :vcf_file_id => self.id,
                              :name => name)
+
       links << 1
     end
     self.sample_links = links.join(';')
@@ -209,8 +210,7 @@ class VcfFile < ActiveRecord::Base
   ########################################################################
   # Parse vcf file into database
   ########################################################################
-  def parse_vcf
-    path = VcfFile.vcf_to_path(self.name)
+  def parse_vcf(path)
     infile = File.open(path)
     start_parsing = false
     infile.each do |line|
@@ -223,7 +223,7 @@ class VcfFile < ActiveRecord::Base
         next if chrom_num == 0
 
         var_pos = Position.find_or_create_by(chr: chrom_num, pos: pos.to_i, reference_genome_id: 0)
-        # Pares GT 
+        # Pares GT
         gt_alt, genotype = get_alt_genotype(format, gt)
 
         info_array = info.split(";")
@@ -248,15 +248,18 @@ class VcfFile < ActiveRecord::Base
         alt = alt.split(",")
 
         score = Score.where(name: 'cadd_phred_score').take
-        patient_vcf = self.patients_vcf_files.take
+        patient_vcf = self.patients_vcf_files.last
         cadd_score = get_cadd(cadd_str)
 
         ann_array.each_with_index do |ann, index|
+
           ann = ann.split("|")
           mut = Mutation.find_or_create_by(ref: ref, alt: alt[gt_alt[index]])
           mut_pos = MutationsPosition.find_or_create_by(mutation_id: mut.id, position_id: var_pos.id)
-
-          gene = Gene.find_or_create_by(name: ann[ANN_GENE_NAME], entrez_id: ann[ANN_GENE_ID])
+          gene_name = ann[ANN_GENE_NAME]
+          entrez_id = ann[ANN_GENE_ID]
+          gene = Gene.find_by(entrez_id: entrez_id)
+          gene = Gene.create(name: gene_name, entrez_id: entrez_id) if gene.nil?
           effect = ann[ANN_ANNOTATION]
           DisordersMutationsScore.find_or_create_by(patients_vcf_file_id: patient_vcf.id, score_id: score.id, mutations_position_id: mut_pos.id, value: cadd_score, genotype: genotype, position_id: var_pos.id, gene_id: gene.id)
           if effect.include? '&'
@@ -271,7 +274,7 @@ class VcfFile < ActiveRecord::Base
           hgvs = ann[ANN_FEATURE_ID] + ':' + ann[ANN_HGVS_C]
           MutationsHgvsCode.find_or_create_by(hgvs_code: hgvs, mutations_position_id: mut_pos.id)
 
-          hgvs_p = ann[ANN_HGVS_P] 
+          hgvs_p = ann[ANN_HGVS_P]
           if (not hgvs_p.include?("%3D")) and (not hgvs_p.include?("p.?"))
             MutationsHgvsCode.find_or_create_by(hgvs_code: hgvs_p, mutations_position_id: mut_pos.id)
           end
@@ -279,6 +282,7 @@ class VcfFile < ActiveRecord::Base
           snps = ident.split(',')
           if snps[0] != '.'
             snps.each do |snp_id|
+              next unless snp_id.include?("rs")
               snp = Dbsnp.find_or_create_by(snp_id:snp_id)
               ann_dbsnp = MutationsDbsnp.find_or_create_by(dbsnp_id:snp.id, mutations_position_id:mut_pos.id)
             end
@@ -325,8 +329,6 @@ class VcfFile < ActiveRecord::Base
   ##---------------------------------------------------------------------
   def get_cadd(cadd_str)
     cadd = 0
-    puts '------------------'
-    puts cadd_str
     if cadd_str.include? '|'
       cadd_array = cadd_str.split('|')
       cadd_tmp = []
@@ -347,7 +349,6 @@ class VcfFile < ActiveRecord::Base
       cadd = cadd_tmp.max.to_f
     else
       cadd = cadd_str.to_f
-      puts cadd
     end
     return cadd
   end

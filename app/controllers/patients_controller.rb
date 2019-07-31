@@ -1,19 +1,28 @@
 class PatientsController < ApplicationController
   before_action :set_patient, only: [:show, :edit, :update, :destroy]
-  before_action :check_access, only: [:show, :edit, :update, :destroy] 
-  before_action :check_read_only, only: [:edit, :update, :destroy] 
-  before_action :check_demo, only: [:index, :show, :edit, :update, :destroy] 
+  before_action :check_access, only: [:show, :edit, :update, :destroy]
+  before_action :check_read_only, only: [:edit, :update, :destroy]
+  before_action :check_demo, only: [:index, :show, :edit, :update, :destroy]
 
   # GET /patients
   # GET /patients.json
   def index
     user = current_user
-    sub_ids = []
     if not current_user.admin
+      lab_ids = []
+      user.labs.each do |lab|
+        lab_ids.push(lab.id)
+      end
       if params[:result] == "true"
-        @patients = user.patients.where(result: true).order(:case_id).page(params[:page]).per(25)
+        patients = Patient.includes(:users_patients)
+          .where('result = true and (users_patients.user_id = ? or lab_id IN (?))', user.id, lab_ids)
+          .references(:users_patients)
+        @patients = patients.order(:case_id).page(params[:page]).per(25)
       else
-        @patients = user.patients.order(:case_id).page(params[:page]).per(25)
+        patients = Patient.includes(:users_patients)
+          .where('users_patients.user_id = ? or lab_id IN (?)', user.id, lab_ids)
+          .references(:users_patients)
+        @patients = patients.order(:case_id).page(params[:page]).per(25)
       end
     else
       if params[:result] == "true"
@@ -27,14 +36,57 @@ class PatientsController < ApplicationController
   # GET /patients/1
   # GET /patients/1.json
   def show
-      @diagnosed_disorders = @patient.get_selected_disorders 
-      @detected_disorders = @patient.get_detected_disorders 
-      @gene = @patient.pedia.limit(10).order("pedia_score DESC") 
-      @causing_muts = @patient.disease_causing_mutations
-      result_link = @patient.result_figures.take
-      if !result_link.nil?
-        @result_link = result_link.link.split('/')[-1]
+    @diagnosed_disorders = @patient.get_selected_disorders
+    @detected_disorders = @patient.get_detected_disorders
+    #@gene = @patient.pedia.order("pedia_score DESC")
+    @pedia_service = @patient.pedia_services.last
+    if @pedia_service.nil?
+      @gene = @patient.pedia.order("pedia_score DESC")
+      if @gene.count > 0
+        gon.results = get_pedia_json(@gene)
       end
+    else
+      @gene = @pedia_service.pedia.order("pedia_score DESC")
+      gon.results = get_pedia_json(@gene)
+    end
+    @pedia_status = get_status(@patient, @gene)
+    @causing_muts = @patient.disease_causing_mutations
+  end
+
+  def get_status(patient, gene)
+    status = 0
+    if patient.pedia_services.count == 0 and gene.count > 0
+      status = 1
+    elsif patient.pedia_services.count == 0
+      status = 0
+    elsif patient.pedia_services.last.pedia_status.pedia_complete?
+      status = 1
+    elsif patient.pedia_services.last.pedia_status.pedia_failed?
+      status = 2
+    else
+      status = 3
+    end
+    return status
+  end
+
+  def get_pedia_json(results)
+    pedia = []
+    results.each do |result|
+      gene = result.gene
+      label = result.label
+      if label.nil?
+        label = 0
+      end
+      tmp = {entrez_id: gene.entrez_id,
+             pedia_score: result.pedia_score,
+             gene_symbol: gene.name,
+             label: label,
+             pos: gene.pos,
+             chr: gene.chr
+            }
+      pedia.push(tmp)
+    end
+    return pedia
   end
 
   def get_img
@@ -107,29 +159,33 @@ class PatientsController < ApplicationController
         format.html { render :new }
         format.json { render json: @patient.errors, status: :unprocessable_entity }
       end
-    end          
-
-    #end
+    end
   end
 
   # PATCH/PUT /patients/1
   # PATCH/PUT /patients/1.json
   def update
     if params[:file]
-      file = params[:file].read
-      data = JSON.parse(file)
-      ActiveRecord::Base.transaction do
-        @patient = Patient.find_by(case_id: data['case_id'])
-        if @patient.valid?
-          @patient.update_json(data)
-          name = params[:file].original_filename
-          path = File.join("Data", "jsons", name)
-          File.open(path, "wb") { |f| f.write(file) }
+      dirname = File.join('Data', 'Received_VcfFiles', @patient.case_id.to_s)
+      dir = "#{Rails.root}/#{dirname}"
+      FileUtils.mkdir(dir) unless File.directory?(dir)
+      fname = params[:file].original_filename
+      f = "#{dir}/#{fname}"
+      vcf = UploadedVcfFile.find_by(patient_id: @patient.id, file_name: fname)
+      if vcf.nil?
+        FileUtils.cp_r(params[:file].tempfile.path, f)
+        vcf = UploadedVcfFile.create(patient_id: @patient.id, file_name: fname, user_id: current_user.id)
+      else
+        # check if VCF file is different from the original one
+        unless FileUtils.compare_file(f, params[:file].tempfile.path)
+          vcf.updated_at = Time.now.to_datetime
+          FileUtils.cp_r(params[:file].tempfile.path, f)
         end
       end
+      vcf.save
     end
     if usi_params
-      usi = UsiMaterialnr.find_or_create_by(patient_id:@patient.id)
+      usi = UsiMaterialnr.find_or_create_by(patient_id: @patient.id)
       usi.usi_id = usi_params[:usi_id]
       usi.materialnr = usi_params[:materialnr]
       usi.save
@@ -155,6 +211,47 @@ class PatientsController < ApplicationController
     end
   end
 
+  def download_file
+    name = File.basename(params[:name])
+    ext = File.extname(params[:name])
+    send_file(
+      File.join(params[:name]),
+      filename: name,
+      type: "application/" + ext
+    )
+  end
+
+  def remove_user
+    lab_user = User.find(params[:lab_user])
+    lab_user.destroy
+  end
+
+  def assign_user
+    username = params[:assign_user][:username]
+    id = params[:id]
+    @patient = Patient.find(id)
+    user = User.find_by_username(username)
+    if user.nil?
+      respond_to do |format|
+        flash[:notice] = 'User not found! Please check username.'
+        format.html { render :edit }
+      end
+    else
+      if user.patients.exists?(@patient.id)
+        respond_to do |format|
+          flash[:notice] = 'User already has this patient.'
+          format.html { render :edit }
+        end
+      else
+        respond_to do |format|
+          user.patients << @patient
+          format.html { redirect_to @patient, notice: 'Patient was successfully updated.' }
+          format.json { render :show, status: :ok, location: @patient }
+        end
+      end
+    end
+  end
+
   private
   # Use callbacks to share common setup or constraints between actions.
   def set_patient
@@ -176,11 +273,19 @@ class PatientsController < ApplicationController
       user = current_user
       if user.patients.exists?(@patient.id)
         access = true
+      else
+        lab_ids = []
+        user.labs.each do |lab|
+          lab_ids.push(lab.id)
+        end
+        if lab_ids.include? (@patient.lab_id)
+          access = true
+        end
       end
     else
       access = true
     end
-    if not access 
+    if not access
       flash[:alert] = 'You do not have permissions to enter this case!'
       redirect_back(fallback_location: root_path)
     end

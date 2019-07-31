@@ -29,6 +29,7 @@
       <% @searches.each do |search| %>
         <p>
         <b>Case id:</b><%= search.case_id%><br>
+        <b>Sample id:</b><%= search.sample_id%><br>
         <b>HPO:</b> 
         <% search.features.each do |feature| %>
           <%= feature.hpo_term%>
@@ -37,7 +38,7 @@
         <b>Disorder:</b>
         <% search.get_selected_disorders.each do |disorder|%>
           <tr>
-            <td><%= disorder.disorder.disorder_id %></td>
+            <td><%= disorder.disorder.omim_id %></td>
             <td><%= disorder.disorder.disorder_name %></td>
           </tr>
         <% end %>
