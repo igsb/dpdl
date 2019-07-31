@@ -27,6 +27,7 @@ https://pedia-study.org/api/auth?user=username&key=user_key
 
 ## Create patient
 **POST** https://pedia-study.org/api/patients
+
 ```
 https://pedia-study.org/api/patients
 
@@ -34,6 +35,7 @@ https://pedia-study.org/api/patients
 Authorization: Bearer {token you received}
 
 # Body
+# Please send the data in the following format.
 # If you want to use the exact format from PhenoBot, please contact us.
 {
   "case_data": {
