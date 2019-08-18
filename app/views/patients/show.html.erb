@@ -71,43 +71,55 @@
 
 <h3>Phenotypic Information</h3>
 <p>
-<% if @patient.features.count > 6 %>
+<% if @patient.patients_features.count > 6 %>
 <div style="height:350px;overflow:auto;">
 <table class='table borderless'>
   <thead>
     <tr>
       <th>HPO</th>
       <th>Description</th>
+      <th>Status</th>
       <th colspan="3"></th>
     </tr>
   </thead>
 
   <tbody>
-    <% @patient.features.each do |feature| %>
+    <% @patient.patients_features.each do |feature| %>
       <tr>
-        <td><%= feature.hpo_term %></td>
-        <td><%= feature.description %></td>
+        <td><%= feature.feature.hpo_term %></td>
+        <td><%= feature.feature.description %></td>
+        <% if feature.present %>
+          <td>Present</td>
+        <% else %>
+          <td>Absent</td>
+        <% end %>
       </tr>
     <% end %>
   </tbody>
 </table>
 </div>
-<% elsif @patient.features.count > 0 and @patient.features.count <= 6 %>
+<% elsif @patient.patients_features.count > 0 and @patient.patients_features.count <= 6 %>
 <div>
 <table class='table borderless'>
   <thead>
     <tr>
       <th>HPO</th>
       <th>Description</th>
+      <th>Status</th>
       <th colspan="3"></th>
     </tr>
   </thead>
 
   <tbody>
-    <% @patient.features.each do |feature| %>
+    <% @patient.patients_features.each do |feature| %>
       <tr>
-        <td><%= feature.hpo_term %></td>
-        <td><%= feature.description %></td>
+        <td><%= feature.feature.hpo_term %></td>
+        <td><%= feature.feature.description %></td>
+        <% if feature.present %>
+          <td>Present</td>
+        <% else %>
+          <td>Absent</td>
+        <% end %>
       </tr>
     <% end %>
   </tbody>
