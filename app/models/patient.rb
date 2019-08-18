@@ -248,25 +248,51 @@ class Patient < ApplicationRecord
   end
 
   def update_features(data)
-    features = parse_features(data)
-    new_features = features - self.features
-    remove_features = self.features - features
+    present_features, absent_features = parse_features(data)
+    present_patient_features = self.patients_features.where(present: true).pluck(:feature_id)
+    absent_patient_features = self.patients_features.where(present: false).pluck(:feature_id)
+    new_present_features = present_features - present_patient_features
+    new_absent_features = absent_features - absent_patient_features
+
+    remove_present_features = present_patient_features - present_features
+    remove_absent_features = absent_patient_features - absent_features
     # Add new features
-    self.features << new_features
+    new_present_features.each do |feature|
+      PatientsFeature.create(patient_id: self.id,
+                             feature_id: feature,
+                             present: true)
+    end
+    new_absent_features.each do |feature|
+      PatientsFeature.create(patient_id: self.id,
+                             feature_id: feature,
+                             present: false)
+    end
     # Remove features
-    remove_features.each do |feature|
-      self.features.delete(feature.id)
+    remove_present_features.each do |feature|
+      PatientsFeature.where(patient_id: self.id,
+                            feature_id: feature,
+                            present: true).delete_all
+    end
+    remove_absent_features.each do |feature|
+      PatientsFeature.where(patient_id: self.id,
+                            feature_id: feature,
+                            present: false).delete_all
     end
   end
 
   def parse_features(features)
-    feature_array = Array.new
+    present_feature_array = Array.new
+    absent_feature_array = Array.new
     features.each do |feature|
       hpo = feature['feature']['hpo_full_id']
       hpo_result = Feature.find_or_create_by(hpo_term: hpo)
-      feature_array.push(hpo_result)
+      if feature['is_present'] == '1'
+        present_feature_array.push(hpo_result.id)
+      else
+        absent_feature_array.push(hpo_result.id)
+      end
     end
-    return feature_array
+    return present_feature_array, absent_feature_array
   end
 
   def parse_detected(data)
