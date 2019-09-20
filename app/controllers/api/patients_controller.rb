@@ -39,6 +39,25 @@ class Api::PatientsController < Api::BaseController
           patient = Patient.create_patient(content)
           msg = { msg: MSG_CASE_CREATED }
         else
+          # Check if there is pedia service running to avoid
+          # overwriting the data
+          p_services = patient.pedia_services
+          unless p_services.empty?
+            p_service = p_services.last
+            p_status = p_service.pedia_status
+            if p_status.workflow_running?
+              msg = { msg: MSG_PEDIA_RUNNING_TRY_LATER }
+              respond_to do |format|
+                format.json { render plain: msg.to_json,
+                              status: 400,
+                              content_type: 'application/json'
+                            }
+              end
+              return
+            end
+          end
+
+          # Update patient data
           patient.update_json(content['case_data'])
           msg = { msg: MSG_CASE_UPDATE }
         end
