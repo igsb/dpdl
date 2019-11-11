@@ -16,6 +16,11 @@ PEDIA_PHENO_DIR = "jsons/phenomized"
 PEDIA_VCF_DIR = "vcfs/original"
 PEDIA_ANN_VCF_DIR = "vcfs/annotated_vcfs"
 
+if 'sample_index' in config:
+	sample_index = config['sample_index']
+else:
+	sample_index = '0'
+
 def get_process_vcf(wc):
 	configfile: "Data/Received_JsonFiles/%s/%s.json" % (wc.lab, wc.case)
 	docs = config['documents']
@@ -62,11 +67,12 @@ rule pedia:
 	params:
 		dir = os.path.join(PEDIA_OUTPUT, "{lab}"),
 		script = os.path.join(PEDIA_DIR, "pedia.py"),
-		work_dir = PEDIA_DIR
+		work_dir = PEDIA_DIR,
+		vcf_sample_index = sample_index
 	shell:
 		"""
 		cd {params.work_dir}
-		python {params.script} --aws-format -s {input.json} -o {params.dir} -v {input.vcf}
+		python {params.script} --aws-format -s {input.json} -o {params.dir} -v {input.vcf} --vcf-sample-index {params.vcf_sample_index}
 		"""
 
 rule cpoy_results:

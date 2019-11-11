@@ -82,7 +82,8 @@ class PediaService < ApplicationRecord
     self.pedia_status_id = PediaStatus.find_by(status: PediaStatus::WORKFLOW_RUNNING).id
     self.save
     result_path = File.join(service_path, lab_id, case_id, pedia_id.to_s, case_id + '.csv')
-    cmd = ['.', activate_path, 'pedia;', snakemake_path, result_path].join ' '
+    sample_config = '--config sample_index=' + self.vcf_sample_index.to_s
+    cmd = ['.', activate_path, 'pedia;', snakemake_path, result_path, sample_config].join ' '
     out_log = File.join(log_path, 'workflow.log')
     #logger = Logger.new(out_log)
     Open3.popen3(cmd) do |stdin, stdout, stderr, thread|

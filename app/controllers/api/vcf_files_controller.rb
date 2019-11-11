@@ -21,6 +21,12 @@ class Api::VcfFilesController < Api::BaseController
     lab_f2g_id = params[:lab_id]
     lab = Lab.find_by_lab_f2g_id(lab_f2g_id)
     lab_id = lab.id unless lab.nil?
+    sample_index = params[:sample_index]
+    if sample_index.nil? or (sample_index.to_i < 0)
+      sample_index = 0
+    else
+      sample_index = sample_index.to_i
+    end
 
     # check if the corresponding case is alredy created
     p = Patient.find_by(case_id: case_id, lab_id: lab_id)
@@ -55,7 +61,8 @@ class Api::VcfFilesController < Api::BaseController
     status = PediaStatus.find_by(status: PediaStatus::INIT)
     service = PediaService.create(user_id: user.id,
                                   patient_id: p.id,
-                                  pedia_status_id: status.id)
+                                  pedia_status_id: status.id,
+                                  vcf_sample_index: sample_index)
 
     # Data/Received_VcfFiles/case_id/
     dirname = File.join('Data', 'PEDIA_service/labs', lab_id.to_s, case_id.to_s, service.id.to_s)
