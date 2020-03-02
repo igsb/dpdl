@@ -98,9 +98,9 @@ class Patient < ApplicationRecord
     return output.to_json
   end
 
-  def self.create_patient(content)
+  def self.create_patient(content, consumer_id)
     submitter = self.parse_user(content)
-    lab = self.parse_lab(content)
+    lab = self.parse_lab(content, consumer_id)
     patient = Patient.create(case_id: content['case_data']['case_id'],
                              submitter_id: submitter.id,
                              lab_id: lab.id)
@@ -122,7 +122,7 @@ class Patient < ApplicationRecord
     return patient
   end
 
-  def self.parse_lab(content)
+  def self.parse_lab(content, consumer_id)
     # if contain lab info -> return lab
     # else return default lab
     if content['case_data'].has_key? 'lab_info'
@@ -133,13 +133,14 @@ class Patient < ApplicationRecord
       lab_email = info['lab_email']
       lab_country = info['lab_country']
 
-      lab = Lab.find_by_lab_f2g_id(lab_f2g_id)
+      lab = Lab.find_by(lab_f2g_id: lab_f2g_id, api_consumer_id: consumer_id)
       if lab.nil?
         lab = Lab.create(lab_f2g_id: lab_f2g_id,
                   name: lab_name,
                   contact: lab_contact,
                   email: lab_email,
-                  country: lab_country)
+                  country: lab_country,
+                  api_consumer_id: consumer_id)
       end
     else
       lab = Lab.find_by_lab_f2g_id(-1)

@@ -8,7 +8,7 @@ class Api::PatientsController < Api::BaseController
   # read the request body, parse the json and create a new patient record
   def create
     original_content = JSON.parse request.body.read
-    if original_content.key? ('source') and original_content['source'] == 'GeneTalk'
+    if original_content.key? ('source') and (original_content['source'] == 'GeneTalk' or original_content['source'] == 'Phenobot')
       content = JSON.parse Patient.convert(original_content)
     else
       content = original_content
@@ -32,11 +32,11 @@ class Api::PatientsController < Api::BaseController
     msg = {}
     begin
       ActiveRecord::Base.transaction do
-        lab = Patient.parse_lab(content)
-        puts ' parse lab'
+        consumer_id = get_consumer_id()
+        lab = Patient.parse_lab(content, consumer_id)
         patient = Patient.find_by(case_id: patient_id, lab_id: lab.id)
         if patient.nil?
-          patient = Patient.create_patient(content)
+          patient = Patient.create_patient(content, consumer_id)
           msg = { msg: MSG_CASE_CREATED }
         else
           # Check if there is pedia service running to avoid
@@ -98,7 +98,8 @@ class Api::PatientsController < Api::BaseController
   def get_results
     case_id = params[:case_id]
     lab_f2g_id = params[:lab_id]
-    lab = Lab.find_by_lab_f2g_id(lab_f2g_id)
+    consumer_id = get_consumer_id()
+    lab = Lab.find_by(lab_f2g_id: lab_f2g_id, api_consumer_id: consumer_id)
     lab_id = lab.id.to_s
     tmp_file = File.join('Data/tmp/', lab_id, case_id + '.json')
     data = File.read(tmp_file)
@@ -112,7 +113,8 @@ class Api::PatientsController < Api::BaseController
   def create_json
     case_id = params[:case_id]
     lab_f2g_id = params[:lab_id]
-    lab = Lab.find_by_lab_f2g_id(lab_f2g_id)
+    consumer_id = get_consumer_id()
+    lab = Lab.find_by(lab_f2g_id: lab_f2g_id, api_consumer_id: consumer_id)
     if lab.nil?
       msg = { msg: MSG_NO_PEDIA_CASE }
       status = 400
@@ -193,7 +195,8 @@ class Api::PatientsController < Api::BaseController
   def destroy
     case_id = params[:id]
     lab_f2g_id = params[:lab_id]
-    lab = Lab.find_by_lab_f2g_id(lab_f2g_id)
+    consumer_id = get_consumer_id()
+    lab = Lab.find_by(lab_f2g_id: lab_f2g_id, api_consumer_id: consumer_id)
     lab_id = lab.id unless lab.nil?
     p = Patient.find_by(case_id: case_id, lab_id: lab_id)
     if p.nil?
@@ -223,6 +226,12 @@ class Api::PatientsController < Api::BaseController
                     }
       end
     end
+  end
+
+  def get_consumer_id
+    api_token, options = ActionController::HttpAuthentication::Token.token_and_options(request)
+    token = ApiKey.where(access_token: api_token).first
+    return token.api_consumer_id
   end
 
   def authenticate_token
