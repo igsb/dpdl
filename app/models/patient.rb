@@ -71,6 +71,18 @@ class Patient < ApplicationRecord
       features.append out_feature
     end
 
+    if content['lab_info']['lab_name'] == 'GeneTalk'
+      user_email = 'tom@gene-talk.de'
+    else
+      user_email = content['posting_user']['userEmail']
+    end
+
+    if content['posting_user'].has_key? 'userInstitution':
+      institute = content['posting_user']['userInstitution']
+    else
+      institute = ''
+    end
+
     case_data = {
       'case_id': content['case_id'],
       'user_selected': content['user_selected'],
@@ -83,18 +95,14 @@ class Patient < ApplicationRecord
       'team': {},
       'posting_user': {
          'userDisplayName': content['posting_user']['userDisplayName'],
-         'userInstitution': 'GeneTalk',
-         'userEmail': 'tom@gene-talk.de',
-         'userPhone': nil,
-         'userCountry': 'Germany',
-         'userState': nil
+         'userEmail': user_email,
+         'userInstitution': institute
         }
     }
 
     output = {
       'case_data': case_data
     }
-
     return output.to_json
   end
 
@@ -127,15 +135,15 @@ class Patient < ApplicationRecord
     # else return default lab
     if content['case_data'].has_key? 'lab_info'
       info = content['case_data']['lab_info']
-      lab_f2g_id = info['lab_id']
+      lab_external_id = info['lab_id']
       lab_name = info['lab_name']
       lab_contact = info['lab_contact']
       lab_email = info['lab_email']
       lab_country = info['lab_country']
 
-      lab = Lab.find_by(lab_f2g_id: lab_f2g_id, api_consumer_id: consumer_id)
+      lab = Lab.find_by(lab_external_id: lab_external_id, api_consumer_id: consumer_id)
       if lab.nil?
-        lab = Lab.create(lab_f2g_id: lab_f2g_id,
+        lab = Lab.create(lab_external_id: lab_external_id,
                   name: lab_name,
                   contact: lab_contact,
                   email: lab_email,
@@ -143,7 +151,7 @@ class Patient < ApplicationRecord
                   api_consumer_id: consumer_id)
       end
     else
-      lab = Lab.find_by_lab_f2g_id(-1)
+      lab = Lab.find_by_lab_external_id(-1)
     end
 
     return lab
@@ -155,7 +163,6 @@ class Patient < ApplicationRecord
       user = content['case_data']['posting_user']
       user_name = user['userDisplayName']
       user_email = user['userEmail']
-      user_institute = user['userInstitution']
     else
       user_name = "Mr. FDNA LAB"
       user_email = "fdna@fdna.com"

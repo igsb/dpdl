@@ -18,9 +18,9 @@ class Api::VcfFilesController < Api::BaseController
 
     fname = File.basename(params[:file].original_filename)
     case_id = params[:case_id]
-    lab_f2g_id = params[:lab_id]
+    lab_external_id = params[:lab_id]
     consumer_id = get_consumer_id()
-    lab = Lab.find_by(lab_f2g_id: lab_f2g_id, api_consumer_id: consumer_id)
+    lab = Lab.find_by(lab_external_id: lab_external_id, api_consumer_id: consumer_id)
     lab_id = lab.id unless lab.nil?
     sample_index = params[:sample_index]
     if sample_index.nil? or (sample_index.to_i < 0)
@@ -126,9 +126,9 @@ class Api::VcfFilesController < Api::BaseController
   # GET /get_QCreport
   def get_quality_report
     case_id = params[:case_id].to_i
-    lab_f2g_id = params[:lab_id]
+    lab_external_id = params[:lab_id]
     consumer_id = get_consumer_id()
-    lab = Lab.find_by(lab_f2g_id: lab_f2g_id, api_consumer_id: consumer_id)
+    lab = Lab.find_by(lab_external_id: lab_external_id, api_consumer_id: consumer_id)
     lab_id = lab.id unless lab.nil?
     patient = Patient.find_by(case_id: case_id, lab_id: lab_id)
     pdf_report = nil
@@ -173,9 +173,9 @@ class Api::VcfFilesController < Api::BaseController
   # DELETE /vcf_files/id
   def destroy
     case_id = params[:id]
-    lab_f2g_id = params[:lab_id]
+    lab_external_id = params[:lab_id]
     consumer_id = get_consumer_id()
-    lab = Lab.find_by(lab_f2g_id: lab_f2g_id, api_consumer_id: consumer_id)
+    lab = Lab.find_by(lab_external_id: lab_external_id, api_consumer_id: consumer_id)
     lab_id = lab.id unless lab.nil?
     p = Patient.find_by(case_id: case_id, lab_id: lab_id)
 

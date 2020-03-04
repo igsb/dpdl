@@ -97,9 +97,9 @@ class Api::PatientsController < Api::BaseController
   #get the results, for the specified case id and send it as a response
   def get_results
     case_id = params[:case_id]
-    lab_f2g_id = params[:lab_id]
+    lab_external_id = params[:lab_id]
     consumer_id = get_consumer_id()
-    lab = Lab.find_by(lab_f2g_id: lab_f2g_id, api_consumer_id: consumer_id)
+    lab = Lab.find_by(lab_external_id: lab_external_id, api_consumer_id: consumer_id)
     lab_id = lab.id.to_s
     tmp_file = File.join('Data/tmp/', lab_id, case_id + '.json')
     data = File.read(tmp_file)
@@ -112,9 +112,9 @@ class Api::PatientsController < Api::BaseController
 
   def create_json
     case_id = params[:case_id]
-    lab_f2g_id = params[:lab_id]
+    lab_external_id = params[:lab_id]
     consumer_id = get_consumer_id()
-    lab = Lab.find_by(lab_f2g_id: lab_f2g_id, api_consumer_id: consumer_id)
+    lab = Lab.find_by(lab_external_id: lab_external_id, api_consumer_id: consumer_id)
     if lab.nil?
       msg = { msg: MSG_NO_PEDIA_CASE }
       status = 400
@@ -194,9 +194,9 @@ class Api::PatientsController < Api::BaseController
   #DELETE /patients/id
   def destroy
     case_id = params[:id]
-    lab_f2g_id = params[:lab_id]
+    lab_external_id = params[:lab_id]
     consumer_id = get_consumer_id()
-    lab = Lab.find_by(lab_f2g_id: lab_f2g_id, api_consumer_id: consumer_id)
+    lab = Lab.find_by(lab_external_id: lab_external_id, api_consumer_id: consumer_id)
     lab_id = lab.id unless lab.nil?
     p = Patient.find_by(case_id: case_id, lab_id: lab_id)
     if p.nil?
